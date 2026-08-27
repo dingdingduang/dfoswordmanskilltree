@@ -1,0 +1,164 @@
+package net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.humanoidlayer;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.humanoidlayer.models.KatanaModel;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.entity.LivingEntity;
+import modified.org.joml.Quaternionf;
+import modified.org.joml.Vector3f;
+
+public class SkillEffLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+    public static final ModelLayerLocation KATANA_OFFHAND_TEXTURE = new ModelLayerLocation(new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, "textures/entity/skilleff/blademaster/secret_sword_art/offhand_layer/katana/katana_0.png"), "katanaoffhandlayer");
+
+    private final float KatanaOffhandLeftHandOffsetY = 9.55F;
+
+    private KatanaModel<LivingEntity> katanaOffhandModel;
+
+    public static final ModelLayerLocation LIGHTSABRE_OFFHAND_TEXTURE = new ModelLayerLocation(new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, "textures/entity/skilleff/blademaster/secret_sword_art/offhand_layer/lightsabre/lightsabre_0.png"), "lightsabreoffhandlayer");
+
+    public SkillEffLayer(LivingEntityRenderer<T, M> pRenderer) {
+        super(pRenderer);
+        this.katanaOffhandModel = new KatanaModel<>(KatanaModel.createLeftOffHandLayer().bakeRoot());
+    }
+
+
+    @Override
+    public void render(PoseStack pPoseStack, MultiBufferSource bufferSource, int packedLight, T pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        pPoseStack.pushPose();
+
+        //init
+//        this.katanaOffhandModel = new KatanaModel<>(KatanaModel.createLeftOffHandLayer().bakeRoot());
+        HumanoidLayerRegistry.registerLayerModel(pLivingEntity, this.katanaOffhandModel);
+
+//        pPoseStack.scale(0.75F, 0.75F, 0.75F);
+//        pPoseStack.translate(0F, Math.sin(pLivingEntity.tickCount * 0.1F) * 0.05F, 0F);
+//        pPoseStack.translate(0F, -12F, 0F);
+//        pPoseStack.translate(0.125F, -0.1875F, -1.625F);
+
+//        pPoseStack.translate(0.125F + testPressKeyTranslateRot.tempFloatNewX / 16F, -0.1875F + testPressKeyTranslateRot.tempFloatNewY / 16F, -1.625F + testPressKeyTranslateRot.tempFloatNewZ / 16F);
+
+//        pPoseStack.translate(testPressKeyTranslateRot.tempFloatNewX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+
+//        printInGameMsg(String.format("x: %.3f, y: %.3f, z: %.3f", this.katanaOffhandModel.leftArm.x, this.katanaOffhandModel.leftArm.y, this.katanaOffhandModel.leftArm.z));
+
+        ModelPart bone = this.katanaOffhandModel.getTempLeftHand();
+        if (bone != null) {
+            setupTranslation(pPoseStack, bufferSource, pLivingEntity, bone);
+        }
+
+        pPoseStack.popPose();
+    }
+
+//    public void setupPivotXYZ(PoseStack pPoseStack, MultiBufferSource bufferSource, T pLivingEntity, ModelPart bone) {
+//        pPoseStack.pushPose();
+////        pPoseStack.translate(testPressKeyTranslateRot.tempFloatNewX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+//
+//        setupTranslation(pPoseStack, bufferSource, pLivingEntity, bone);
+//        pPoseStack.popPose();
+//    }
+
+    public void setupTranslation(PoseStack pPoseStack, MultiBufferSource bufferSource, T pLivingEntity, ModelPart bone) {
+        pPoseStack.pushPose();
+        pPoseStack.translate(bone.x / 16F, bone.y / 16F, bone.z / 16F);
+
+        setupRotation(pPoseStack, bufferSource, pLivingEntity, bone);
+        pPoseStack.popPose();
+    }
+
+    public void setupRotation(PoseStack pPoseStack, MultiBufferSource bufferSource, T pLivingEntity, ModelPart bone) {
+        pPoseStack.pushPose();
+
+        Quaternionf rotator;
+        if (bone.zRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisZN = new Vector3f(0, 0, 1);
+            rotator.rotationAxis(bone.zRot, AxisZN);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+//            rotator.rotationAxis(bone.zRot, AxisZN);
+//            pPoseStack.rotateAround(rotator, 0, 0, testPressKeyTranslateRot.tempFloatNewRotZ);
+        }
+
+        if (bone.yRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisYP = new Vector3f(0, 1, 0);
+            rotator.rotationAxis(bone.yRot, AxisYP);
+//            pPoseStack.rotateAround(rotator, 0, testPressKeyTranslateRot.tempFloatNewRotY, 0);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+        }
+
+        if (bone.xRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisXN = new Vector3f(1, 0, 0);
+            rotator.rotationAxis(bone.xRot, AxisXN);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewRotX, 0, 0);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+        }
+
+        finalRenderItem(pPoseStack, bufferSource, pLivingEntity, bone);
+        pPoseStack.popPose();
+    }
+
+    public void finalRenderItem(PoseStack pPoseStack, MultiBufferSource bufferSource, T pLivingEntity, ModelPart bone) {
+        pPoseStack.pushPose();
+
+
+//        pPoseStack.translate(testPressKeyTranslateRot.tempFloatNewX / 16F, KatanaOffhandLeftHandOffsetY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+        pPoseStack.translate(0, KatanaOffhandLeftHandOffsetY / 16F, 0);
+
+        pPoseStack.pushPose();
+
+        Quaternionf rotator;
+
+//        rotator = new Quaternionf();
+//        Vector3f AxisZN = new Vector3f(0, 0, -1);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotZ), AxisZN);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+//
+//        rotator = new Quaternionf();
+//        Vector3f AxisYP = new Vector3f(0, 1, 0);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotY), AxisYP);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+//
+//        rotator = new Quaternionf();
+//        Vector3f AxisXN = new Vector3f(-1, 0, 0);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotX), AxisXN);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+        rotator = new Quaternionf();
+        Vector3f AxisZN = new Vector3f(0, 0, -1);
+        rotator.rotationAxis(MathMethods.HALF_PI, AxisZN);
+        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+//        rotator = new Quaternionf();
+//        Vector3f AxisYP = new Vector3f(0, 1, 0);
+//        rotator.rotationAxis(0, AxisYP);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+        rotator = new Quaternionf();
+        Vector3f AxisXN = new Vector3f(-1, 0, 0);
+        rotator.rotationAxis(-MathMethods.HALF_PI, AxisXN);
+        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+        katanaOffhandModel.renderToBuffer(pPoseStack, bufferSource.getBuffer(RenderType.entityTranslucentCull(getKatanaOffhandTexture().getModel())), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 1F, 1F, 1F, (float) (0.75F + (Math.cos(pLivingEntity.tickCount * 0.1F) * 0.25F)));
+
+
+        pPoseStack.popPose();
+
+        pPoseStack.popPose();
+    }
+
+    public ModelLayerLocation getKatanaOffhandTexture() {
+        return KATANA_OFFHAND_TEXTURE;
+    }
+}

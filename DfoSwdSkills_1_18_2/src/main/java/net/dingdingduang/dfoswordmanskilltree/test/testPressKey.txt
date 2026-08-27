@@ -1,0 +1,79 @@
+package net.dingdingduang.dfoswordmanskilltree.test;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.networking.packet.SendTest000ToServer;
+import net.dingdingduang.dfoswordmanskilltree.networking.packet.SendTest001ToServer;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraft.network.chat.Component;
+import modified.org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
+
+import net.dingdingduang.dfoswordmanskilltree.networking.DfoSwdNetworkingMsgInitialization;
+
+import java.util.HashMap;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.particle.ParticleMethods.GenerateHitParticle;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public class testPressKey {
+    public static final KeyMapping STBasicLibs_TestKeyEvent =
+            new KeyMapping(
+                    "key.display_STBasicLibsMod", GLFW.GLFW_KEY_H, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestUnitEvent =
+            new KeyMapping(
+                    "key.display_STBasicLibsMod2", GLFW.GLFW_KEY_J, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    @SubscribeEvent
+    public static void registerKeyMappingsEvent(RegisterKeyMappingsEvent event) {
+        event.register(STBasicLibs_TestKeyEvent);
+        event.register(STBasicLibs_TestUnitEvent);
+    }
+
+    static int tempint = 0;
+    static float tempfloat = 0.0f;
+    public static int tempinti1 = 0;
+
+    public static float tempfloat22 = 0.0f;
+
+    public static HashMap<KeyMapping, InputConstants.Key> previousKeyMappingSetting = new HashMap<>();
+
+    @Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, value = Dist.CLIENT)
+    private static class InputEvents {
+        @SubscribeEvent
+        public static void inputEvent(InputEvent.KeyInputEvent event) {
+            Minecraft minecraft = getMinecraftInstance();
+            Player player = minecraft.player;
+            if (player == null || minecraft.screen != null) return;
+//            if (event.getKey() == STBasicLibs_TestKeyEvent.getKey().getValue()) {
+            if (STBasicLibs_TestKeyEvent.isDown()) {
+                player.sendSystemMessage(Component.translatable("STBasicLibsMod.test.prompt"));
+                player.sendSystemMessage(Component.literal(String.valueOf(testPrintTime.PrintTime())));
+
+                Vector3f playerPos = Vector3fMethods.convertMCVec3fToVector3f(player.position());
+                Vector3f polarPos = Vector3fMethods.PolarProjectionFromVecHorizon(playerPos, 1, getEntityHorizontalFacingDeg(player));
+//                GenerateSwordStabParticles(polarPos.x(), polarPos.y(), polarPos.z(), 3, getEntityHorizontalFacingDeg(player));
+                GenerateHitParticle(polarPos.x(), polarPos.y()+1f, polarPos.z(), 10);
+
+                tempinti1 = (tempinti1 + 1) % 5;
+                DfoSwdNetworkingMsgInitialization.sendToServer(new SendTest001ToServer(tempfloat));
+            }
+//            if (event.getKey() == STBasicLibs_TestUnitEvent.getKey().getValue()) {
+            if (STBasicLibs_TestUnitEvent.isDown()) {
+
+                DfoSwdNetworkingMsgInitialization.sendToServer(new SendTest000ToServer());
+            }
+        }
+    }
+}

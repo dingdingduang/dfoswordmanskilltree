@@ -1,0 +1,132 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.hiteff;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.VertexConsumer;
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.globalvalues.GlobalClientMaps;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Identifier;
+import net.minecraft.entity.Entity;
+import org.jetbrains.annotations.Nullable;
+import modified.org.joml.Quaternionf;
+import modified.org.joml.Vector3f;
+import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
+import software.bernie.geckolib3.core.util.Color;
+import software.bernie.geckolib3.geo.render.built.GeoModel;
+import net.minecraft.util.math.Quaternion;
+import net.minecraft.client.render.OverlayTexture;
+import software.bernie.geckolib3.model.provider.data.EntityModelData;
+import software.bernie.geckolib3.renderers.geo.GeoProjectilesRenderer;
+
+import java.util.Collections;
+
+import static net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants.COLOR_1_OVER_255_PERCENT;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.util.QuaternionHelper.QuatRotationByAxis;
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.getMinecraftInstance;
+
+public class HitEffRenderer extends GeoProjectilesRenderer<HitEffEntity> {
+    public HitEffRenderer(EntityRendererFactory.Context renderManager) {
+        super(renderManager, new HitEffModel());
+        this.shadowOpacity = 0.0f;
+    }
+
+    @Override
+    public int getBlockLight(HitEffEntity pEntity, BlockPos pPos) {
+        return 15;
+    }
+
+    @Override
+    public Identifier getTextureLocation(HitEffEntity instance) {
+        if (instance.getClientTotalFrameIndexHelper() == null) {
+            int totalTickTime = instance.getMaxLifetime();
+            int totalFrame = instance.getTotalFrame();
+            int[] tempIndexHelperArr = new int[totalTickTime];
+            float roundNum = 1.0f * totalTickTime / totalFrame;
+
+            for (int i = totalTickTime; i >= 1; i--) {
+                tempIndexHelperArr[totalTickTime - i] = (int) (totalFrame - (i / roundNum));
+            }
+
+            instance.setClientTotalFrameIndexHelper(tempIndexHelperArr);
+        }
+
+        String resPath = instance.getTextureName() + instance.getClientTotalFrameIndexHelper()[instance.getMaxLifetime() - Math.max(instance.getLifetime(), 1)] + DfoSwordmanSkillTreeConstants.PNG_POSTFIX;
+        return GlobalClientMaps.getReusableResourceByStringID(resPath);
+    }
+
+    @Override
+    public RenderLayer getRenderType(HitEffEntity animatable, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, VertexConsumer buffer, int packedLight, Identifier texture) {
+        return RenderLayer.getEntityTranslucent(getTextureLocation(animatable));
+    }
+
+    @Override
+    public void render(HitEffEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+        this.animatable = entity;
+        //client move
+        if (entity.isBoundToEntity() && entity.getOwner() != null) {
+            Vector3f lerpVec = getEntityClientPosWithPartialTicks(entity.getOwner(), partialTick).add(entity.getTargetPosX(), entity.getTargetPosY(), entity.getTargetPosZ());
+            moveEntityToPos(entity, lerpVec);
+        }
+        poseStack.push();
+
+        Entity camEntity = getMinecraftInstance().getCameraEntity();
+        if (camEntity != null) {
+            Quaternionf rotatorY = new Quaternionf();
+            QuatRotationByAxis(rotatorY, MathMethods.AngleToRadians(getEntityHorizontalFacingDeg(camEntity)), 0f, -1.0f, 0f);
+
+            Quaternionf rotatorX = new Quaternionf();
+            QuatRotationByAxis(rotatorX, MathMethods.AngleToRadians(getEntityVerticalFacingDeg(camEntity)), 1.0f, 0f, 0f);
+            rotatorY.mul(rotatorX);
+
+            Quaternion mojangQuaternionY = new Quaternion(rotatorY.x, rotatorY.y, rotatorY.z, rotatorY.w);
+            poseStack.multiply(mojangQuaternionY);
+            float scale = entity.getEntityScale();
+            if (scale != 1) {
+                poseStack.scale(scale, scale, scale);
+            }
+
+            poseStack.push();
+            //rotate Z deg
+            Quaternionf rotatorZ = new Quaternionf();
+            QuatRotationByAxis(rotatorZ, MathMethods.AngleToRadians(entity.getRotationDegreeZ()), 0f, 0f, -1f);
+            Quaternion mojangQuaternionZ = new Quaternion(rotatorZ.x, rotatorZ.y, rotatorZ.z, rotatorZ.w);
+            poseStack.multiply(mojangQuaternionZ);
+
+            var predicate = new AnimationEvent<>(entity, 0, 0, partialTick,
+                    false, Collections.singletonList(new EntityModelData()));
+
+            this.modelProvider.setCustomAnimations(entity, getInstanceId(entity), predicate);
+            RenderSystem.setShaderTexture(0, getTextureLocation(entity));
+
+            GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(entity));
+            Color color = Color.WHITE;
+            super.render(model, entity, partialTick, RenderLayer.getEntityTranslucent(getTextureLocation(entity)), poseStack, bufferSource, (VertexConsumer)null, packedLight, OverlayTexture.DEFAULT_UV, color.getRed() * COLOR_1_OVER_255_PERCENT, color.getGreen() * COLOR_1_OVER_255_PERCENT, color.getBlue() * COLOR_1_OVER_255_PERCENT, color.getAlpha() * COLOR_1_OVER_255_PERCENT);
+
+            poseStack.pop();
+
+            poseStack.pop();
+        }
+        else {
+//        this.defaultRender(poseStack, entity, bufferSource, (RenderType) null, (VertexConsumer) null, entityYaw, partialTick, packedLight);
+
+            var predicate = new AnimationEvent<>(entity, 0, 0, partialTick,
+                    false, Collections.singletonList(new EntityModelData()));
+
+            this.modelProvider.setCustomAnimations(entity, getInstanceId(entity), predicate);
+            RenderSystem.setShaderTexture(0, getTextureLocation(entity));
+
+            GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(entity));
+            Color color = Color.WHITE;
+            super.render(model, entity, partialTick, RenderLayer.getEntityTranslucent(getTextureLocation(entity)), poseStack, bufferSource, (VertexConsumer)null, packedLight, OverlayTexture.DEFAULT_UV, color.getRed() * COLOR_1_OVER_255_PERCENT, color.getGreen() * COLOR_1_OVER_255_PERCENT, color.getBlue() * COLOR_1_OVER_255_PERCENT, color.getAlpha() * COLOR_1_OVER_255_PERCENT);
+
+            poseStack.pop();
+        }
+    }
+}

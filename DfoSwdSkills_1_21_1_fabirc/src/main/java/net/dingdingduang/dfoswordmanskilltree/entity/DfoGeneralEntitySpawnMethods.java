@@ -1,0 +1,58 @@
+package net.dingdingduang.dfoswordmanskilltree.entity;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelRegistryName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer.clientmovementhelper.ClientMovementHelperEntity;
+import net.dingdingduang.somebasicskills.util.MethodEntityAction;
+import net.minecraft.entity.Entity;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.world.World;
+import org.joml.Vector3f;
+
+import java.util.function.Function;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+
+public class DfoGeneralEntitySpawnMethods {
+    public static Entity MCLoadEntityRecursive(NbtCompound pCompound, World pLevel, Function<Entity, Entity> pEntityFunction) {
+        return EntityType.loadEntityWithPassengers(pCompound, pLevel, pEntityFunction);
+    }
+
+    public static ClientMovementHelperEntity SetupClientMovementHelper(Entity owner, int maxLifetime,
+                                                                       boolean hasTargetLoc, float startX, float startY, float startZ,
+                                                                       float targetX, float targetY, float targetZ,
+                                                                       String ClientActionName, MethodEntityAction serverEntityAction, int serverEntityActionTickPeriod, boolean addEntityToWorldRightAway) {
+        String entityID = DfoSwordmanSkillTreeConstants.MOD_ID + GeoModelRegistryName.COLON + GeoModelRegistryName.CLIENT_MOVEMENT_HELPER_STR_ID;
+
+        NbtCompound nbtEntityTag = GeoModelSpawnMethods.getEntityIDTag(entityID);
+
+        ClientMovementHelperEntity Entity000 = (ClientMovementHelperEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, startX, startY, startZ, 0f, 0f);
+            return tempEntity;
+        });
+
+        Entity000.setLifetime(maxLifetime);
+        Entity000.setMaxLifetime(maxLifetime);
+        Entity000.setOwner(owner);
+        if (hasTargetLoc) {
+            Entity000.setTargetLoc(startX, startY, startZ, targetX, targetY, targetZ, true);
+        }
+        Entity000.setClientActionName(ClientActionName);
+        Entity000.setEntityServerAction(serverEntityAction, serverEntityActionTickPeriod);
+
+        if (addEntityToWorldRightAway) {
+            addEntityToWorld(getEntityLevel(owner), Entity000);
+        }
+        return Entity000;
+    }
+
+    public static ClientMovementHelperEntity SetupClientMovementHelper(Entity owner, int maxLifetime,
+                                                                       Vector3f startPos, Vector3f targetPos,
+                                                                       String ClientActionName, MethodEntityAction serverEntityAction, int serverEntityActionTickPeriod, boolean addEntityToWorldRightAway) {
+        return SetupClientMovementHelper(owner, maxLifetime, true, startPos.x(), startPos.y(), startPos.z(), targetPos.x(), targetPos.y(), targetPos.z(), ClientActionName, serverEntityAction, serverEntityActionTickPeriod, addEntityToWorldRightAway);
+    }
+}

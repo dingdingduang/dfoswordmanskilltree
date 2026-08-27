@@ -1,0 +1,96 @@
+
+
+    public static Predicate<Entity> getShootBaseOnVerticalRotationCond(float EntityHorizontalFacingAngle, float EntityVerticalRotation, Vector3f damageCenter, float errorDegRange) {
+        float fromVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation - errorDegRange);
+        float toVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation + errorDegRange);
+
+        return (target) -> {
+            printInGameMsg("============= name: "+target.getName().getString());
+            printInGameMsg(String.format("from: %.2f, to: %.2f", fromVerticalDeg, toVerticalDeg));
+            Vector3f targetPos = getEntityPos(target);
+
+//            float opposite = Math.abs(damageCenter.y() - targetPos.y());
+            float hypotenuse = Vector3fMethods.DistanceBetweenVecPoints(targetPos, damageCenter);
+
+            float targetHorizontalBtnFacingAngle = Vector3fMethods.AngleFromLocationToLocationHorizontal(damageCenter, targetPos);
+            float distBtn = Vector3fMethods.vec3fDistanceTo(targetPos, Vector3fMethods.PolarProjectionFromRotation(damageCenter, hypotenuse, targetHorizontalBtnFacingAngle, EntityVerticalRotation));
+            boolean meetHorizontalCond = distBtn < 2f;
+            printInGameMsg("hypotenuse: "+hypotenuse);
+            printInGameMsg("distBtn: "+distBtn);
+            printInGameMsg("----------");
+
+            if (!meetHorizontalCond) {
+                printInGameMsg("return horizontal false");
+                return false;
+            }
+
+            float sign = (damageCenter.y() - targetPos.y()) >= 0 ? -1 : 1;
+            float adjacent = Vector3fMethods.DistanceBetweenVec3fHorizontal(targetPos, damageCenter);
+//            float targetVerticalBtnFacingAngle = (hypotenuse == 0) ? 0 : MathMethods.RoundAngle(sign * (float) Math.acos(adjacent / hypotenuse) * MathMethods.RAD_TO_DEG);
+            float targetVerticalBtnFacingAngle = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(damageCenter, targetPos) * MathMethods.RAD_TO_DEG);
+
+            printInGameMsg(String.format("targetVerticalBtnFacingAngle: %.2f", targetVerticalBtnFacingAngle));
+            printInGameMsg("-=-=-=-=-=-=-=-=.....");
+//            boolean meetVerticalCond = Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle - errorDegRange, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle + errorDegRange, fromVerticalDeg, toVerticalDeg);
+            //meet vertical
+            return Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle - errorDegRange, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle + errorDegRange, fromVerticalDeg, toVerticalDeg);
+        };
+    }
+
+
+    //==
+
+
+    public static Predicate<Entity> getShootBaseOnVerticalRotationCond(float EntityHorizontalFacingAngle, float EntityVerticalRotation, Vector3f damageCenter, float errorDegRange) {
+//        float fromVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation - errorDegRange);
+//        float toVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation + errorDegRange);
+
+        return (target) -> {
+            if (target instanceof ServerPlayer) { return false; }
+            Vector3f targetPosLow = getEntityPos(target);
+            Vector3f targetPosMid = getEntityPos(target).add(0, 1.6f, 0);
+            Vector3f targetPosHigh = getEntityPos(target).add(0, 3.2f, 0);
+            Vector3f[] targetPosLMH = {targetPosLow, targetPosMid, targetPosHigh};
+
+            boolean isMeetCond = false;
+            for (Vector3f targetPos: targetPosLMH) {
+                float opposite = Math.abs(damageCenter.y() - targetPos.y());
+//                printInGameMsg("vertical rot: " + EntityVerticalRotation);
+//            float thetaDeg = 90 - Math.abs(EntityVerticalRotation);
+                float thetaDeg = Math.abs(EntityVerticalRotation);
+//                printInGameMsg("thetaDeg: " + thetaDeg);
+                float thetaRad = MathMethods.AngleToRadians(thetaDeg);
+                float sinTheta = MathMethods.sin(thetaRad);
+                float hypotenuse = (sinTheta == 0) ? opposite : opposite / MathMethods.sin(thetaRad);
+                float HorizontalAngleBtn = Vector3fMethods.AngleFromLocationToLocationHorizontal(damageCenter, targetPos);
+
+                Vector3f guesstimationVector3f = (hypotenuse == 0) ? new Vector3f(damageCenter.x(), targetPos.y(), damageCenter.z()) : Vector3fMethods.PolarProjectionFromRotation(damageCenter, hypotenuse, HorizontalAngleBtn, EntityVerticalRotation);
+
+
+                Vector3f currentDamageLine_p1 = Vector3fMethods.PolarProjectionFromRotation(damageCenter, hypotenuse, EntityHorizontalFacingAngle, EntityVerticalRotation);
+                Vector3f currentDamageLine_p2 = Vector3fMethods.PolarProjectionFromRotation(currentDamageLine_p1, 1f, EntityHorizontalFacingAngle + 90f, 0f);
+
+
+//                float[] IntersectedPoint2D = Vector2fMethods.LineIntersect(
+//                        damageCenter.x(), damageCenter.z(), guesstimationVector3f.x(), guesstimationVector3f.z(),
+//                        currentDamageLine_p1.x(), currentDamageLine_p1.z(), currentDamageLine_p2.x(), currentDamageLine_p2.z()
+//                );
+                float[] IntersectedPoint2D = Vector2fMethods.LineIntersect(
+                        damageCenter.z(), damageCenter.x(), guesstimationVector3f.z(), guesstimationVector3f.x(),
+                        currentDamageLine_p1.z(), currentDamageLine_p1.x(), currentDamageLine_p2.z(), currentDamageLine_p2.x()
+                );
+                if (IntersectedPoint2D != null) {
+                    Vector3f predictCorrectTargetPos = new Vector3f(IntersectedPoint2D[0], targetPos.y(), IntersectedPoint2D[1]);
+//                printInGameMsg("opp: " + opposite + ", hyp: " + hypotenuse);
+//                printInGameMsg("------------- distbtn: " + Vector3fMethods.vec3fDistanceTo(guesstimationVector3f, targetPos));
+                    isMeetCond = Vector3fMethods.vec3fDistanceTo(predictCorrectTargetPos, targetPos) < 4f;
+//                    Entity AirObj = GeoModelSpawnMethods.GenerateBMSwdTempestBlockEff(target, 0f, 3f, 0, guesstimationVector3f.x(), guesstimationVector3f.y(), guesstimationVector3f.z(),
+//                            160, guesstimationVector3f.x(), guesstimationVector3f.y(), guesstimationVector3f.z(), Blademaster025.BLADEMASTER025_TEMPEST_ORBIT_EFF, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, null, 777, true);
+                    Entity AirObj2 = GeoModelSpawnMethods.GenerateBMSwdTempestBlockEff(target, 0f, 6f, 0, predictCorrectTargetPos.x(), predictCorrectTargetPos.y(), predictCorrectTargetPos.z(),
+                            160, predictCorrectTargetPos.x(), predictCorrectTargetPos.y(), predictCorrectTargetPos.z(), Blademaster025.BLADEMASTER025_TEMPEST_ORBIT_EFF, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, null, 777, true);
+                    if (isMeetCond) { break; }
+                }
+            }
+            return isMeetCond;
+        };
+    }

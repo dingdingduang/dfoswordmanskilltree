@@ -1,0 +1,1171 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoAnimationAndTextureName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.swd.blademaster.slaughterscape.SlaughterscapeSwordEntity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions;
+import net.dingdingduang.dfoswordmanskilltree.networking.DfoSwdNetworkingFetchMsgMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.BlademasterSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.extraskilldata.Blademaster037ExtraSkillDataStorage;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.BooleanValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.FloatValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.TypeValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.globalmethods.SBSAttributeMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+import net.dingdingduang.somebasicskills.util.MethodEntityAction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.HashSetGroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.somebasicskills.globalmethods.ClientPlayerMethods.getCPlayerSkillDamage;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Blademaster037 {
+    public static final String SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_ULTIMATE_SWORD_ART_TELEKINETIC_SWORDS;
+
+    public static final String BLADEMASTER_037_PREPARATION = BlademasterSkillTreeInitialization.BLADEMASTER_ULTIMATE_SWORD_ART_TELEKINETIC_SWORDS + "_PREPARATION";
+    public static final String BLADEMASTER_037_SLASH_ACTION = "BLADEMASTER_037_SLASH_ACTION";
+    public static final String BLADEMASTER_037_FINAL_DAMAGE_ACTION = "BLADEMASTER_037_FINAL_DAMAGE_ACTION";
+
+    //    public static final String BLADEMASTER_037_SHOOTING_SWORD_ANIMATION_STOP_NAME = "shooting_sword0";
+    public static final String BLADEMASTER_037_SHOOTING_SWORD_ANIMATION_NAME = "shooting_sword2";
+    public static final String BLADEMASTER_037_CHARGING_EFF_TEXTURE_PATH = "textures/entity/skilleff/common/charging/loop/";
+
+    public static final String[] BLADEMASTER_037_HIT_EFF_ARR = {GeoAnimationAndTextureName.EFF_HIT_GENERAL, "textures/entity/skilleff/blademaster/sense_slash/hit_eff1/", "textures/entity/skilleff/blademaster/sense_slash/hit_eff2/"};
+
+    public static final int BLADEMASTER_037_SWORD_DROPPING_DELAY_TICKS = 10;
+    public static final float BLADEMASTER_037_SWORD_HEIGHT_INTERVAL = 2.5f;
+    public static final float BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER = 8f;
+
+    public static HashMap<LivingEntity, ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage>> BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE;
+
+    public static final int BLADEMASTER_037_TOTAL_SWORD_PER_LAYER = 20;
+    public static final int BLADEMASTER_037_FINAL_ANIMATION_TICKS = 300;
+    //    public static final float BLADEMASTER037_DEGREE_SHOULD_INCREMENT_EACH_TICK = 6f;
+//    public static final float BLADEMASTER037_DEGREE_SHOULD_INCREMENT_AFTER_ADJUSTED_EACH_TICK = 3f;
+    public static final float BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK = Blademaster025.BLADEMASTER025_TEMPEST_DIST_SHOULD_TRAVEL_EACH_TICK;
+
+//    public static final float BLADEMASTER_037_SWORD_HIT_HEIGHT_OFFSET = 1.6f;
+
+    public static final String BLADEMASTER037_SWORD_EFF_CLIENT_MOVING_TOWARDS_TARGET_ACTION = "BLADEMASTER037_SWORD_EFF_CLIENT_MOVING_TOWARDS_TARGET_ACTION";
+    public static final String BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_CLOCKWISE_ACTION = "BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_RIGHT_ACTION";
+
+    public static final float BLADEMASTER037_INITIAL_VELOCITY = 0.1f;
+
+    //client constant val
+    private static final float distShouldTravelDecay = 0.001f;
+    private static final float presetDist1 = 0.5f;
+    private static final float interval = 1f * BLADEMASTER_037_FINAL_ANIMATION_TICKS * 0.02f;
+    private static final int resetClientDamageGroupTick = 10;
+
+    private static ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE = new ConcurrentHashMap<>();
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        Double AOE = skillData.getEffectArea().get(correctSkillLevel);
+        Double HIT_AOE = skillData.getValueUsage_01().get(correctSkillLevel);
+
+        double skillDamageMultiplier = getCPlayerSkillDamage();
+        Double DamageMultiplier = skillData.getDamageMultiplierList_01().get(correctSkillLevel);
+        Double ConstantDamage = skillData.getDamageList_01().get(correctSkillLevel);
+        Float finalDmg = (float) ( (DamageMultiplier * getEntityAttackDamage(getClientPlayer()) + ConstantDamage) * skillDamageMultiplier);
+        Double LastSlashDamageMultiplier = skillData.getDamageMultiplierList_02().get(correctSkillLevel);
+        Double LastSlashConstantDamage = skillData.getDamageList_02().get(correctSkillLevel);
+        Float LastSlashFinalDmg = (float) ( (LastSlashDamageMultiplier * getEntityAttackDamage(getClientPlayer()) + LastSlashConstantDamage) * skillDamageMultiplier);
+
+        Double PreparationTime = skillData.getChannelingTime().get(correctSkillLevel);
+        int InitialSlashCount = skillData.getValueUsage_02().get(correctSkillLevel).intValue();
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%s", AOE),
+                String.format("%s", HIT_AOE),
+                String.format("%d%%", (int) (DamageMultiplier.floatValue() * 100)),
+                String.format("%s", ConstantDamage),
+                String.format("%s", finalDmg),
+                String.format("%d%%", (int) (LastSlashDamageMultiplier.floatValue() * 100)),
+                String.format("%s", LastSlashConstantDamage),
+                String.format("%s", LastSlashFinalDmg),
+                String.format("%ss", PreparationTime),
+                String.format("%d", InitialSlashCount)
+        );
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Blademaster037::getSkillDescription);
+
+        //Condition
+        tempSkillData.setClientConditionRequirement(DfoSwordmanSkillMethods::defaultSkillClientCondition);
+        tempSkillData.setClientCondReqPassedAction(DfoSwordmanSkillMethods::defaultSkillClientConditionPassedAction);
+
+        if (isClientSide()) {
+            return;
+        }
+
+        //server init
+        if (BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE == null) {
+            BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE = new HashMap<>();
+        }
+
+
+
+        //====================================
+        //setup skill action
+        MethodAction tempChannelingAction =
+                (entity1) -> {
+                    if (entity1 instanceof ServerPlayer sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID) <= 0) { return; }
+                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_90_DEG_ANIMATION_START, 1f);
+                        DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerKeyboardKidnapFromServer(sp1, DfoSwordmanSkillTreeConstants.KidnapMovementKeys);
+                    }
+
+                    //IMPORTANT! setup action on to prevent casting other skills while this action
+                    //being performed
+                    incrementEntityStateByAmountXNoPacket(entity1, Constants.IS_IN_ACTION, 1);
+
+                    int actionPeriod = 5;
+                    int channelingTickDelay = 5;
+                    IntegerValueHolder ElapsedTick = new IntegerValueHolder(0);
+                    BooleanValueHolder channelingSpawnEffect = new BooleanValueHolder(false);
+                    IntegerValueHolder TotalChannelingTicksHolder = new IntegerValueHolder(0);
+
+                    MethodAction action = (entity2) -> {
+                        int updatedTick = ElapsedTick.getIntCounter();
+
+                        boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                        if (isActionInterrupted) {
+                            if (entity2 instanceof ServerPlayer sp1) {
+                                DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerKeyboardFreeFromServer(sp1, DfoSwordmanSkillTreeConstants.KidnapMovementKeys);
+                            }
+
+                            incrementEntityStateByAmountX(entity2, Constants.IS_IN_ACTION, -1);
+                            SBSTickEventMethods.setSkillActionDone(entity2, BLADEMASTER_037_PREPARATION);
+                        }
+                        else {
+                            int channelingTotalTicks = TotalChannelingTicksHolder.getIntCounter();
+
+                            if (!ServerSkillMethods.isLivingEntityInChannelingAction(entity2)) {
+                                SBSTickEventMethods.setSkillActionDone(entity2, BLADEMASTER_037_PREPARATION);
+
+                                Blademaster037_executeSwordZoneAction(entity2);
+                            }
+                            else if (updatedTick <= channelingTotalTicks + channelingTickDelay) {
+                                TotalChannelingTicksHolder.setIntCounter(channelingTotalTicks + actionPeriod);
+
+                                //channeling entity and sound
+                                if (channelingTotalTicks == 5) {
+                                    DfoSwdSoundMethods.PlayBlademaster027DrawSwordStartSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 4f);
+                                }
+                                if (!channelingSpawnEffect.getBooleanVal()) {
+                                    if (entity2 instanceof ServerPlayer sp1) {
+                                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_90_DEG_ANIMATION_LOOPING);
+                                    }
+                                    channelingSpawnEffect.setBooleanVal(true);
+
+                                    GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256BoundToEntity(entity2, 255, 255, 255, 1f, 0, 1.4f, 0, 900, BLADEMASTER_037_CHARGING_EFF_TEXTURE_PATH, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                            DfoSwordmanSkillTreeConstants.NO_ANIMATION,0, 0, 13, false, false, false, DfoSwordmanSkillMethods.RemoveChannelingEffEntity(entity2), 5, true);
+                                }
+                            }
+                        }
+
+                        ElapsedTick.setIntCounter(updatedTick + actionPeriod);
+                    };
+                    SBSTickEventMethods.setMethodActionTimer(entity1, BLADEMASTER_037_PREPARATION, actionPeriod, action);
+                };
+
+        tempSkillData.setChannelingSkillAction1(tempChannelingAction);
+
+        tempSkillData.setActiveSkillAction1(DfoSwordmanSkillMethods::DoNothing);
+    }
+
+    public static void Blademaster037_executeSwordZoneAction(LivingEntity entity2) {
+        int playerSkillLVL = 0;
+
+        SkillDataJson skill1 = getID2SkillData().get(SkillID);
+
+        if (entity2 instanceof ServerPlayer sp1) {
+            if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                if (playerSkillLVL <= 0) { return; }
+                playerSkillLVL = playerSkillLVL - 1;
+            }
+        }
+
+        float swordHitAoeRange = skill1.getValueUsage_01().get(playerSkillLVL).floatValue();
+
+        int TotalSlashCount = skill1.getValueUsage_02().get(playerSkillLVL).intValue();
+        int SkillDurationTicks = (int) (skill1.getDuration().get(playerSkillLVL).floatValue() * 20);
+
+        Predicate<Entity> condition;
+
+        //play animation
+        if (entity2 instanceof ServerPlayer sp1) {
+            SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_90_DEG_ANIMATION_END, 1f);
+            condition = defaultSkillTargetCondition(sp1);
+        } else {
+            condition = defaultSkillTargetCondition();
+        }
+        int actionPeriod = 2;
+
+        DfoSwdSoundMethods.PlaySwordGuardEndSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 4f);
+
+        ArrayList<SlaughterscapeSwordEntity> tempSwordArrList = new ArrayList<>();
+        String ActionID = SkillID + "_" + getEntityHashID(entity2);
+        ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> extraSkillDataStorageHashMap = BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE.get(entity2);
+        if (extraSkillDataStorageHashMap == null) {
+            extraSkillDataStorageHashMap = new ConcurrentHashMap<>();
+            BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE.put(entity2, extraSkillDataStorageHashMap);
+        }
+        extraSkillDataStorageHashMap.put(ActionID, new Blademaster037ExtraSkillDataStorage(tempSwordArrList));
+        MethodAction action = Blademaster037_SlashBeforeDamageAction(condition, swordHitAoeRange, actionPeriod, TotalSlashCount, TotalSlashCount, SkillDurationTicks, tempSwordArrList);
+
+        //start loop actioning with fixed period ticks
+        SBSTickEventMethods.setMethodActionTimer(entity2, SkillID, actionPeriod, action);
+    }
+
+    public static MethodAction Blademaster037_SlashBeforeDamageAction(Predicate<Entity> condition, float swordHitAoeRange, int actionPeriod, int swordLayers, int swordsForEachLayer, int skillDurationTicks, ArrayList<SlaughterscapeSwordEntity> swordList) {
+        IntegerValueHolder ElapsedTicks = new IntegerValueHolder(0);
+        BooleanValueHolder SendActionOffPacket = new BooleanValueHolder(false);
+        BooleanValueHolder CompleteChannelingYet = new BooleanValueHolder(false);
+
+        MethodAction action =
+                (entity3) -> {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity3);
+
+                    int updatedTick = ElapsedTicks.getIntCounter();
+
+                    if (!isActionInterrupted && updatedTick >= BLADEMASTER_037_SWORD_DROPPING_DELAY_TICKS && !CompleteChannelingYet.getBooleanVal()) {
+                        CompleteChannelingYet.setBooleanVal(true);
+                        Vector3f triggeredEntityPos = getEntityPos(entity3);
+                        DfoSwdSoundMethods.PlayBlademaster027DrawSwordSlashSound(getEntityLevel(entity3), triggeredEntityPos.x(), triggeredEntityPos.y(), triggeredEntityPos.z(), 0.8f, 4f);
+
+                        //TODO start spawn swords
+                        String slashActionID = BLADEMASTER_037_SLASH_ACTION + getEntityTickCount(entity3);
+//                        MethodAction slashAction = Blademaster037_SlashStartDamageAction(weaponType, aoeRange, swordHitAoeRange, finalDmg, finalLastSlashDmg, new IntegerValueHolder(totalSlashCount), condition, new HashSet<>(), new HashSet<>(), slashActionID);
+
+                        float degreeShouldFacing = 360f / BLADEMASTER_037_TOTAL_SWORD_PER_LAYER;
+                        float degreeShouldIncrementEachTime = degreeShouldFacing * 0.25f;
+
+                        SlaughterscapeSwordEntity tempEntity;
+                        float ownerPosX = getEntityX(entity3), ownerPosY = getEntityY(entity3), ownerPosZ = getEntityZ(entity3);
+                        for (int i = 0; i < BLADEMASTER_037_TOTAL_SWORD_PER_LAYER; i++) {
+                            int tempPosID = i * 3;
+                            tempEntity = GeoModelSpawnMethods.GenerateSlaughterScapeEntity(entity3, i * degreeShouldFacing, 1f, degreeShouldIncrementEachTime, swordHitAoeRange, 1.1f + ExtraMathMethods.randomFloat(), ownerPosX, ownerPosY, ownerPosZ, 0, 2f, 0, ownerPosX, ownerPosY, ownerPosZ,
+                                    skillDurationTicks + BLADEMASTER_037_FINAL_ANIMATION_TICKS, tempPosID, -1, Blademaster025.BLADEMASTER025_SWORD_TEXTURE_PATH + ExtraMathMethods.randomInt(5) + ".png", Blademaster025.BLADEMASTER025_TEMPEST_GROUND_SWORD_ANIMATION,
+                                    BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_CLOCKWISE_ACTION, null, 777, true, true);
+
+                            swordList.add(tempEntity);
+
+                            tempEntity = GeoModelSpawnMethods.GenerateSlaughterScapeEntity(entity3, i * degreeShouldFacing, 1f, -degreeShouldIncrementEachTime, swordHitAoeRange, 1.1f + ExtraMathMethods.randomFloat(), ownerPosX, ownerPosY, ownerPosZ, 0, 2f + BLADEMASTER_037_SWORD_HEIGHT_INTERVAL, 0, ownerPosX, ownerPosY, ownerPosZ,
+                                    skillDurationTicks + BLADEMASTER_037_FINAL_ANIMATION_TICKS, tempPosID + 1, -1, Blademaster025.BLADEMASTER025_SWORD_TEXTURE_PATH + ExtraMathMethods.randomInt(5) + ".png", Blademaster025.BLADEMASTER025_TEMPEST_GROUND_SWORD_ANIMATION,
+                                    BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_CLOCKWISE_ACTION, null, 777, true, true);
+
+                            swordList.add(tempEntity);
+
+                            tempEntity = GeoModelSpawnMethods.GenerateSlaughterScapeEntity(entity3, i * degreeShouldFacing, 1f, degreeShouldIncrementEachTime, swordHitAoeRange, 1.1f + ExtraMathMethods.randomFloat(), ownerPosX, ownerPosY, ownerPosZ,0, 2f + BLADEMASTER_037_SWORD_HEIGHT_INTERVAL * 2, 0, ownerPosX, ownerPosY, ownerPosZ,
+                                    skillDurationTicks + BLADEMASTER_037_FINAL_ANIMATION_TICKS, tempPosID + 2, -1, Blademaster025.BLADEMASTER025_SWORD_TEXTURE_PATH + ExtraMathMethods.randomInt(5) + ".png", Blademaster025.BLADEMASTER025_TEMPEST_GROUND_SWORD_ANIMATION,
+                                    BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_CLOCKWISE_ACTION, null, 777, true, true);
+
+                            swordList.add(tempEntity);
+                        }
+
+                        MethodAction slashAction = Blademaster037_SlashStartDamageAction(new IntegerValueHolder(0), skillDurationTicks,  swordList, new FloatValueHolder(0), new FloatValueHolder(0), new FloatValueHolder(-1), condition, slashActionID);
+                        SBSTickEventMethods.setMethodActionTimer(entity3, slashActionID, 1, slashAction);
+                    } else {
+                        if (!SendActionOffPacket.getBooleanVal()) {
+                            if (isActionInterrupted){
+                                if (entity3 instanceof ServerPlayer sp1) {
+                                    DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerKeyboardFreeFromServer(sp1, DfoSwordmanSkillTreeConstants.KidnapMovementKeys);
+                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_90_DEG_ANIMATION_END);
+                                }
+                                SendActionOffPacket.setBooleanVal(true);
+                                incrementEntityStateByAmountX(entity3, Constants.IS_IN_ACTION, -1);
+                                SBSTickEventMethods.setSkillActionDone(entity3, SkillID);
+                            }
+                            else{
+                                if (updatedTick > BLADEMASTER_037_SWORD_DROPPING_DELAY_TICKS) {
+                                    if (entity3 instanceof ServerPlayer sp1) {
+                                        DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerKeyboardFreeFromServer(sp1, DfoSwordmanSkillTreeConstants.KidnapMovementKeys);
+                                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_90_DEG_ANIMATION_END);
+                                    }
+
+                                    SendActionOffPacket.setBooleanVal(true);
+                                    incrementEntityStateByAmountX(entity3, Constants.IS_IN_ACTION, -1);
+                                    SBSTickEventMethods.setSkillActionDone(entity3, SkillID);
+                                }
+                            }
+                        }
+                    }
+
+
+                    //update val
+                    ElapsedTicks.setIntCounter(updatedTick + actionPeriod);
+                };
+
+        return action;
+    }
+
+    public static MethodAction Blademaster037_SlashStartDamageAction(IntegerValueHolder ElapsedTicks, int totalDurationTicks, ArrayList<SlaughterscapeSwordEntity> swordList, FloatValueHolder distanceHasTraveledHolder, FloatValueHolder previousRotationDegHolder, FloatValueHolder minRotationDegHolder, Predicate<Entity> condition, String ActionID) {
+        return (entity4) -> {
+            if (SBConditions.isEntityAlive(entity4)) {
+                int currentElapsedTicks = ElapsedTicks.getIntCounter() + 1;
+                ElapsedTicks.setIntCounter(currentElapsedTicks);
+                if (currentElapsedTicks > totalDurationTicks) {
+                    //init damage setup
+                    float skillDamageMultiplier = 1f + SBSAttributeMethods.getSkillDamageAttrVal(entity4);
+
+                    int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity4);
+                    int playerSkillLVL = 0;
+
+                    SkillDataJson skill1 = getID2SkillData().get(SkillID);
+
+                    if (entity4 instanceof ServerPlayer sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (playerSkillLVL <= 0) { return; }
+                            playerSkillLVL = playerSkillLVL - 1;
+                        }
+                    }
+
+                    float aoeRange = skill1.getEffectArea().get(playerSkillLVL).floatValue();
+//                    float swordHitAoeRange = skill1.getValueUsage_01().get(playerSkillLVL).floatValue();
+
+                    float damageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+                    float damageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue();
+
+                    float LastSlashConstantDamage = skill1.getDamageList_02().get(playerSkillLVL).floatValue();
+                    float LastSlashDamageMultiplier = skill1.getDamageMultiplierList_02().get(playerSkillLVL).floatValue();
+
+                    double dealerAttackDamage = getEntityAttackDamage(entity4);
+                    float finalDmg = (float) ((damageMultiplier * dealerAttackDamage + damageBase) * skillDamageMultiplier);
+                    float finalLastSlashDmg = (float) ((LastSlashDamageMultiplier * dealerAttackDamage + LastSlashConstantDamage) * skillDamageMultiplier);
+
+                    SBSTickEventMethods.setSkillActionDone(entity4, ActionID);
+
+                    String FinalDamageActionStrID = BLADEMASTER_037_FINAL_DAMAGE_ACTION + "_" + getEntityTickCount(entity4);
+                    for (SlaughterscapeSwordEntity tempSwordEntity: swordList) {
+                        MethodAction finalDamageAction = Blademaster037_SlashFinalDamageAction(tempSwordEntity, new FloatValueHolder(BLADEMASTER037_INITIAL_VELOCITY), new TypeValueHolder<>(null), new TypeValueHolder<>(null), new BooleanValueHolder(false), new TypeValueHolder<Vector3f>(null),  new TypeValueHolder<Vector3f>(null), new HashSet<>(), condition,
+                                weaponType, aoeRange, finalDmg, finalLastSlashDmg, FinalDamageActionStrID + "_" + getEntityHashID(tempSwordEntity) + "_" + getEntityTickCount(tempSwordEntity));
+
+                        SBSTickEventMethods.setMethodActionTimer(entity4, FinalDamageActionStrID, 1, finalDamageAction);
+                    }
+
+                }
+                //update pos
+                else {
+                    float ownerX = getEntityX(entity4);
+                    float ownerY = getEntityY(entity4);
+                    float ownerZ = getEntityZ(entity4);
+
+                    for (SlaughterscapeSwordEntity SwordEntity : swordList) {
+                        float currentTotalDistHasTraveled = distanceHasTraveledHolder.getFloatVal();
+                        if (currentTotalDistHasTraveled <= BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER) {
+                            float newFacingAngle = SwordEntity.getDegreeShouldIncrementEachTime() + getEntityHorizontalFacingDeg(SwordEntity);
+
+                            setEntityHorizontalFacingDeg(SwordEntity, newFacingAngle);
+
+                            float newX = Vector3fMethods.PolarProjectionFromXHorizonWithOrigin(ownerX, currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK, newFacingAngle) + SwordEntity.getAdditionalPosX();
+                            float newY = ownerY + SwordEntity.getAdditionalPosY();
+                            float newZ = Vector3fMethods.PolarProjectionFromZHorizonWithOrigin(ownerZ, currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK, newFacingAngle) + SwordEntity.getAdditionalPosZ();
+
+                            moveEntityToXYZ(SwordEntity, newX, newY, newZ);
+
+                            if (previousRotationDegHolder.getFloatVal() < -1) {
+                                previousRotationDegHolder.setFloatVal(SwordEntity.getDegreeShouldIncrementEachTime());
+                                minRotationDegHolder.setFloatVal(SwordEntity.getDegreeShouldIncrementEachTime() * 0.5f);
+                            }
+
+                            distanceHasTraveledHolder.setFloatVal(currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK);
+                        } else {
+                            float newFacingAngle;
+                            float previousRotationDeg = previousRotationDegHolder.getFloatVal();
+                            if (previousRotationDeg > minRotationDegHolder.getFloatVal()) {
+                                previousRotationDeg = previousRotationDeg - 0.1f;
+                                previousRotationDegHolder.setFloatVal(previousRotationDeg);
+                                newFacingAngle = previousRotationDeg + getEntityHorizontalFacingDeg(SwordEntity);
+                            } else {
+                                newFacingAngle = minRotationDegHolder.getFloatVal() + getEntityHorizontalFacingDeg(SwordEntity);
+                            }
+
+                            setEntityHorizontalFacingDeg(SwordEntity, newFacingAngle);
+
+                            float newX = Vector3fMethods.PolarProjectionFromXHorizonWithOrigin(ownerX, BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER, newFacingAngle) + SwordEntity.getAdditionalPosX();
+                            float newY = ownerY + SwordEntity.getAdditionalPosY();
+                            float newZ = Vector3fMethods.PolarProjectionFromZHorizonWithOrigin(ownerZ, BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER, newFacingAngle) + SwordEntity.getAdditionalPosZ();
+
+                            moveEntityToXYZ(SwordEntity, newX, newY, newZ);
+                        }
+                    }
+                }
+            }
+            else {
+                SBSTickEventMethods.setSkillActionDone(entity4, ActionID);
+            }
+        };
+    }
+
+    public static MethodAction Blademaster037_SlashFinalDamageAction(SlaughterscapeSwordEntity SwordEntity, FloatValueHolder initialAcceleration, TypeValueHolder<Vector3f> previousTargetLoc, TypeValueHolder<Entity> targetHolder,
+                                                                     BooleanValueHolder isExecutedFinalActionHolder, TypeValueHolder<Vector3f> fromPosHolder, TypeValueHolder<Vector3f> ToPosHolder,
+                                                                     HashSet<Entity> damagedGroup, Predicate<Entity> finalCondition,  int weaponType, float finalDamageAoe, float swordDamage, float finalDamage, String ActionID) {
+        return (entity5) -> {
+            Entity owner = SwordEntity.getOwner();
+            if (owner != null) {
+                if (SwordEntity.getLifetime() <= BLADEMASTER_037_FINAL_ANIMATION_TICKS) {
+                    int currentSwordEntityElapsedLifeTime = BLADEMASTER_037_FINAL_ANIMATION_TICKS - SwordEntity.getLifetime();
+                    float swordHitAoe = SwordEntity.getSwordHitAoeRange();
+
+                    Entity target = targetHolder.getAnyTypeValue();
+                    Vector3f originSwordEntityLoc = (previousTargetLoc.getAnyTypeValue() == null) ? getEntityPos(SwordEntity) : previousTargetLoc.getAnyTypeValue();
+
+                    Blademaster037ExtraSkillDataStorage extraSkillDataStorage = BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE.get(SwordEntity.getTriggerActionID());
+                    if (extraSkillDataStorage == null) {
+                        SBSTickEventMethods.setSkillActionDone(entity5, ActionID);
+                        RemoveEntity(SwordEntity);
+                        return;
+                    }
+
+                    SlaughterscapeSwordEntity finalActionSwordEntity = extraSkillDataStorage.getBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY();
+                    if (finalActionSwordEntity != null) {
+                        float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(SwordEntity);
+                        float swordVerticalFacingAngle = getEntityVerticalFacingDeg(SwordEntity);
+                        if (finalActionSwordEntity.equals(SwordEntity)) {
+                            if (!isExecutedFinalActionHolder.getBooleanVal()) {
+                                //before launching
+                                if (target != null && !SBConditions.isEntityAlive(target)) {
+                                    targetHolder.setAnyTypeValue(null);
+                                    target = null;
+                                }
+                                //TODO ALERT: [!] use target ID as resetInterval
+                                if (target == null) {
+                                    target = EntityMethods.findHorizontalNearbyEntityFromCenterEntityLoc(owner, 16, 16, 16, finalCondition);
+                                    targetHolder.setAnyTypeValue(target);
+                                }
+
+                                Vector3f targetLoc = (target == null) ? Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, 6f, swordHorizontalFacingAngle, 0) : EntityMethods.getEntityBlockPos(target);
+                                float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                                float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                                float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                                float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                                float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                                setEntityHorizontalFacingDeg(finalActionSwordEntity, newHorizontalDegree % 360);
+                                setEntityVerticalFacingDeg(finalActionSwordEntity, newVerticalDegree % 360);
+
+                                if (finalActionSwordEntity.getLifetime() <= 100) {
+                                    isExecutedFinalActionHolder.setBooleanVal(true);
+                                    fromPosHolder.setAnyTypeValue(new Vector3f(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z()));
+                                    ToPosHolder.setAnyTypeValue(new Vector3f(targetLoc.x(), targetLoc.y(), targetLoc.z()));
+                                }
+                            }
+                            else {
+                                Vector3f finalFromVec = fromPosHolder.getAnyTypeValue();
+                                Vector3f finalToVec = ToPosHolder.getAnyTypeValue();
+                                //TODO action done
+                                if (finalFromVec == null || finalToVec == null) { return; }
+
+                                float time = (100 - SwordEntity.getLifetime()) / 100f;
+                                float newX = Vector3fMethods.lerp1D(time, finalFromVec.x(), finalToVec.x());
+                                float newY = Vector3fMethods.lerp1D(time, finalFromVec.y(), finalToVec.y());
+                                float newZ = Vector3fMethods.lerp1D(time, finalFromVec.z(), finalToVec.z());
+                                moveEntityToXYZ(finalActionSwordEntity, newX, newY, newZ);
+
+                                for (Entity entity : GroupEnumEntitiesInRangeFilter(finalActionSwordEntity, finalDamageAoe, finalDamageAoe, finalDamageAoe, finalCondition)) {
+                                    if (!damagedGroup.contains(entity) && entity instanceof LivingEntity tempLivingEntity && Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                                        damagedGroup.add(entity);
+
+                                        GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 2f, 4, 4,
+                                                ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f,
+                                                BLADEMASTER_037_HIT_EFF_ARR[ExtraMathMethods.randomInt(3)], true, true);
+
+                                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity5, finalActionSwordEntity, tempLivingEntity, finalDamage, false);
+
+                                        DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, getEntityLevel(entity5), getEntityX(tempLivingEntity), getEntityY(tempLivingEntity), getEntityZ(tempLivingEntity), 0.8f, 1.0f);
+                                    }
+                                }
+
+                                if (finalActionSwordEntity.getLifetime() == 0) {
+                                    printInGameMsg("cleared");
+                                    ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> extraSkillDataStorageConcurrentHashMap = BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE.get(entity5);
+                                    if (extraSkillDataStorageConcurrentHashMap != null) {
+                                        extraSkillDataStorageConcurrentHashMap.remove(finalActionSwordEntity.getTriggerActionID());
+                                        if (extraSkillDataStorageConcurrentHashMap.isEmpty()) {
+                                            BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE.remove(entity5);
+                                        }
+                                    }
+                                    SBSTickEventMethods.setSkillActionDone(entity5, ActionID);
+                                }
+                            }
+
+                        } else {
+                            if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc, getEntityPos(finalActionSwordEntity)) <= swordHitAoe) {
+                                finalActionSwordEntity.setLifetime(BLADEMASTER_037_FINAL_ANIMATION_TICKS);
+                                //TODO: play grow up sound
+                                RemoveEntity(SwordEntity);
+                                return;
+                            }
+
+                            float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                            float polarDist = presetDist1 - distShouldTravelEachTime;
+                            initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                            for (Entity entity : GroupEnumEntitiesInRangeFilter(SwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+                                if (!damagedGroup.contains(entity) && entity instanceof LivingEntity tempLivingEntity && Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                                    damagedGroup.add(entity);
+                                    //damage action
+
+                                    GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4,
+                                            ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f,
+                                            BLADEMASTER_037_HIT_EFF_ARR[ExtraMathMethods.randomInt(3)], true, true);
+
+                                    DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity5, SwordEntity, tempLivingEntity, swordDamage, false);
+
+                                    DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, getEntityLevel(entity5), getEntityX(tempLivingEntity), getEntityY(tempLivingEntity), getEntityZ(tempLivingEntity), 0.8f, 1.0f);
+                                }
+                            }
+
+                            Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+
+                            moveEntityToPos(SwordEntity, tpLoc);
+
+                            previousTargetLoc.setAnyTypeValue(tpLoc);
+
+                            Vector3f targetLoc = EntityMethods.getEntityBlockPos(finalActionSwordEntity);
+                            float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                            float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                            float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                            float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                            float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                            setEntityHorizontalFacingDeg(SwordEntity, newHorizontalDegree % 360);
+                            setEntityVerticalFacingDeg(SwordEntity, newVerticalDegree % 360);
+                        }
+                    }
+                    else {
+                        float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                        float polarDist = presetDist1 - distShouldTravelEachTime;
+                        float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(SwordEntity);
+                        float swordVerticalFacingAngle = getEntityVerticalFacingDeg(SwordEntity);
+                        initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                        if (SwordEntity.getTargetEntityID() == -1) {
+                            if (target != null && !SBConditions.isEntityAlive(target)) {
+                                targetHolder.setAnyTypeValue(null);
+                                target = null;
+                            }
+                            //TODO ALERT: [!] use target ID as resetInterval
+                            if (target == null) {
+                                target = EntityMethods.findHorizontalNearbyEntityFromCenterEntityLoc(owner, 16, 16, 16, finalCondition);
+                                targetHolder.setAnyTypeValue(target);
+                            }
+                        }
+
+                        for (Entity entity : GroupEnumEntitiesInRangeFilter(SwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+                            if (!damagedGroup.contains(entity) && entity instanceof LivingEntity tempLivingEntity && Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                                damagedGroup.add(entity);
+                                //damage action
+
+                                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4,
+                                        ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f,
+                                        BLADEMASTER_037_HIT_EFF_ARR[ExtraMathMethods.randomInt(3)], true, true);
+
+                                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity5, SwordEntity, tempLivingEntity, swordDamage, false);
+
+                                DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, getEntityLevel(entity5), getEntityX(tempLivingEntity), getEntityY(tempLivingEntity), getEntityZ(tempLivingEntity), 0.8f, 1.0f);
+                            }
+                        }
+
+                        //TODO ALERT: [!] use target ID as resetInterval
+                        if (damagedGroup.contains(target)) {
+                            target = null;
+                            if (SwordEntity.getTargetEntityID() < currentSwordEntityElapsedLifeTime) {
+                                SwordEntity.setTargetEntityID(currentSwordEntityElapsedLifeTime + resetClientDamageGroupTick);
+                            } else if (currentSwordEntityElapsedLifeTime >= SwordEntity.getTargetEntityID()) {
+                                target = targetHolder.getAnyTypeValue();
+                                SwordEntity.setTargetEntityID(-1);
+                                //random velocity?
+//                                    initialAcceleration.setFloatVal(BLADEMASTER037_INITIAL_VELOCITY);
+                                damagedGroup.clear();
+                                int tempBackForthTime = SwordEntity.getClientBackForthTime() + 1;
+                                if (tempBackForthTime < 10) {
+                                    swordVerticalFacingAngle = ExtraMathMethods.randomFloat(360f);
+                                } else {
+                                    extraSkillDataStorage.setBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY(SwordEntity);
+                                }
+                                //TODO server back forth time
+                                SwordEntity.setClientBackForthTime(tempBackForthTime);
+                            }
+                        }
+
+                        Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+
+                        moveEntityToPos(SwordEntity, tpLoc);
+
+                        previousTargetLoc.setAnyTypeValue(tpLoc);
+
+                        if (target != null) {
+                            Vector3f targetLoc = EntityMethods.getEntityBlockPos(target).add(0, SwordEntity.getRandomHitHeightOffset(), 0);
+                            float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                            float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                            float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                            float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                            float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                            setEntityHorizontalFacingDeg(SwordEntity, newHorizontalDegree % 360);
+                            setEntityVerticalFacingDeg(SwordEntity, newVerticalDegree % 360);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    public static MethodEntityAction Blademaster037_executeSlaughterScapeSwordDamageAction(LivingEntity dealer, int weaponType, float finalDamage, float swordHitAoe, Predicate<Entity> condition, HashSet<LivingEntity> damagedGroup, IntegerValueHolder previousTickCount, FloatValueHolder initialAcceleration, TypeValueHolder<Vector3f> previousTargetLoc) {
+        return (swordEntity) -> {
+            SlaughterscapeSwordEntity slaughterscapeSwordEntity = (SlaughterscapeSwordEntity) swordEntity;
+
+            //update pos
+            int currentSwordEntityElapsedLifeTime = BLADEMASTER_037_FINAL_ANIMATION_TICKS - slaughterscapeSwordEntity.getLifetime();
+            if (currentSwordEntityElapsedLifeTime != previousTickCount.getIntCounter()) {
+                previousTickCount.setIntCounter(currentSwordEntityElapsedLifeTime);
+                LivingEntity target = slaughterscapeSwordEntity.getTargetEntity();
+                if (target != null && !SBConditions.isEntityAlive(target)) { target = null; }
+                float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                float polarDist = presetDist1 - distShouldTravelEachTime;
+                float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(slaughterscapeSwordEntity);
+                float swordVerticalFacingAngle = getEntityVerticalFacingDeg(slaughterscapeSwordEntity);
+                initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                Vector3f originSwordEntityLoc = (previousTargetLoc.getAnyTypeValue() == null) ? getEntityPos(slaughterscapeSwordEntity) : previousTargetLoc.getAnyTypeValue();
+
+//                for (Entity entity : GroupEnumEntitiesInRangeFilter(slaughterscapeSwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, swordHitAoe, swordHitAoe, swordHitAoe, condition)) {
+//                    if (entity instanceof LivingEntity tempLivingEntity && Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + BLADEMASTER_037_SWORD_HIT_HEIGHT_OFFSET, getEntityZ(entity)) <= swordHitAoe) {
+//                        damagedGroup.add(tempLivingEntity);
+//                        //damage action
+//                        DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, EntityMethods.getEntityLevel(dealer), EntityMethods.getEntityX(tempLivingEntity), EntityMethods.getEntityY(tempLivingEntity), EntityMethods.getEntityZ(tempLivingEntity), 0.8f, 1.0f);
+//                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(dealer, target, finalDamage, true);
+//                    }
+//                }
+                for (Entity tempEntity: GroupEnumEntitiesInRangeFilter(slaughterscapeSwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, condition)) {
+                    if (tempEntity instanceof LivingEntity tempLivingEntity && !damagedGroup.contains(tempLivingEntity) && Vector3fMethods.Vec3fDistanceTo(getEntityX(slaughterscapeSwordEntity), getEntityY(slaughterscapeSwordEntity), getEntityZ(slaughterscapeSwordEntity), getEntityX(tempLivingEntity), getEntityY(tempLivingEntity) + slaughterscapeSwordEntity.getRandomHitHeightOffset(), getEntityZ(tempLivingEntity)) <= swordHitAoe) {
+                        damagedGroup.add(tempLivingEntity);
+                        GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4,
+                                ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f,
+                                BLADEMASTER_037_HIT_EFF_ARR[ExtraMathMethods.randomInt(3)], true, true);
+
+                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(dealer, swordEntity, tempLivingEntity, finalDamage, false);
+
+                        DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, getEntityLevel(dealer), getEntityX(tempLivingEntity), getEntityY(tempLivingEntity), getEntityZ(tempLivingEntity), 0.8f, 1.0f);
+                    }
+                }
+
+                if (damagedGroup.contains(target) || target == null) {
+//                    slaughterscapeSwordEntity.setHitOnTarget(true);
+                    slaughterscapeSwordEntity.setEntityServerAction(null, 777);
+                    slaughterscapeSwordEntity.setTargetEntityID(-1);
+                    slaughterscapeSwordEntity.setLifetime(32);
+                }
+                else {
+                    Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+//                Vector3f tpLoc = Vector3fMethods.PolarProjectionFromVecHorizon(originSwordEntityLoc, (target == null) ? 0.05f : polarDist, swordHorizontalFacingAngle);
+                    moveEntityToXYZ(slaughterscapeSwordEntity, tpLoc.x(), tpLoc.y(), tpLoc.z());
+
+                    previousTargetLoc.setAnyTypeValue(tpLoc);
+
+                    Vector3f targetLoc = EntityMethods.getEntityBlockPos(target).add(0, slaughterscapeSwordEntity.getRandomHitHeightOffset(), 0);
+                    float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                    float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                    float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                    float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                    float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                    setEntityHorizontalFacingDeg(slaughterscapeSwordEntity, newHorizontalDegree % 360);
+                    setEntityVerticalFacingDeg(slaughterscapeSwordEntity, newVerticalDegree % 360);
+                }
+            }
+        };
+    }
+
+    public static void Blademaster037_executeSlaughterScapeSwordAction(LivingEntity dealer, LivingEntity target, int weaponType) {
+        ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> extraSkillDataStorageHashMap = BLADEMASTER_037_SERVER_SIDE_ACTION_ID_2_STORAGE.get(dealer);
+        if (extraSkillDataStorageHashMap != null) {
+            for (Blademaster037ExtraSkillDataStorage dataStorage: extraSkillDataStorageHashMap.values()) {
+                ArrayList<SlaughterscapeSwordEntity> SwordList = dataStorage.getSwordEntityArr();
+
+                if (SwordList != null) {
+                    //TODO: reset randomSwordEntity's texture and other values
+                    int tempInt = ExtraMathMethods.randomInt(SwordList.size());
+                    SlaughterscapeSwordEntity randomSwordEntity = SwordList.get(tempInt);
+
+                    int playerSkillLVL = 0;
+
+                    SkillDataJson skill1 = getID2SkillData().get(SkillID);
+                    Predicate<Entity> condition;
+
+                    if (dealer instanceof ServerPlayer sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (playerSkillLVL <= 0) {
+                                return;
+                            }
+                            playerSkillLVL = playerSkillLVL - 1;
+                        }
+                        condition = defaultSkillTargetCondition(sp1).and(entity -> !entity.equals(dealer));
+                    } else {
+                        condition = defaultSkillTargetCondition().and(entity -> !entity.equals(dealer));
+                    }
+
+                    float swordHitAoeRange = skill1.getValueUsage_01().get(playerSkillLVL).floatValue();
+                    float skillDamageMultiplier = 1f + SBSAttributeMethods.getSkillDamageAttrVal(dealer);
+
+                    float damageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+                    float damageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue();
+                    float finalDmg = (float) ((damageMultiplier * getEntityAttackDamage(dealer) + damageBase) * skillDamageMultiplier);
+
+//            String ActionID = BLADEMASTER_037_SWORD_ENTITY_DAMAGE_ACTION + getEntityHashID(randomSwordEntity) + randomSwordEntity.getSwordPositionID();
+                    MethodEntityAction swordTickingAction = Blademaster037_executeSlaughterScapeSwordDamageAction(dealer, weaponType, finalDmg, swordHitAoeRange, condition, new HashSet<>(), new IntegerValueHolder(-1), new FloatValueHolder(BLADEMASTER037_INITIAL_VELOCITY), new TypeValueHolder<>(null));
+
+                    GeoModelSpawnMethods.GenerateSlaughterScapeEntity(dealer, getEntityBodyHorizontalFacingDeg(randomSwordEntity), 1f, 0, swordHitAoeRange, 1.1f + ExtraMathMethods.randomFloat(), getEntityX(randomSwordEntity), getEntityY(randomSwordEntity), getEntityZ(randomSwordEntity), 0, 0, 0, getEntityX(target), getEntityY(target), getEntityZ(target),
+                            BLADEMASTER_037_FINAL_ANIMATION_TICKS, randomSwordEntity.getSwordPositionID(), getEntityHashID(target), randomSwordEntity.getTextureName(), BLADEMASTER_037_SHOOTING_SWORD_ANIMATION_NAME,
+                            BLADEMASTER037_SWORD_EFF_CLIENT_MOVING_TOWARDS_TARGET_ACTION, swordTickingAction, 1, false, true);
+                }
+            }
+        }
+    }
+
+    public static MethodEntityAction Blademaster037_ClientSwordChasingAction(FloatValueHolder initialAcceleration, IntegerValueHolder previousTickCount, TypeValueHolder<Vector3f> previousTargetLoc, HashSet<Entity> damagedGroup, Predicate<Entity> finalCondition) {
+        return (swordEntity) -> {
+            SlaughterscapeSwordEntity slaughterscapeSwordEntity = (SlaughterscapeSwordEntity) swordEntity;
+            int currentSwordEntityElapsedLifeTime = BLADEMASTER_037_FINAL_ANIMATION_TICKS - slaughterscapeSwordEntity.getLifetime();
+            if (currentSwordEntityElapsedLifeTime != previousTickCount.getIntCounter()) {
+                previousTickCount.setIntCounter(currentSwordEntityElapsedLifeTime);
+                Entity target = slaughterscapeSwordEntity.getTargetEntity();
+                if (target != null && !SBConditions.isEntityAlive(target)) {
+                    target = null;
+                }
+                float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                float polarDist = presetDist1 - distShouldTravelEachTime;
+                float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(slaughterscapeSwordEntity);
+                float swordVerticalFacingAngle = getEntityVerticalFacingDeg(slaughterscapeSwordEntity);
+                initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                Vector3f originSwordEntityLoc = (previousTargetLoc.getAnyTypeValue() == null) ? getEntityPos(slaughterscapeSwordEntity) : previousTargetLoc.getAnyTypeValue();
+
+                float swordHitAoe = slaughterscapeSwordEntity.getSwordHitAoeRange();
+
+                for (Entity entity : GroupEnumEntitiesInRangeFilter(slaughterscapeSwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+//                    if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + slaughterscapeSwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe + 0.1f) {
+                    if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + slaughterscapeSwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                        damagedGroup.add(entity);
+                        //damage action
+                    }
+                }
+
+                if (damagedGroup.contains(target)) {
+                    if (!slaughterscapeSwordEntity.isHitOnTarget()) {
+                        slaughterscapeSwordEntity.setHitOnTarget(true);
+                        slaughterscapeSwordEntity.setClientHitEntityID(slaughterscapeSwordEntity.getTargetEntityID());
+                        slaughterscapeSwordEntity.setTargetEntityID(-1);
+                        if (target != null) {
+                            float newXOffset = originSwordEntityLoc.x() - getEntityX(target);
+                            float newYOffset = originSwordEntityLoc.y() - getEntityY(target);
+                            float newZOffset = originSwordEntityLoc.z() - getEntityZ(target);
+
+                            slaughterscapeSwordEntity.setLifetime(32);
+                            slaughterscapeSwordEntity.setAdditionalPosX(newXOffset);
+                            slaughterscapeSwordEntity.setAdditionalPosY(newYOffset);
+                            slaughterscapeSwordEntity.setAdditionalPosZ(newZOffset);
+
+                            //reset animation or pause
+//                            slaughterscapeSwordEntity.setAnimationName(BLADEMASTER_037_SHOOTING_SWORD_ANIMATION_STOP_NAME);
+                            int currentAnimationTick = slaughterscapeSwordEntity.getMaxLifeTime() - slaughterscapeSwordEntity.getLifetime();
+                            float pausedAnimationSpeedModifier = 0.0001f;
+                            slaughterscapeSwordEntity.setGeoAnimationSpeedModifier(pausedAnimationSpeedModifier);
+                            float offset = 1f * currentAnimationTick / pausedAnimationSpeedModifier;
+                            slaughterscapeSwordEntity.getAnimationController().setTickOffset(-offset);
+                        }
+                    }
+                } else {
+                    Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, (target == null) ? 0.05f : polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+//                Vector3f tpLoc = Vector3fMethods.PolarProjectionFromVecHorizon(originSwordEntityLoc, (target == null) ? 0.05f : polarDist, swordHorizontalFacingAngle);
+                    if (!slaughterscapeSwordEntity.hasClientNextMovingPos()) {
+//                    slaughterscapeSwordEntity.setFromPosX(originSwordEntityLoc.x());
+//                    slaughterscapeSwordEntity.setFromPosY(originSwordEntityLoc.y());
+//                    slaughterscapeSwordEntity.setFromPosZ(originSwordEntityLoc.z());
+                        slaughterscapeSwordEntity.setClientHasNextMovingPos(true);
+                    }
+                    slaughterscapeSwordEntity.setFromPosX(originSwordEntityLoc.x());
+                    slaughterscapeSwordEntity.setFromPosY(originSwordEntityLoc.y());
+                    slaughterscapeSwordEntity.setFromPosZ(originSwordEntityLoc.z());
+                    slaughterscapeSwordEntity.setToPosX(tpLoc.x());
+                    slaughterscapeSwordEntity.setToPosY(tpLoc.y());
+                    slaughterscapeSwordEntity.setToPosZ(tpLoc.z());
+
+                    previousTargetLoc.setAnyTypeValue(tpLoc);
+
+
+                    if (target != null) {
+                        Vector3f targetLoc = EntityMethods.getEntityBlockPos(target).add(0, slaughterscapeSwordEntity.getRandomHitHeightOffset(), 0);
+                        float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                        float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                        float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                        float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                        float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                        setEntityHorizontalFacingDeg(slaughterscapeSwordEntity, newHorizontalDegree % 360);
+                        setEntityVerticalFacingDeg(slaughterscapeSwordEntity, newVerticalDegree % 360);
+                    }
+                }
+            }
+        };
+    }
+
+    //================
+    //client action
+    //================
+    public static void Blademaster037_ClientMethodInit(HashMap<String, MethodEntityAction> clientMethodMap) {
+        clientMethodMap.put(BLADEMASTER037_SWORD_EFF_CLIENT_MOVING_TOWARDS_TARGET_ACTION, Blademaster037::Blademaster037_ClientSwordChasingInit);
+        clientMethodMap.put(BLADEMASTER037_GROUND_SWORD_EFF_CLIENT_MOVING_CLOCKWISE_ACTION, Blademaster037::Blademaster037_Blademaster037_ClientMovingClockwiseInitAction);
+    }
+
+    public static void Blademaster037_ClientSwordChasingInit(Entity swordEntity) {
+        SlaughterscapeSwordEntity slaughterscapeSwordEntity = (SlaughterscapeSwordEntity) swordEntity;
+        MethodEntityAction entityAction = slaughterscapeSwordEntity.getClientMethodEntityLoopAction();
+        Entity owner;
+
+        if (entityAction == null) {
+            HashSet<Entity> damagedGroup = new HashSet<>();
+            Predicate<Entity> clientCond = SBConditions.defaultSkillTargetClientCondition();
+            if ((owner = slaughterscapeSwordEntity.getOwner()) != null) {
+                clientCond = clientCond.and(entity -> !entity.equals(owner) && !damagedGroup.contains(entity));
+            }
+            Predicate<Entity> finalCondition = clientCond;
+            entityAction = Blademaster037_ClientSwordChasingAction(new FloatValueHolder(BLADEMASTER037_INITIAL_VELOCITY), new IntegerValueHolder(-1), new TypeValueHolder<>(null), damagedGroup, finalCondition);
+            slaughterscapeSwordEntity.setClientMethodEntityLoopAction(entityAction);
+        }
+
+        entityAction.executeAction(slaughterscapeSwordEntity);
+    }
+
+    public static void Blademaster037_Blademaster037_ClientMovingClockwiseInitAction(Entity swordEntity) {
+        SlaughterscapeSwordEntity slaughterscapeSwordEntity = (SlaughterscapeSwordEntity) swordEntity;
+        MethodEntityAction entityAction = slaughterscapeSwordEntity.getClientMethodEntityLoopAction();
+        Entity owner;
+
+        if (entityAction == null) {
+            Blademaster037ExtraSkillDataStorage extraSkillDataStorage = BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE.get(slaughterscapeSwordEntity.getTriggerActionID());
+            if (extraSkillDataStorage == null) {
+                extraSkillDataStorage = new Blademaster037ExtraSkillDataStorage(new ArrayList<>());
+                BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE.put(slaughterscapeSwordEntity.getTriggerActionID(), extraSkillDataStorage);
+            }
+            extraSkillDataStorage.getSwordEntityArr().add(slaughterscapeSwordEntity);
+            HashSet<Entity> damagedGroup = new HashSet<>();
+            Predicate<Entity> clientCond = SBConditions.defaultSkillTargetClientCondition();
+            if ((owner = slaughterscapeSwordEntity.getOwner()) != null) {
+                clientCond = clientCond.and(entity -> !entity.equals(owner) && !damagedGroup.contains(entity));
+            }
+            Predicate<Entity> finalCondition = clientCond;
+            entityAction = Blademaster037_ClientMovingClockwiseAction(new FloatValueHolder(BLADEMASTER037_INITIAL_VELOCITY), new IntegerValueHolder(-1), new TypeValueHolder<>(null), new TypeValueHolder<>(null), damagedGroup, finalCondition);
+            slaughterscapeSwordEntity.setClientMethodEntityLoopAction(entityAction);
+        }
+
+        entityAction.executeAction(slaughterscapeSwordEntity);
+    }
+
+    public static MethodEntityAction Blademaster037_ClientMovingClockwiseAction(FloatValueHolder initialAcceleration, IntegerValueHolder previousTickCount, TypeValueHolder<Vector3f> previousTargetLoc, TypeValueHolder<Entity> targetHolder, HashSet<Entity> damagedGroup, Predicate<Entity> finalCondition) {
+        return (movingObj) -> {
+            SlaughterscapeSwordEntity SwordEntity = (SlaughterscapeSwordEntity) movingObj;
+
+            Entity owner = SwordEntity.getOwner();
+            float currentTotalDistHasTraveled = SwordEntity.getClientTotalDistHasTraveled();
+            if (owner != null) {
+                if (currentTotalDistHasTraveled <= BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER) {
+                    float originX = (SwordEntity.hasClientNextMovingPos()) ? SwordEntity.getPreviousToPosX() : getEntityX(SwordEntity);
+                    float originY = (SwordEntity.hasClientNextMovingPos()) ? SwordEntity.getPreviousToPosY() : getEntityY(SwordEntity);
+                    float originZ = (SwordEntity.hasClientNextMovingPos()) ? SwordEntity.getPreviousToPosZ() : getEntityZ(SwordEntity);
+                    float newFacingAngle = SwordEntity.getDegreeShouldIncrementEachTime() + getEntityHorizontalFacingDeg(SwordEntity);
+
+                    setEntityHorizontalFacingDeg(SwordEntity, newFacingAngle);
+
+                    float newX = Vector3fMethods.PolarProjectionFromXHorizonWithOrigin(getEntityX(owner), currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK, newFacingAngle) + SwordEntity.getAdditionalPosX();
+                    float newY = getEntityY(owner) + SwordEntity.getAdditionalPosY();
+                    float newZ = Vector3fMethods.PolarProjectionFromZHorizonWithOrigin(getEntityZ(owner), currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK, newFacingAngle) + SwordEntity.getAdditionalPosZ();
+
+                    SwordEntity.setFromToPositions(originX, originY, originZ, newX, newY, newZ);
+                    SwordEntity.setPreviousToPosX(newX);
+                    SwordEntity.setPreviousToPosY(newY);
+                    SwordEntity.setPreviousToPosZ(newZ);
+                    if (!SwordEntity.hasClientNextMovingPos()) {
+                        SwordEntity.setClientHasNextMovingPos(true);
+                        SwordEntity.setPreviousRotationDeg(SwordEntity.getDegreeShouldIncrementEachTime());
+                        SwordEntity.setMinRotationDeg(SwordEntity.getDegreeShouldIncrementEachTime() * 0.5f);
+                    }
+
+                    SwordEntity.setClientTotalDistHasTraveled(currentTotalDistHasTraveled + BLADEMASTER037_DIST_SHOULD_TRAVEL_EACH_TICK);
+                } else {
+                    if (SwordEntity.getLifetime() <= BLADEMASTER_037_FINAL_ANIMATION_TICKS) {
+                        int currentSwordEntityElapsedLifeTime = BLADEMASTER_037_FINAL_ANIMATION_TICKS - SwordEntity.getLifetime();
+                        if (!SwordEntity.isShootingAnimation()) {
+                            SwordEntity.setShootingAnimation(true);
+                            //TODO: shooting with lerp
+                            SwordEntity.setAnimationName(BLADEMASTER_037_SHOOTING_SWORD_ANIMATION_NAME);
+                        }
+                        float swordHitAoe = SwordEntity.getSwordHitAoeRange();
+
+                        if (currentSwordEntityElapsedLifeTime != previousTickCount.getIntCounter()) {
+                            previousTickCount.setIntCounter(currentSwordEntityElapsedLifeTime);
+
+                            Entity target = targetHolder.getAnyTypeValue();
+                            Vector3f originSwordEntityLoc = (previousTargetLoc.getAnyTypeValue() == null) ? getEntityPos(SwordEntity) : previousTargetLoc.getAnyTypeValue();
+
+                            Blademaster037ExtraSkillDataStorage extraSkillDataStorage = BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE.get(SwordEntity.getTriggerActionID());
+                            if (extraSkillDataStorage == null) {
+                                SwordEntity.setClientActionName(DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+                                return;
+                            }
+                            SlaughterscapeSwordEntity finalActionSwordEntity = extraSkillDataStorage.getBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY();
+                            if (finalActionSwordEntity != null) {
+                                float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(SwordEntity);
+                                float swordVerticalFacingAngle = getEntityVerticalFacingDeg(SwordEntity);
+                                if (finalActionSwordEntity.equals(SwordEntity)) {
+                                    if (!SwordEntity.isExecutedClientFinalAction()) {
+                                        //before launching
+                                        if (target != null && !SBConditions.isEntityAlive(target)) {
+                                            targetHolder.setAnyTypeValue(null);
+                                            target = null;
+                                        }
+                                        //TODO ALERT: [!] use target ID as resetInterval
+                                        if (target == null) {
+                                            target = EntityMethods.findHorizontalNearbyEntityFromCenterEntityLoc(owner, 16, 16, 16, finalCondition);
+                                            targetHolder.setAnyTypeValue(target);
+                                        }
+
+                                        Vector3f targetLoc = (target == null) ? Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, 6f, swordHorizontalFacingAngle, 0) : EntityMethods.getEntityBlockPos(target);
+                                        float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                                        float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                                        float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                                        float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                                        float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                                        setEntityHorizontalFacingDeg(SwordEntity, newHorizontalDegree % 360);
+                                        setEntityVerticalFacingDeg(SwordEntity, newVerticalDegree % 360);
+
+                                        if (SwordEntity.getLifetime() <= 100) {
+                                            SwordEntity.setExecuteClientFinalAction(true);
+                                            SwordEntity.setFromPosX(originSwordEntityLoc.x());
+                                            SwordEntity.setFromPosY(originSwordEntityLoc.y());
+                                            SwordEntity.setFromPosZ(originSwordEntityLoc.z());
+                                            SwordEntity.setToPosX(targetLoc.x());
+                                            SwordEntity.setToPosY(targetLoc.y());
+                                            SwordEntity.setToPosZ(targetLoc.z());
+                                        }
+                                    }
+//                                    else {
+//                                        //TODO: server side
+//                                        for (Entity entity : GroupEnumEntitiesInRangeFilter(SwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+//                                            if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+//                                                damagedGroup.add(entity);
+//                                                //damage action
+//                                            }
+//                                        }
+//                                    }
+                                }
+                                else {
+                                    if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc, getEntityPos(finalActionSwordEntity)) <= swordHitAoe) {
+                                        //TODO, delete entity from server side
+                                        SwordEntity.setClientScale(0);
+                                        SwordEntity.setEntityScale(0);
+                                        finalActionSwordEntity.setEntityScale(finalActionSwordEntity.getEntityScale() + 0.2f);
+                                        finalActionSwordEntity.setLifetime(BLADEMASTER_037_FINAL_ANIMATION_TICKS);
+                                        //play grow up sound
+                                        SwordEntity.setClientActionName(DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+                                        return;
+                                    }
+
+                                    float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                                    float polarDist = presetDist1 - distShouldTravelEachTime;
+                                    initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                                    for (Entity entity : GroupEnumEntitiesInRangeFilter(SwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+                                        if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                                            damagedGroup.add(entity);
+                                            //damage action
+                                        }
+                                    }
+
+                                    Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+                                    if (!SwordEntity.hasClientNextMovingPos()) {
+                                        SwordEntity.setClientHasNextMovingPos(true);
+                                    }
+                                    SwordEntity.setFromPosX(originSwordEntityLoc.x());
+                                    SwordEntity.setFromPosY(originSwordEntityLoc.y());
+                                    SwordEntity.setFromPosZ(originSwordEntityLoc.z());
+                                    SwordEntity.setToPosX(tpLoc.x());
+                                    SwordEntity.setToPosY(tpLoc.y());
+                                    SwordEntity.setToPosZ(tpLoc.z());
+
+                                    previousTargetLoc.setAnyTypeValue(tpLoc);
+
+                                    Vector3f targetLoc = EntityMethods.getEntityBlockPos(finalActionSwordEntity);
+                                    float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                                    float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                                    float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                                    float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                                    float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                                    setEntityHorizontalFacingDeg(SwordEntity, newHorizontalDegree % 360);
+                                    setEntityVerticalFacingDeg(SwordEntity, newVerticalDegree % 360);
+                                }
+                            }
+                            else {
+                                float distShouldTravelEachTime = initialAcceleration.getFloatVal();
+                                float polarDist = presetDist1 - distShouldTravelEachTime;
+                                float swordHorizontalFacingAngle = getEntityHorizontalFacingDeg(SwordEntity);
+                                float swordVerticalFacingAngle = getEntityVerticalFacingDeg(SwordEntity);
+                                initialAcceleration.setFloatVal(distShouldTravelEachTime - (distShouldTravelDecay * interval));
+
+                                if (SwordEntity.getTargetEntityID() == -1) {
+                                    if (target != null && !SBConditions.isEntityAlive(target)) {
+                                        targetHolder.setAnyTypeValue(null);
+                                        target = null;
+                                    }
+                                    //TODO ALERT: [!] use target ID as resetInterval
+                                    if (target == null) {
+                                        target = EntityMethods.findHorizontalNearbyEntityFromCenterEntityLoc(owner, 16, 16, 16, finalCondition);
+                                        targetHolder.setAnyTypeValue(target);
+                                    }
+                                }
+
+                                for (Entity entity : GroupEnumEntitiesInRangeFilter(SwordEntity, swordHitAoe, swordHitAoe, swordHitAoe, finalCondition)) {
+                                    if (Vector3fMethods.Vec3fDistanceTo(originSwordEntityLoc.x(), originSwordEntityLoc.y(), originSwordEntityLoc.z(), getEntityX(entity), getEntityY(entity) + SwordEntity.getRandomHitHeightOffset(), getEntityZ(entity)) <= swordHitAoe) {
+                                        damagedGroup.add(entity);
+                                        //damage action
+                                    }
+                                }
+
+                                //TODO ALERT: [!] use target ID as resetInterval
+                                if (damagedGroup.contains(target)) {
+                                    target = null;
+                                    if (SwordEntity.getTargetEntityID() < currentSwordEntityElapsedLifeTime) {
+                                        SwordEntity.setTargetEntityID(currentSwordEntityElapsedLifeTime + resetClientDamageGroupTick);
+                                    } else if (currentSwordEntityElapsedLifeTime >= SwordEntity.getTargetEntityID()) {
+                                        target = targetHolder.getAnyTypeValue();
+                                        SwordEntity.setTargetEntityID(-1);
+                                        //random velocity?
+//                                    initialAcceleration.setFloatVal(BLADEMASTER037_INITIAL_VELOCITY);
+                                        damagedGroup.clear();
+                                        int tempBackForthTime = SwordEntity.getClientBackForthTime() + 1;
+                                        if (tempBackForthTime < 10) {
+                                            swordVerticalFacingAngle = ExtraMathMethods.randomFloat(360f);
+                                        }
+                                        else {
+                                            extraSkillDataStorage.setBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY(SwordEntity);
+                                        }
+                                        //TODO server back forth time
+                                        SwordEntity.setClientBackForthTime(tempBackForthTime);
+
+                                    }
+                                }
+
+                                Vector3f tpLoc = Vector3fMethods.PolarProjectionFromRotation(originSwordEntityLoc, polarDist, swordHorizontalFacingAngle, swordVerticalFacingAngle);
+                                if (!SwordEntity.hasClientNextMovingPos()) {
+                                    SwordEntity.setClientHasNextMovingPos(true);
+                                }
+                                SwordEntity.setFromPosX(originSwordEntityLoc.x());
+                                SwordEntity.setFromPosY(originSwordEntityLoc.y());
+                                SwordEntity.setFromPosZ(originSwordEntityLoc.z());
+                                SwordEntity.setToPosX(tpLoc.x());
+                                SwordEntity.setToPosY(tpLoc.y());
+                                SwordEntity.setToPosZ(tpLoc.z());
+
+                                previousTargetLoc.setAnyTypeValue(tpLoc);
+
+                                if (target != null) {
+                                    Vector3f targetLoc = EntityMethods.getEntityBlockPos(target).add(0, SwordEntity.getRandomHitHeightOffset(), 0);
+                                    float HorizontalAngleBetweenSwordEntityAndTarget = Vector3fMethods.AngleFromLocationToLocationHorizontal(originSwordEntityLoc, targetLoc);
+                                    float VerticalAngleBetweenSwordEntityAngTarget = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(originSwordEntityLoc, targetLoc) * MathMethods.RAD_TO_DEG);
+
+                                    float time = 0.01f + 0.99f * currentSwordEntityElapsedLifeTime / BLADEMASTER_037_FINAL_ANIMATION_TICKS;
+                                    float newHorizontalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, swordHorizontalFacingAngle, HorizontalAngleBetweenSwordEntityAndTarget));
+                                    float newVerticalDegree = MathMethods.RoundAngle(MathMethods.lerpDegreeAngle(time, MathMethods.RoundAngle(swordVerticalFacingAngle), VerticalAngleBetweenSwordEntityAngTarget));
+                                    setEntityHorizontalFacingDeg(SwordEntity, newHorizontalDegree % 360);
+                                    setEntityVerticalFacingDeg(SwordEntity, newVerticalDegree % 360);
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        float originX = SwordEntity.getPreviousToPosX();
+                        float originY = SwordEntity.getPreviousToPosY();
+                        float originZ = SwordEntity.getPreviousToPosZ();
+
+                        float newFacingAngle;
+                        if (SwordEntity.getPreviousRotationDeg() > SwordEntity.getMinRotationDeg()) {
+                            SwordEntity.setPreviousRotationDeg(SwordEntity.getPreviousRotationDeg() - 0.1f);
+                            newFacingAngle = SwordEntity.getPreviousRotationDeg() + getEntityHorizontalFacingDeg(SwordEntity);
+                        } else {
+                            newFacingAngle = SwordEntity.getMinRotationDeg() + getEntityHorizontalFacingDeg(SwordEntity);
+                        }
+
+                        setEntityHorizontalFacingDeg(SwordEntity, newFacingAngle);
+
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizonWithOrigin(getEntityX(owner), BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER, newFacingAngle) + SwordEntity.getAdditionalPosX();
+                        float newY = getEntityY(owner) + SwordEntity.getAdditionalPosY();
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizonWithOrigin(getEntityZ(owner), BLADEMASTER_037_SWORD_MAX_DIST_FROM_OWNER, newFacingAngle) + SwordEntity.getAdditionalPosZ();
+
+                        SwordEntity.setFromToPositions(originX, originY, originZ, newX, newY, newZ);
+                        SwordEntity.setPreviousToPosX(newX);
+                        SwordEntity.setPreviousToPosY(newY);
+                        SwordEntity.setPreviousToPosZ(newZ);
+                    }
+                }
+            }
+//        else {
+            //TODO random selection disappear
+//            SwordEntity.setClientHasNextMovingPos(false);
+//        }
+        };
+    }
+
+    public static ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> getBlademaster037ClientSideActionId2Storage() {
+        return BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE;
+    }
+
+    public static void setBlademaster037ClientSideActionId2Storage(ConcurrentHashMap<String, Blademaster037ExtraSkillDataStorage> blademaster037ClientSideActionId2Storage) {
+        BLADEMASTER_037_CLIENT_SIDE_ACTION_ID_2_STORAGE = blademaster037ClientSideActionId2Storage;
+    }
+}

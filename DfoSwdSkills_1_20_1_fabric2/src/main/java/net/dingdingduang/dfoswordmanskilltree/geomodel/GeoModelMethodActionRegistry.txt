@@ -1,0 +1,4 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel;
+
+public class GeoModelActionMethodsRegistry {
+}

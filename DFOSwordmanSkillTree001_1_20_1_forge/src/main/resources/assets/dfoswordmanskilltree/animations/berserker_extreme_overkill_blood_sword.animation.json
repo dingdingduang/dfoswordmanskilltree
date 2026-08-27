@@ -1,0 +1,184 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"state_0": {
+			"animation_length": 1,
+			"bones": {
+				"grip": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"crossguard": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"bladeparts": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 30, 0]
+					}
+				}
+			}
+		},
+		"state_1": {
+			"animation_length": 1,
+			"bones": {
+				"grip2": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"crossguard": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"bladeparts": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 25, 0]
+					}
+				}
+			}
+		},
+		"state_2": {
+			"animation_length": 1,
+			"bones": {
+				"crossguard": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"bladeparts": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 22, 0]
+					}
+				}
+			}
+		},
+		"state_3": {
+			"animation_length": 1,
+			"bones": {
+				"bladeparts": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 19, 0]
+					}
+				}
+			}
+		},
+		"state_4": {
+			"animation_length": 1,
+			"bones": {
+				"part2": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part3": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part4": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part5": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 16, 0]
+					}
+				}
+			}
+		},
+		"state_5": {
+			"animation_length": 1,
+			"bones": {
+				"part3": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part4": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part5": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 13, 0]
+					}
+				}
+			}
+		},
+		"state_6": {
+			"animation_length": 1,
+			"bones": {
+				"part4": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"part5": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 3, 0]
+					}
+				}
+			}
+		},
+		"state_7": {
+			"animation_length": 1,
+			"bones": {
+				"part5": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"blood_orb": {
+					"position": {
+						"vector": [0, 0, 0]
+					}
+				}
+			}
+		},
+		"state_8": {
+			"animation_length": 1
+		}
+	},
+	"geckolib_format_version": 2
+}

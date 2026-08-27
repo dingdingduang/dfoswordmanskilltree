@@ -1,0 +1,640 @@
+package temp.sbasiclibs.globalmethods;
+
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
+
+import net.minecraftforge.entity.PartEntity;
+import modified.org.joml.Vector3f;
+import entity.net.dingdingduang.dfoswordmanskilltree.ProjectileDummyEffOnly;
+
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
+
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityMethods.LivingEntityDamageTarget;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EffectMethods.applyEffectToLivingEntity;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityFXEffectMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.GeneralMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.Vector3fMethods.PolarProjectionFromRotation;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.Vector3fMethods.PolarProjectionFromVecHorizon;
+
+public class EntityGroupMethods {
+    public static List<Entity> getEntitiesInRect(@Nullable Entity pEntity, AABB pBoundingBox, Predicate<? super Entity> pPredicate) {
+        List<Entity> list = new CopyOnWriteArrayList<Entity>();
+
+        getServerLevel().getEntities().get(pBoundingBox, (loopingEntity) -> {
+            if (loopingEntity != pEntity && pPredicate.test(loopingEntity)) {
+                list.add(loopingEntity);
+            }
+        });
+
+        for(PartEntity<?> p : getServerLevel().getPartEntities()) {
+            if (p != pEntity && p.getBoundingBox().intersects(pBoundingBox) && pPredicate.test(p)) {
+                list.add(p);
+            }
+        }
+        return list;
+    }
+
+    //ConcurrentModificationException, not sure how to fix,
+    //for some mysterious reason if a lot mob in target zone, the game will crash
+    //pretty sure I didn't add/remove element from the list or iterator while it being iterated
+
+    //option1 CopyOnWriteArrayList collection synchronize list, option2 concurrent hashmap
+
+    public static void MoveAllEntitiesInEntityGroup(List<Entity> a, Vector3f b, boolean resetDelta) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                moveEntityToPos(tempLivingEntity, b);
+                if (resetDelta) {
+                    setEntityDeltaMovement(tempLivingEntity, 0, 0, 0);
+                }
+            }
+        }
+    }
+
+    public static void MoveAllEntitiesInEntityGroupHorizon(List<Entity> a, float dist, float horizontalDeg, boolean resetDelta) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                moveEntityToPos(tempLivingEntity, PolarProjectionFromVecHorizon(getEntityPos(tempLivingEntity), dist, horizontalDeg));
+                if (resetDelta) {
+                    setEntityDeltaMovement(tempLivingEntity, 0, 0, 0);
+                }
+            }
+        }
+    }
+
+    public static void MoveAllEntitiesInEntityGroupFromRotation(List<Entity> a, float dist, float verticalDeg, float horizontalDeg, boolean resetDelta) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                moveEntityToPos(tempLivingEntity, PolarProjectionFromRotation(getEntityPos(tempLivingEntity), dist, verticalDeg, horizontalDeg));
+                if (resetDelta) {
+                    setEntityDeltaMovement(tempLivingEntity, 0, 0, 0);
+                }
+            }
+        }
+    }
+
+    //generate simple square zone 1x1 3x3 5x5?
+    //use entity's distanceTo method if you want circular zone
+    public static List<Entity> GroupEnumEntitiesInRange(Entity loc, double range) {
+        double x1 = getEntityX(loc) - range;
+        double y1 = getEntityY(loc) - 1;
+//        double y1 = getEntityY(loc) - range;
+        double z1 = getEntityZ(loc) - range;
+        double x2 = getEntityX(loc) + range;
+//        double y2 = getEntityY(loc) + range;
+        double y2 = getEntityY(loc) + 2;
+        double z2 = getEntityZ(loc) + range;
+        AABB rectRange = new AABB(x1, y1, z1, x2, y2, z2);
+
+//        return getServerLevel().getEntities(loc, rectRange);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01);
+    }
+
+    //rectangle zone
+    public static List<Entity> GroupEnumEntitiesInRange(Entity loc, double x0, double y0, double z0) {
+        double x1 = getEntityX(loc) - x0;
+        double y1 = getEntityY(loc) - y0;
+        double z1 = getEntityZ(loc) - z0;
+        double x2 = getEntityX(loc) + x0;
+        double y2 = getEntityY(loc) + y0;
+        double z2 = getEntityZ(loc) + z0;
+        AABB rectRange = new AABB(x1, y1, z1, x2, y2, z2);
+
+//        return getServerLevel().getEntities(loc, rectRange);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01);
+    }
+
+    //customize rectangle zone if you want
+    public static List<Entity> GroupEnumEntitiesInRange(Entity loc, double x1, double y1, double z1, double x2, double y2, double z2) {
+        double new_x1 = getEntityX(loc) - x1;
+        double new_y1 = getEntityY(loc) - y1;
+        double new_z1 = getEntityZ(loc) - z1;
+        double new_x2 = getEntityX(loc) + x2;
+        double new_y2 = getEntityY(loc) + y2;
+        double new_z2 = getEntityZ(loc) + z2;
+        AABB rectRange = new AABB(new_x1, new_y1, new_z1, new_x2, new_y2, new_z2);
+
+//        return getServerLevel().getEntities(loc, rectRange);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01);
+    }
+
+    public static List<Entity> GroupEnumEntitiesInRange(Entity loc, AABB rect) {
+//        return getServerLevel().getEntities(loc, rect);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rect, tempPredicate01);
+    }
+
+    //generate simple square zone 1x1 3x3 5x5?
+    //use entity's distanceTo method if you want circular zone
+    //example using this method:
+    //List<Entity> tempEntityGroup = GroupEnumEntitiesInRangeFilter(center, range, SBConditions::isLivingEntity);
+    //List<Entity> tempEntityGroup = GroupEnumEntitiesInRangeFilter(center, range, entity -> isLivingEntity(entity) && isAttackableEntity(entity) );
+    //circular with distanceTo method
+    //List<Entity> tempEntityGroup = GroupEnumEntitiesInRangeFilter(center, range, entity -> isEnemyEntity(entity) && (entity.distanceTo(Entity000) <= radius) );
+    public static List<Entity> GroupEnumEntitiesInRangeFilter(Entity loc, double range, Predicate<? super Entity> pFilter) {
+        double x1 = getEntityX(loc) - range;
+        double y1 = getEntityY(loc) - 1;
+//        double y1 = getEntityY(loc) - range;
+        double z1 = getEntityZ(loc) - range;
+        double x2 = getEntityX(loc) + range;
+        double y2 = getEntityY(loc) + 2;
+//        double y2 = getEntityY(loc) + range;
+        double z2 = getEntityZ(loc) + range;
+        AABB rectRange = new AABB(x1, y1, z1, x2, y2, z2);
+//        printInGameMsg(String.format("x %f, y %f, z %f", x1,y1,z1));
+//        return getServerLevel().getEntities(loc, rectRange, pFilter);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01.and(pFilter));
+    }
+
+    //rectangle zone
+    public static List<Entity> GroupEnumEntitiesInRangeFilter(Entity loc, double x0, double y0, double z0, Predicate<? super Entity> pFilter) {
+        double x1 = getEntityX(loc) - x0;
+        double y1 = getEntityY(loc) - y0;
+        double z1 = getEntityZ(loc) - z0;
+        double x2 = getEntityX(loc) + x0;
+        double y2 = getEntityY(loc) + y0;
+        double z2 = getEntityZ(loc) + z0;
+        AABB rectRange = new AABB(x1, y1, z1, x2, y2, z2);
+
+//        return getServerLevel().getEntities(loc, rectRange, pFilter);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01.and(pFilter));
+    }
+
+    //customize rectangle zone if you want
+    public static List<Entity> GroupEnumEntitiesInRangeFilter(Entity loc, double x1, double y1, double z1, double x2, double y2, double z2, Predicate<? super Entity> pFilter) {
+        double new_x1 = getEntityX(loc) - x1;
+        double new_y1 = getEntityY(loc) - y1;
+        double new_z1 = getEntityZ(loc) - z1;
+        double new_x2 = getEntityX(loc) + x2;
+        double new_y2 = getEntityY(loc) + y2;
+        double new_z2 = getEntityZ(loc) + z2;
+        AABB rectRange = new AABB(new_x1, new_y1, new_z1, new_x2, new_y2, new_z2);
+
+//        return getServerLevel().getEntities(loc, rectRange, pFilter);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rectRange, tempPredicate01.and(pFilter));
+    }
+
+    public static List<Entity> GroupEnumEntitiesInRangeFilter(Entity loc, AABB rect, Predicate<? super Entity> pFilter) {
+//        return getServerLevel().getEntities(loc, rect, pFilter);
+        Predicate<Entity> tempPredicate01 = (e1) -> { return !isEntitySpectator(e1); };
+        return getEntitiesInRect(loc, rect, tempPredicate01.and(pFilter));
+    }
+
+    //basic
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                }
+                else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+            }
+        }
+    }
+
+    //Advance
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                }
+                else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, HashMap<Entity, Integer> entityHitCounter, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                }
+                else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) { continue; }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                }
+                else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, HashMap<Entity, Integer> entityHitCounter, int limit1, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+                if (entityHitCounter.containsKey(tempLivingEntity)) {
+                    if (entityHitCounter.get(tempLivingEntity) < limit1) {
+                        entityHitCounter.put(tempLivingEntity, entityHitCounter.get(tempLivingEntity) + 1);
+                    } else {
+                        continue;
+                    }
+                } else {
+                    entityHitCounter.put(tempLivingEntity, 1);
+                }
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                }
+                else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, int limit1, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                if (entityHitCounter.containsKey(tempLivingEntity)) {
+                    if (entityHitCounter.get(tempLivingEntity) < limit1) {
+                        entityHitCounter.put(tempLivingEntity, entityHitCounter.get(tempLivingEntity) + 1);
+                    } else {
+                        continue;
+                    }
+                } else {
+                    entityHitCounter.put(tempLivingEntity, 1);
+                }
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                } else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    } else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, HashMap<Entity, Integer> entityHitCounter, HashMap<MobEffectInstance, Integer> effectMap, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                } else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, HashMap<MobEffectInstance, Integer> effectMap, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                } else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void DamageEntityGroup(List<Entity> a, LivingEntity dealer, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, int limit1, HashMap<MobEffectInstance, Integer> effectMap, boolean isMagic) {
+        int iframeTime;
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                if (entityHitCounter.containsKey(tempLivingEntity)) {
+                    if (entityHitCounter.get(tempLivingEntity) < limit1) {
+                        entityHitCounter.put(tempLivingEntity, entityHitCounter.get(tempLivingEntity) + 1);
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else {
+                    entityHitCounter.put(tempLivingEntity, 1);
+                }
+
+                addKnockbackResist(tempLivingEntity);
+                iframeTime = GetEntityInvulnerableTime(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, 0);
+
+                if (isMagic) {
+                    LivingEntityMagicDamageTarget(dealer, tempLivingEntity, amount);
+                } else {
+                    LivingEntityDamageTarget(dealer, tempLivingEntity, amount);
+                }
+
+                removeKnockbackResist(tempLivingEntity);
+                SetEntityInvulnerableTime(tempLivingEntity, iframeTime);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    //basic
+    public static void HealEntityGroup(List<Entity> a, float amount) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+                HealLivingEntity(tempLivingEntity, amount);
+            }
+        }
+    }
+
+    //advance
+    public static void HealEntityGroup(List<Entity> a, float amount, HashMap<Entity, Integer> entityHitCounter, HashMap<MobEffectInstance, Integer> effectMap) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                HealLivingEntity(tempLivingEntity, amount);
+            }
+        }
+    }
+
+    public static void HealEntityGroup(List<Entity> a, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, HashMap<MobEffectInstance, Integer> effectMap) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                entityHitCounter.put(tempLivingEntity, entityHitCounter.containsKey(tempLivingEntity) ? entityHitCounter.get(tempLivingEntity)+1 : 1);
+
+                HealLivingEntity(tempLivingEntity, amount);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void HealEntityGroup(List<Entity> a, float amount, String FXNamespace, String FXFilename, double FXHeight, boolean BindToDMGEntity, HashMap<Entity, Integer> entityHitCounter, int limit1, HashMap<MobEffectInstance, Integer> effectMap) {
+        for (Entity tempEntity: a) {
+            if (tempEntity == null) {
+                continue;
+            }
+            if (a instanceof LivingEntity tempLivingEntity) {
+
+                if (entityHitCounter.containsKey(tempLivingEntity)) {
+                    if (entityHitCounter.get(tempLivingEntity) < limit1) {
+                        entityHitCounter.put(tempLivingEntity, entityHitCounter.get(tempLivingEntity) + 1);
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else {
+                    entityHitCounter.put(tempLivingEntity, 1);
+                }
+
+                HealLivingEntity(tempLivingEntity, amount);
+
+                if (!effectMap.isEmpty()) {
+                    for (MobEffectInstance j : effectMap.keySet()) {
+                        applyEffectToLivingEntity(tempLivingEntity, j);
+                    }
+                }
+
+                if (FXNamespace != null && FXFilename != null) {
+                    if (BindToDMGEntity) {
+                        BindEffectToEntity(tempLivingEntity, FXNamespace, FXFilename);
+                    }
+                    else {
+                        ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(tempLivingEntity), getEntityHorizontalFacingDeg(tempLivingEntity));
+                        tempEffEntity.increaseEntityHeightBy(FXHeight);
+                        SpawnEntity(tempEffEntity);
+                        BindEffectToEntity(tempEffEntity, FXNamespace, FXFilename);
+                    }
+                }
+            }
+        }
+    }
+}

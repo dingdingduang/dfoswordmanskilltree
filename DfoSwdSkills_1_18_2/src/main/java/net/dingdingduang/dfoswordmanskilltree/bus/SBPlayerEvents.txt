@@ -1,0 +1,60 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.minecraftforge.fml.common.Mod;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID)
+public class SBPlayerEvents {
+//    @SubscribeEvent
+//    public static void SUseItem(LivingEntityUseItemEvent.Start event) {
+//        printInGameMsg(event.getItem().toString());
+//        if (event.getEntity() instanceof Player player) {
+//            event.setCanceled(true);
+//        }
+//    }
+
+//    @SubscribeEvent
+//    public static void PlayerLeftClickWithItemSBEvent(PlayerInteractEvent.LeftClickBlock event) {
+//        if (event.getEntity() != null) {
+//            event.setCanceled(true);
+//        }
+//    }
+//
+//    @SubscribeEvent
+//    //Entity is player
+//    public static void PlayerRightClickWithItemSBEvent(RightClickItem event) {
+//        if (event.getEntity() != null) {
+//            event.setCanceled(true);
+//        }
+//    }
+//
+//    //Entity: the one being hit
+//    @SubscribeEvent
+//    public static void EntityBeingAttackedSBEvent(LivingAttackEvent event) {
+//        if (event.getEntity() instanceof Player player) {
+//            event.setCanceled(true);
+//        }
+//    }
+//
+//    //Entity: player
+//    @SubscribeEvent
+//    public static void PlayerAttackSBEvent(AttackEntityEvent event) {
+//        event.setCanceled(true);
+//    }
+//
+//    //Entity: the one being hit
+//    @SubscribeEvent
+//    public static void EntityBeingHurtedSBEvent(LivingHurtEvent event) {
+//        if (event.getEntity() instanceof Player player) {
+//            event.setCanceled(true);
+//        }
+//    }
+
+//    @SubscribeEvent
+//    public static void SBImmobilizationEvent(LivingEvent.LivingJumpEvent event) {
+//        if (event.getEntity() != null && event.getEntity().hasEffect(EffectRegistry.IMMOBILIZATION.get())) {
+//            event.getEntity().setDeltaMovement(0, 0, 0);
+////            return;
+//        }
+//    }
+}

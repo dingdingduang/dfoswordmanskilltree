@@ -1,0 +1,31 @@
+package net.dingdingduang.dfoswordmanskilltree.sbsskilltreemixin;
+
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.resourcelocationjson.DFOSwordmanJsonResouceLocation;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJsonReader;
+import net.minecraft.entity.damage.DamageType;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.TagKey;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Collection;
+
+import static net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc.IgnoreAllBindTagSet;
+
+@Mixin(RegistryEntry.Reference.class)
+public abstract class DfoSwdRegistryEntryReferenceMixin<T> implements RegistryEntry<T>{
+    @Shadow
+    abstract void setTags(Collection<TagKey<T>> tags);
+
+    @Unique
+    public void DfoRegistryEntryReference(Collection<TagKey<T>> tags, CallbackInfo ci) {
+        this.setTags(tags);
+        ((DfoSwdRegistryEntryReferenceMixin<DamageType>) null).DfoRegistryEntryReference(IgnoreAllBindTagSet);
+    }
+}

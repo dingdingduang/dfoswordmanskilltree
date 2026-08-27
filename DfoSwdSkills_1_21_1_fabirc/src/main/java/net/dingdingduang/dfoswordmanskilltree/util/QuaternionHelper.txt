@@ -1,0 +1,61 @@
+package net.dingdingduang.dfoswordmanskilltree.util;
+
+import modified.org.joml.Quaternionf;
+
+public class QuaternionHelper {
+    private static void QuaternionRotationXYZ(Quaternionf rotation, float angleX, float angleY, float angleZ) {
+        float sx = MathMethods.sin(angleX * 0.5f);
+        float cx = MathMethods.cosFromSin(sx, angleX * 0.5f);
+        float sy = MathMethods.sin(angleY * 0.5f);
+        float cy = MathMethods.cosFromSin(sy, angleY * 0.5f);
+        float sz = MathMethods.sin(angleZ * 0.5f);
+        float cz = MathMethods.cosFromSin(sz, angleZ * 0.5f);
+
+        float cycz = cy * cz;
+        float sysz = sy * sz;
+        float sycz = sy * cz;
+        float cysz = cy * sz;
+
+        rotation.x = sx*cycz + cx*sysz;
+        rotation.y = cx*sycz - sx*cysz;
+        rotation.z = cx*cysz + sx*sycz;
+
+        rotation.w = cx*cycz - sx*sysz;
+    }
+
+    public static void setAngleXYZ(Quaternionf rotation, float x, float y, float z) {
+        //Use modulus to fix values to below 360 then convert values to radians
+        float newX = MathMethods.AngleToRadians(x % 360);
+        float newY = MathMethods.AngleToRadians(y % 360);
+        float newZ = MathMethods.AngleToRadians(z % 360);
+
+        //Create a quaternion with the delta rotation values
+        Quaternionf rotationDelta = new Quaternionf();
+        rotationDelta.rotationXYZ(newX, newY, newZ);
+
+        //TODO fix mathmethods sin cos
+//        QuaternionRotationXYZ(rotationDelta, newX, newY, newZ);
+
+        //Calculate the inverse of the delta quaternion
+        Quaternionf conjugate = rotationDelta.conjugate();
+
+        //Multiply this transform by the rotation delta quaternion and its inverse
+        rotation.mul(rotationDelta).mul(conjugate);
+    }
+
+    public static void setQuaternionDirectionFromRotation(Quaternionf rotation, float verticalRotationDeg, float horizontalRotationDeg) {
+//        float hr1 = MathMethods.cos(-horizontalRotationDeg * MathMethods.DEG_TO_RAD - MathMethods.PI);
+//        float hr2 = MathMethods.sin(-horizontalRotationDeg * MathMethods.DEG_TO_RAD - MathMethods.PI);
+//        float vr1 = -MathMethods.cos(-verticalRotationDeg * MathMethods.DEG_TO_RAD);
+//        float vr2 = MathMethods.sin(-verticalRotationDeg * MathMethods.DEG_TO_RAD);
+
+        float hr1 = (float) Math.cos(-horizontalRotationDeg * MathMethods.DEG_TO_RAD - MathMethods.PI);
+        float hr2 = (float) Math.sin(-horizontalRotationDeg * MathMethods.DEG_TO_RAD - MathMethods.PI);
+        float vr1 = (float) -Math.cos(-verticalRotationDeg * MathMethods.DEG_TO_RAD);
+        float vr2 = (float) Math.sin(-verticalRotationDeg * MathMethods.DEG_TO_RAD);
+
+        setAngleXYZ(rotation, MathMethods.AngleToDegrees(hr2) * MathMethods.AngleToDegrees(vr1),
+                MathMethods.AngleToDegrees(vr2),
+                MathMethods.AngleToDegrees(hr1) * MathMethods.AngleToDegrees(vr1));
+    }
+}

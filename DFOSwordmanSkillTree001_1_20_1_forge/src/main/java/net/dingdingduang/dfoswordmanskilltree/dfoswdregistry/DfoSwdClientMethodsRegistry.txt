@@ -1,0 +1,25 @@
+package net.dingdingduang.dfoswordmanskilltree.dfoswdregistry;
+
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster006;
+import net.dingdingduang.somebasicskills.util.MethodEntityAction;
+
+import java.util.HashMap;
+
+public class DfoSwdClientMethodsRegistry {
+    private static HashMap<String, MethodEntityAction> ClientActionMethodName2Action = new HashMap<>();
+
+    public static HashMap<String, MethodEntityAction> getClientActionMethodName2Action() { return ClientActionMethodName2Action; }
+    public static void setClientActionMethodName2Action(HashMap<String, MethodEntityAction> clientActionMethodName2Action) { ClientActionMethodName2Action = clientActionMethodName2Action; }
+
+    public static void ClientActionNameMapRegistryInit() {
+        Blademaster006.Blademaster006_ClientMethodInit(ClientActionMethodName2Action);
+    }
+
+    public static void ClientActionNameMapClear() {
+        ClientActionMethodName2Action.clear();
+    }
+
+    public static MethodEntityAction getClientActionMethod(String clientActionName) {
+        return ClientActionMethodName2Action.get(clientActionName);
+    }
+}

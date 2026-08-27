@@ -1,0 +1,35 @@
+package net.dingdingduang.dfoswordmanskilltree.sbsskilltreemixin;
+
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.SynchronousResourceReloader;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Map;
+
+@Mixin(EntityRenderDispatcher.class)
+public abstract class DfoSkillEffLayer implements SynchronousResourceReloader {
+    @Shadow
+    private Map<String, EntityRenderer<? extends PlayerEntity>> modelRenderers;
+
+    @Inject(method = "reload", at = @At("TAIL"))
+    private void DfoSkillEffLayerSetup(ResourceManager manager, CallbackInfo ci) {
+        for (EntityRenderer<? extends PlayerEntity> val: this.modelRenderers.values()) {
+            if (val instanceof PlayerEntityRenderer playerEntityRenderer) {
+                playerEntityRenderer.addFeature();
+            }
+        }
+    }
+
+    @Override
+    public void reload(ResourceManager manager) {
+
+    }
+}

@@ -1,0 +1,66 @@
+package net.dingdingduang.dfoswordmanskilltree.networking.packet;
+
+import net.dingdingduang.dfoswordmanskilltree.test.testMethods;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+
+public class SendTest000ToServer {
+//    private final float posX;
+//    private final float posY;
+//    private final float posZ;
+
+//    public SendTest000ToServer(float x, float y, float z) {
+    public SendTest000ToServer() {
+//        this.posX = x;
+//        this.posY = y;
+//        this.posZ = z;
+    }
+
+    public SendTest000ToServer(FriendlyByteBuf buf) {
+//        this.posX = buf.readFloat();
+//        this.posY = buf.readFloat();
+//        this.posZ = buf.readFloat();
+    }
+
+    public void toBytes(FriendlyByteBuf buf) {
+//        buf.writeFloat(this.posX);
+//        buf.writeFloat(this.posY);
+//        buf.writeFloat(this.posZ);
+    }
+
+    public boolean handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            //do shiet on server side
+            ServerPlayerEntity sp1 = ctx.get().getSender();
+            if (sp1 == null) { return; }
+            testMethods.CreateEntityTEST(sp1);
+
+//            for (ServerPlayerEntity sp2: getMinecraftServerInstance().getPlayerList().getPlayers()) {
+//                int SenderNameHashCode = sp1.getName().getString().hashCode();
+//                int ListPlayerNameHashCode = sp2.getName().getString().hashCode();
+//                if (SenderNameHashCode != ListPlayerNameHashCode) {
+//                    long max = sp2.getGameProfile().getId().getMostSignificantBits();
+//                    long min = sp2.getGameProfile().getId().getLeastSignificantBits();
+//                    String sp2Name = sp2.getGameProfile().getName();
+//                    DfoSwordmanNetworkingMsgInitialization.sendToPlayer(
+//                            new FetchPlayerAnimationPacketForAllPlayersFromServer("1", "2", max, min, sp2Name), sp2);
+//                }
+//            }
+
+//            for (ServerPlayerEntity sp2: getMinecraftServerInstance().getPlayerList().getPlayers()) {
+//                int SenderEntityID = sp1.hashCode();
+//                int PlayerListEntityID = sp2.hashCode();
+//                if (SenderEntityID != PlayerListEntityID) {
+//                    DfoSwdNetworkingMsgInitialization.sendToPlayer(
+//                            new FetchPlayerAnimationPacketForAllPlayersFromServer(SenderEntityID, "dfoswordmananimation", "upper_slash3"), sp2);
+//                }
+//            }
+        });
+
+        return true;
+    }
+}

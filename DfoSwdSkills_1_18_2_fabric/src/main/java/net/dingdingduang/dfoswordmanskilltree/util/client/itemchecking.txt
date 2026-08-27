@@ -1,0 +1,13 @@
+
+                    SkillDataJson skill1 = getID2SkillData().get(SkillID);
+                    int tempint = -1;
+                    //future plan, character panel info
+                    if (entity1 instanceof ServerPlayerEntity sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (playerSkillLVL <= 0) { return; }
+                            playerSkillLVL = playerSkillLVL - 1;
+                        }
+                        tempint = sp1.getInventory().selected;
+                    }
+//                    printInGameMsg("selected server side?: "+tempint);

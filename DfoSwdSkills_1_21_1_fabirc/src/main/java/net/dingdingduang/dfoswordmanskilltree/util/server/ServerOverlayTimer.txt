@@ -1,0 +1,48 @@
+package net.dingdingduang.dfoswordmanskilltree.util.server;
+
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.gui.IIngameOverlay;
+
+public class ServerOverlayTimer implements IGuiOverlay {
+    private final static ServerOverlayTimer SERVER_OVERLAY_TIMER_OVERLAY = new ServerOverlayTimer();
+
+    private int previousForgeGuiTick = -1;
+    private int currentForgeGuiTick = -1;
+
+    @Override
+    public void render(ForgeGui forgeGui, PoseStack pPoseStack, float partialTick, int screenWidth, int screenHeight) {
+        this.currentForgeGuiTick = forgeGui.getGuiTicks();
+//        if (!isOnSameServerTick()) {
+        if (this.currentForgeGuiTick - this.previousForgeGuiTick != 0) {
+            EntityGroupMethods.setGetGroupEntitiesMethodGotCalledPerServerTickTimes(0);
+        }
+        this.previousForgeGuiTick = this.currentForgeGuiTick;
+    }
+
+    public static ServerOverlayTimer getServerOverlayTimerOverlay() {
+        return SERVER_OVERLAY_TIMER_OVERLAY;
+    }
+
+    public int getPreviousForgeGuiTick() {
+        return previousForgeGuiTick;
+    }
+
+    public void setPreviousForgeGuiTick(int previousForgeGuiTick) {
+        this.previousForgeGuiTick = previousForgeGuiTick;
+    }
+
+    public int getCurrentForgeGuiTick() {
+        return currentForgeGuiTick;
+    }
+
+    public void setCurrentForgeGuiTick(int currentForgeGuiTick) {
+        this.currentForgeGuiTick = currentForgeGuiTick;
+    }
+
+    public static boolean isOnSameServerTick() {
+        ServerOverlayTimer temp = getServerOverlayTimerOverlay();
+        return (temp.getCurrentForgeGuiTick() - temp.getPreviousForgeGuiTick()) == 0;
+    }
+}

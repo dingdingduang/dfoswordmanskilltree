@@ -1,0 +1,14 @@
+//edit max health
+//    public static void modifyEntityNBTExample(CompoundTag nbt) {
+//        CompoundTag nbtEntityTag2 = new CompoundTag();
+//        nbtEntityTag2.putDouble("Base",100.0);
+//        nbtEntityTag2.putString("Name","minecraft:generic.max_health");
+//        ListTag LT1 = new ListTag();
+//        LT1.add(nbtEntityTag2);
+//        nbt.put("Attributes", LT1);
+//        nbt.putInt("Health",100);
+///summon minecraft:witch ~ ~ ~ {Attributes:[{"Name":"minecraft:generic.max_health", "Base":1000}], "Health":1000}
+//    }
+
+
+summon minecraft:zombie ~ ~ ~ {Attributes:[{"Name":"minecraft:generic.max_health", "Base":1000}], "Health":1000}

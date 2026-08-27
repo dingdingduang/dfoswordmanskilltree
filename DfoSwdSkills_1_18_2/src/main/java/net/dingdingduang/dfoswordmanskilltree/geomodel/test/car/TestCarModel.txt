@@ -1,0 +1,22 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.test.car;
+
+import net.minecraft.resources.ResourceLocation;
+import software.bernie.example.client.EntityResources;
+import software.bernie.geckolib3.model.AnimatedGeoModel;
+
+public class TestCarModel extends AnimatedGeoModel<TestCarEntity> {
+	@Override
+	public ResourceLocation getAnimationFileLocation(TestCarEntity entity) {
+		return EntityResources.CAR_ANIMATIONS;
+	}
+
+	@Override
+	public ResourceLocation getModelLocation(TestCarEntity entity) {
+		return EntityResources.CAR_MODEL;
+	}
+
+	@Override
+	public ResourceLocation getTextureLocation(TestCarEntity entity) {
+		return EntityResources.CAR_TEXTURE;
+	}
+}

@@ -1,0 +1,826 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoAnimationAndTextureName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.swdfadingclone.SwdFadingCloneCustomEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.custom.SwordSlashCustomEntity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.particle.ParticleRegistry;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.BlademasterSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.*;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.BooleanValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.globalmethods.SBSAttributeMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.globalvalues.GlobalClientPlayerValues;
+import net.dingdingduang.somebasicskills.networking.NetworkingFetchMsgMethods;
+import net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+import net.dingdingduang.somebasicskills.util.MethodConfigHelper;
+import net.dingdingduang.somebasicskills.util.MethodEntityAction;
+
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.util.tiltblock.TiltBlockMethods.SetupCircleTiltBlocksZone;
+import static net.dingdingduang.somebasicskills.globalmethods.ClientPlayerMethods.getCPlayerSkillDamage;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalClientPlayerValues.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.*;
+import static net.dingdingduang.somebasicskills.gui.overlay.SkillsInCooldownClientTimerOverlay.getSkillsInCooldownClientTimerOverlayInstance;
+import static net.dingdingduang.somebasicskills.gui.overlay.SkillsInCooldownClientTimerOverlay.isCPlayerSkillInCD;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Blademaster024 {
+    public static final String SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_ILLUSION_SWORD_DANCE;
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE = "textures/entity/skilleff/blademaster/illusion_sword_dance/normal_slash/";
+
+    public static final String[] BLADEMASTER024_ILLUSION_SWORD_DANCE_ATTACKS = {"sword_act1_slash", "sword_act2_slash", "sword_act_katana_slash1", "sword_act_katana_slash2", "sword_act_shortsword_slash2", "sword_act_shortsword_slash3", "sword_act_bludgeon_slash1to2", "holding_up_sword_air_end4", "upper_slash_instant2", "upper_slash1_temp", "consecutive_slash1_instant", "consecutive_slash2_instant", "consecutive_slash3_instant", "consecutive_slash4_instant", "consecutive_slash5_instant", "drawsword_slash2", "slash4", "sword_act_katana_slash4"};
+    //3 tick -> 5, 5 ticks -> 7
+    public static final float[][] BLADEMASTER024_ILLUSION_SWORD_DANCE_SLASH_ENTITY_ROTATION = {{90f, 45f}, {225f, 300f}, {315f, 285f}, {95f, 15f}, {45f}, {270f}, {315f}, {45f}, {135f}, {135f}, {40f}, {315f}, {50f}, {270f}, {90f}, {270f}, {225f}, {180f}};
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_SHOOT_SWORD_QI = "textures/entity/skilleff/blademaster/illusion_sword_dance/sword_qi/";
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_UPPER_SLASH1 = "sword_act_katana_slash4";
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_DOWNWARD_SLASH = "charge_slash_downward";
+//    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_DOWNWARD_SLASH2 = "holding_up_sword_air_end2";
+
+    public static final float[] BLADEMASTER024_ILLUSION_SWORD_DANCE_SLASH_WEAPON_TYPE_MULTIPLIER = {1f, 1.5f, 1f, 1f, 0.75f, 0.75f};
+    public static final int BLADEMASTER024_ILLUSION_SWORD_DANCE_SWORD_QI_MAX_LIFE_TIME = 30;
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE = "BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE";
+
+    public static final Float BLADEMASTER024_ILLUSION_SWORD_DANCE_INITIAL_SLASH_INTERVAL_TICK = 3f;
+    //Server
+    public static HashMap<LivingEntity, Integer> BLADEMASTER024_HashMapTriggeredTimes;
+    public static HashMap<LivingEntity, Integer> BLADEMASTER024_HashMapRemainingSlashCount;
+    public static HashMap<LivingEntity, Integer> BLADEMASTER024_HashMapPotentialSlashCount;
+    public static HashMap<LivingEntity, Float> BLADEMASTER024_HashMapSlashIntervalTick;
+
+    //Client
+    public static int BLADEMASTER024_ClientTriggeredTimes;
+
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE_FADING_CLONE_CLIENT_ACTION = "BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE_FADING_CLONE_CLIENT_ACTION";
+    public static final String BLADEMASTER024_ILLUSION_SWORD_DANCE_ZENITH_OF_SWORD_ART_SLASH_AGAIN_FADING_CLONE_CLIENT_ACTION = "BLADEMASTER024_ILLUSION_SWORD_DANCE_ZENITH_OF_SWORD_ART_SLASH_AGAIN_FADING_CLONE_CLIENT_ACTION";
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        double skillDamageMultiplier = getCPlayerSkillDamage();
+        int InitialSlashCount = skillData.getValueUsage_01().get(correctSkillLevel).intValue();
+        int PotentialSlashCount = skillData.getValueMultiplierList_01().get(correctSkillLevel).intValue();
+        Double DamageMultiplier = skillData.getDamageMultiplierList_01().get(correctSkillLevel);
+        Double ConstantDamage = skillData.getDamageList_01().get(correctSkillLevel);
+        Float finalDmg = (float) ( (DamageMultiplier * getEntityAttackDamage(getClientPlayer()) + ConstantDamage) * skillDamageMultiplier);
+        Double SwordQiDamageMultiplier = skillData.getDamageMultiplierList_02().get(correctSkillLevel);
+        Double SwordQiConstantDamage = skillData.getDamageList_02().get(correctSkillLevel);
+        Float SwordQiFinalDmg = (float) ( (SwordQiDamageMultiplier * getEntityAttackDamage(getClientPlayer()) + SwordQiConstantDamage) * skillDamageMultiplier);
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%d", InitialSlashCount),
+                String.format("%d", PotentialSlashCount),
+                String.format("%d%%", (int) (DamageMultiplier.floatValue() * 100)),
+                String.format("%s", ConstantDamage),
+                String.format("%s", finalDmg),
+                String.format("%d%%", (int) (SwordQiDamageMultiplier.floatValue() * 100)),
+                String.format("%s", SwordQiConstantDamage),
+                String.format("%s", SwordQiFinalDmg)
+        );
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Blademaster024::getSkillDescription);
+
+        //Condition
+        tempSkillData.setClientConditionRequirement(
+                (SkillID2) -> {
+                    boolean isInCD = isCPlayerSkillInCD(SkillID2);
+                    boolean isInAction = isPlayerInAction();
+                    boolean isChanneling = isPlayerInChannelingState();
+                    boolean isOnGround = isPlayerOnGround();
+                    boolean isPlayerBeingHit = isPlayerBeingHit();
+//                    boolean lastSkillIDisSame = getCPlayerLastTriggeredNotChannelingActiveSkillID().hashCode() == SkillID2.hashCode();
+                    boolean isSkillStillActive = getCPlayerCurrentActiveSkillID().hashCode() == SkillID2.hashCode();
+
+//                    boolean isPassed = !isInAction && !isChanneling && isOnGround && !isPlayerBeingHit;
+                    boolean isPassed = !isChanneling && isOnGround && !isPlayerBeingHit;
+                    if (isPassed) {
+                        if (isInCD) {
+                            if (isInAction && isSkillStillActive) {
+//                                int ClientPlayerWeaponType = DfoSkillTreeItemMethods.getWeaponType(getClientPlayer());
+                                int currentSkillLevel = getClientPlayerSkillID2lvlMap().get(SkillID) - 1;
+                                int TotalSlashCount = getID2SkillData().get(SkillID).getValueUsage_01().get(currentSkillLevel).intValue();
+                                int PotentialSlashCount = getID2SkillData().get(SkillID).getValueMultiplierList_01().get(currentSkillLevel).intValue() - TotalSlashCount;
+//                                int additionalAttacks = 0;
+                                int otherSkillLevel;
+                                //is wielding lightsabre
+//                                if (ClientPlayerWeaponType == DfoSkillTreeItemMethods.IS_VERY_FAST_LIGHTSABRE && (otherSkillLevel = ClientSkillMethods.queryCPlayerCurrentSkillLevel(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY)) >= 5) {
+//                                    additionalAttacks = additionalAttacks + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY).getDamageMultiplierList_03().get(otherSkillLevel - 1).intValue();
+//                                }
+//                                //is wielding katana
+//                                else if (ClientPlayerWeaponType == DfoSkillTreeItemMethods.IS_FAST_KATANA && (otherSkillLevel = ClientSkillMethods.queryCPlayerCurrentSkillLevel(BlademasterSkillTreeInitialization.BLADEMASTER_KATANA_MASTERY)) >= 5) {
+//                                    additionalAttacks = additionalAttacks + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_KATANA_MASTERY).getDamageMultiplierList_03().get(otherSkillLevel - 1).intValue();
+//                                }
+                                //TODO: ex skill
+//                    boolean isGrantsExAdditionalAttacks = false;
+
+                                if (PotentialSlashCount < BLADEMASTER024_ClientTriggeredTimes) {
+//                                isPassed = false;
+                                    return false;
+                                } else {
+                                    BLADEMASTER024_ClientTriggeredTimes++;
+                                    return true;
+                                }
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        else {
+                            //init
+                            BLADEMASTER024_ClientTriggeredTimes = 0;
+                        }
+                    }
+//                    return isPassed;
+                    //start when no cd
+                    return isPassed && !isInAction;
+                }
+        );
+        tempSkillData.setClientCondReqPassedAction(DfoSwordmanSkillMethods::defaultSkillClientConditionPassedAction);
+
+        if (isClientSide()) {
+            BLADEMASTER024_ClientTriggeredTimes = 0;
+            return;
+        }
+
+        //server init
+        if (BLADEMASTER024_HashMapTriggeredTimes == null) {
+            BLADEMASTER024_HashMapTriggeredTimes = new HashMap<>();
+            BLADEMASTER024_HashMapRemainingSlashCount = new HashMap<>();
+            BLADEMASTER024_HashMapSlashIntervalTick = new HashMap<>();
+            BLADEMASTER024_HashMapPotentialSlashCount = new HashMap<>();
+        }
+
+
+
+        //====================================
+        //setup skill action
+        MethodAction tempSkillAction =
+                (entity1) -> {
+                    int playerSkillLVL = 0;
+
+                    //ASSUME BLADEMASTER024_HashMap never be null
+                    Integer triggerTimesInteger;
+                    int triggeredTimes;
+
+                    if ((triggerTimesInteger = BLADEMASTER024_HashMapTriggeredTimes.get(entity1)) != null) {
+                        if ((triggeredTimes = triggerTimesInteger) <= BLADEMASTER024_HashMapPotentialSlashCount.get(entity1)) {
+                            triggeredTimes = triggeredTimes + 1;
+//                        triggeredTimes = triggeredTimes + ExtraMathMethods.randomInt(3);
+                            BLADEMASTER024_HashMapTriggeredTimes.put(entity1, triggeredTimes);
+                            float currentIntervalTick = BLADEMASTER024_HashMapSlashIntervalTick.get(entity1) - 0.1f;
+                            if (currentIntervalTick > 1f) {
+//                            printInGameMsg("new interval: "+currentIntervalTick);
+                                BLADEMASTER024_HashMapSlashIntervalTick.put(entity1, currentIntervalTick);
+                            }
+                        }
+
+                        //TODO: check if extra attack applied
+                    }
+                    else {
+                        BLADEMASTER024_HashMapTriggeredTimes.put(entity1, 1);
+                        triggeredTimes = 1;
+                    }
+
+                    if (triggeredTimes == 1) {
+                        float aoeRange;
+                        float damageBase, swordQiDamageBase;
+                        float damageMultiplier, swordQiDamageMultiplier;
+                        float skillDamageMultiplier = 1f + SBSAttributeMethods.getSkillDamageAttrVal(entity1);
+                        float SwordSlashDistShouldTravel;
+                        float slashingSpeedMultiplier = 1f;
+                        int extraSwordQiHitCount = 0;
+                        incrementEntityStateByAmountXNoPacket(entity1, Constants.IS_IN_ACTION, 1);
+
+                        int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity1);
+                        int additionalAttacks = 0;
+                        float overallDamageMultiplier = BLADEMASTER024_ILLUSION_SWORD_DANCE_SLASH_WEAPON_TYPE_MULTIPLIER[weaponType + 1];
+                        boolean isWieldingLightsabre = weaponType == DfoSkillTreeItemMethods.IS_VERY_FAST_LIGHTSABRE;
+                        boolean isWieldingKatana = weaponType == DfoSkillTreeItemMethods.IS_FAST_KATANA;
+                        boolean isWieldingShortSword = weaponType == DfoSkillTreeItemMethods.IS_AVERAGE_SHORT_SWORD;
+//                        boolean isWieldingBludgeon = weaponType == DfoSkillTreeItemMethods.IS_SLOW_BLUDGEON;
+                        boolean isAbleToReplaceSwordQiWithBludgeonShockwave;
+                        float BludgeonMasteryLastHitExtraDamageMultiplier;
+                        float BludgeonMasteryLastHitExtraDamageAndAOEMultiplier;
+
+                        boolean CantSwitchWeapon = true;
+                        int otherSkillLevel;
+                        Predicate<Entity> condition;
+
+                        SkillDataJson skill1 = getID2SkillData().get(SkillID);
+
+                        int ZenithOfSwordArtLVL;
+                        float cloneExtraSlashMultiplier;
+                        boolean shouldTriggerCloneExtraSlash;
+
+                        float ExtraDamageMultiplier = 0;
+                        if (entity1 instanceof ServerPlayer sp1) {
+                            if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                                playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                                if (playerSkillLVL <= 0) {
+                                    return;
+                                }
+                                playerSkillLVL = playerSkillLVL - 1;
+                            }
+
+                            //is wielding lightsabre
+                            if (isWieldingLightsabre && (otherSkillLevel = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY)) >= Blademaster003.BLADEMASTER003_LIGHTSABRE_MASTERY_BONUS_EFFECT_3_LVL) {
+                                additionalAttacks = additionalAttacks + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY).getDamageMultiplierList_03().get(otherSkillLevel - 1).intValue();
+                                slashingSpeedMultiplier = slashingSpeedMultiplier + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY).getValueMultiplierList_01().get(otherSkillLevel - 1).floatValue();
+                            }
+                            //is wielding katana
+                            else if (isWieldingKatana && (otherSkillLevel = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_KATANA_MASTERY)) >= Blademaster009.BLADEMASTER009_KATANA_MASTERY_BONUS_EFFECT_3_LVL) {
+                                additionalAttacks = additionalAttacks + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_KATANA_MASTERY).getDamageMultiplierList_03().get(otherSkillLevel - 1).intValue();
+                                slashingSpeedMultiplier = slashingSpeedMultiplier + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_KATANA_MASTERY).getValueMultiplierList_01().get(otherSkillLevel - 1).floatValue();
+                            }
+                            else if (isWieldingShortSword && (otherSkillLevel = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_SHORT_SWORD_MASTERY)) >= Blademaster008.BLADEMASTER008_SHORT_SWORD_MASTERY_BONUS_EFFECT_3_LVL) {
+                                extraSwordQiHitCount = extraSwordQiHitCount + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_SHORT_SWORD_MASTERY).getValueMultiplierList_01().get(otherSkillLevel - 1).intValue();
+                            }
+                            int BludgeonMasteryLevel = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_BLUDGEON_MASTERY);
+                            isAbleToReplaceSwordQiWithBludgeonShockwave = BludgeonMasteryLevel >= Blademaster011.BLADEMASTER011_BLUDGEON_MASTERY_BONUS_EFFECT_3_LVL;
+                            if (isAbleToReplaceSwordQiWithBludgeonShockwave) {
+                                SkillDataJson BludgeonMasterySkillData = getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_BLUDGEON_MASTERY);
+                                boolean hasBludgeonMasteryBonus4 = (BludgeonMasteryLevel >= Blademaster011.BLADEMASTER011_BLUDGEON_MASTERY_BONUS_EFFECT_4_LVL);
+                                BludgeonMasteryLastHitExtraDamageAndAOEMultiplier = (hasBludgeonMasteryBonus4) ? BludgeonMasterySkillData.getDamageList_03().get(BludgeonMasteryLevel - 1).floatValue(): 0;
+                                BludgeonMasteryLastHitExtraDamageMultiplier = BludgeonMasterySkillData.getDamageList_02().get(BludgeonMasteryLevel - 1).floatValue() + BludgeonMasteryLastHitExtraDamageAndAOEMultiplier;
+                            }
+                            else {
+                                BludgeonMasteryLastHitExtraDamageMultiplier = 0;
+                                BludgeonMasteryLastHitExtraDamageAndAOEMultiplier = 0;
+                            }
+
+                            CantSwitchWeapon = getSPlayerToggleOffForceToTerminateSwordDance(sp1);
+
+                            int EXUpwardSlashUpgradeLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.EXBLADEMASTER_ILLUSION_SWORD_DANCE_UPGRADE);
+                            if (EXUpwardSlashUpgradeLVL > 0) {
+                                SkillDataJson EX_SkillData = getID2SkillData().get(BlademasterSkillTreeInitialization.EXBLADEMASTER_ILLUSION_SWORD_DANCE_UPGRADE);
+                                ExtraDamageMultiplier = ExtraDamageMultiplier + EX_SkillData.getDamageMultiplierList_01().get(EXUpwardSlashUpgradeLVL - 1).floatValue();
+                                additionalAttacks = additionalAttacks + EX_SkillData.getValueUsage_01().get(EXUpwardSlashUpgradeLVL - 1).intValue();
+                                slashingSpeedMultiplier = slashingSpeedMultiplier + EX_SkillData.getValueMultiplierList_01().get(EXUpwardSlashUpgradeLVL - 1).floatValue();
+                            }
+
+                            condition = defaultSkillTargetCondition(sp1).and(entity -> !entity.equals(entity1));
+
+                            ZenithOfSwordArtLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_ZENITH_OF_SWORD_ART);
+                            shouldTriggerCloneExtraSlash = ZenithOfSwordArtLVL >= Blademaster036.BLADEMASTER036_ZENITH_OF_SWORD_ART_BONUS_EFFECT_3_LVL;
+                            if (shouldTriggerCloneExtraSlash) {
+                                cloneExtraSlashMultiplier = getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_ZENITH_OF_SWORD_ART).getDamageMultiplierList_02().get(ZenithOfSwordArtLVL - 1).floatValue();
+                            }
+                            else {
+                                cloneExtraSlashMultiplier = 0;
+                            }
+                        }
+                        else {
+                            BludgeonMasteryLastHitExtraDamageMultiplier = 0;
+                            BludgeonMasteryLastHitExtraDamageAndAOEMultiplier = 0;
+                            isAbleToReplaceSwordQiWithBludgeonShockwave = false;
+//                            ZenithOfSwordArtLVL = 0;
+                            cloneExtraSlashMultiplier = 0;
+                            shouldTriggerCloneExtraSlash = false;
+                            condition = defaultSkillTargetCondition().and(entity -> !entity.equals(entity1));
+                        }
+
+                        int initialSlashCount = skill1.getValueUsage_01().get(playerSkillLVL).intValue();
+                        int maxSlashCount = skill1.getValueMultiplierList_01().get(playerSkillLVL).intValue();
+                        int totalSlashCount = initialSlashCount + additionalAttacks;
+                        int SwordQiDamageMaxHitCount = skill1.getValueMultiplierList_02().get(playerSkillLVL).intValue();
+                        int resetDamageGroupPeriod = Math.max(1, (int) (1f * BLADEMASTER024_ILLUSION_SWORD_DANCE_SWORD_QI_MAX_LIFE_TIME / (Math.max(1, SwordQiDamageMaxHitCount + extraSwordQiHitCount)) ) );
+                        BLADEMASTER024_HashMapRemainingSlashCount.put(entity1, totalSlashCount);
+                        BLADEMASTER024_HashMapPotentialSlashCount.put(entity1, maxSlashCount - initialSlashCount);
+
+                        aoeRange = skill1.getEffectArea().get(playerSkillLVL).floatValue();
+                        damageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+                        damageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue() + ExtraDamageMultiplier;
+                        swordQiDamageBase = skill1.getDamageList_02().get(playerSkillLVL).floatValue();
+                        swordQiDamageMultiplier = skill1.getDamageMultiplierList_02().get(playerSkillLVL).floatValue() + ExtraDamageMultiplier;
+                        SwordSlashDistShouldTravel = skill1.getDistance().get(playerSkillLVL).floatValue();
+                        int stunDurationTicks = (int) (skill1.getDuration().get(playerSkillLVL).floatValue() * 20);
+
+                        float[] entityAnimationArr = DfoSwordmanSkillMethods.getEntityAnimationSpeedMultiplierArr(entity1, 2f * slashingSpeedMultiplier);
+                        float entityAnimationSpeedMultiplier = entityAnimationArr[0];
+                        float damageTickSpeedMultiplier = entityAnimationArr[1];
+
+                        BLADEMASTER024_HashMapSlashIntervalTick.put(entity1, MathMethods.max(1, damageTickSpeedMultiplier * BLADEMASTER024_ILLUSION_SWORD_DANCE_INITIAL_SLASH_INTERVAL_TICK));
+
+                        float finalAoeRange = aoeRange;
+                        float finalDmg = (float) ((damageMultiplier * getEntityAttackDamage(entity1) + damageBase) * skillDamageMultiplier) * overallDamageMultiplier;
+                        float finalSwordQiDmg = (float) ((swordQiDamageMultiplier * getEntityAttackDamage(entity1) + swordQiDamageBase) * skillDamageMultiplier) * overallDamageMultiplier;
+
+                        int actionPeriod = 1;
+                        int startDmgTicks = (int) (2 * damageTickSpeedMultiplier);
+                        boolean isToggledOffForceTerminationAction = CantSwitchWeapon;
+
+                        BooleanValueHolder SendActionOffPacket = new BooleanValueHolder(false);
+                        BooleanValueHolder ShouldPerformUpperSlash = new BooleanValueHolder(true);
+                        IntegerValueHolder ElapsedTicks = new IntegerValueHolder(0);
+                        IntegerValueHolder PreviousStartSlashInterval = new IntegerValueHolder(777);
+
+                        MethodAction action =
+                                (entity2) -> {
+                                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                                    int updatedTick = ElapsedTicks.getIntCounter();
+
+                                    if (isActionInterrupted) {
+                                        BLADEMASTER024_HashMapTriggeredTimes.put(entity2, DfoSwordmanSkillTreeConstants.CONSTANT_INTEGER_777);
+                                        BLADEMASTER024_HashMapRemainingSlashCount.put(entity2, DfoSwordmanSkillTreeConstants.CONSTANT_INTEGER_N_777);
+                                    }
+
+                                    Integer remainingSlashCountClass = BLADEMASTER024_HashMapRemainingSlashCount.get(entity2);
+//                                    printInGameMsg("remainging: "+remainingSlashCountClass);
+                                    int remainingSlashCount;
+
+                                    int latestHoldingWeaponType = DfoSkillTreeItemMethods.getWeaponType(entity2);
+
+                                    if (!isActionInterrupted && remainingSlashCountClass != null && (remainingSlashCount = remainingSlashCountClass) + BLADEMASTER024_HashMapTriggeredTimes.get(entity2) > 0) {
+                                        TimedAttributesDistributor.applyTimedBeneficialStatusSuperArmorToEntity(entity2, 40, 0.1f, Constants.OP_ADDITION, false, SkillID, null, null);
+
+                                        //limit moving delta speed
+                                        if (MathMethods.isEven(updatedTick)) {
+                                            float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+                                            float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.4f, triggeredEntityFacingAngle);
+                                            float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.4f, triggeredEntityFacingAngle);
+                                            Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                                            float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                                            float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                                            setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                                        }
+
+
+                                        int startSlashInterval = Math.max(1, BLADEMASTER024_HashMapSlashIntervalTick.get(entity2).intValue());
+                                        //execute slash when reach interval
+                                        if (updatedTick % startSlashInterval == 0 || updatedTick % PreviousStartSlashInterval.getIntCounter() == 0) {
+                                            int reduceSlashCount;
+                                            PreviousStartSlashInterval.setIntCounter(startSlashInterval);
+
+                                            //if switch weapon, terminate
+                                            if (latestHoldingWeaponType == weaponType || isToggledOffForceTerminationAction) {
+                                                Vector3f triggeredEntityPos = getEntityPos(entity2);
+                                                float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+                                                //play skill sound at target location
+                                                DfoSwdSoundMethods.PlayWeaponTypeWieldingSound(latestHoldingWeaponType, getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1f);
+//                                            DfoSwdSoundMethods.PlayBlademaster005TripleSlashSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.6f, 2f);
+
+                                                String randomTexturePath = BLADEMASTER024_ILLUSION_SWORD_DANCE + ExtraMathMethods.randomInt(10) + "/";
+                                                int randomSwordAttackAnimationIndex = ExtraMathMethods.randomInt(BLADEMASTER024_ILLUSION_SWORD_DANCE_ATTACKS.length);
+                                                String randomSwordAttackAnimation = BLADEMASTER024_ILLUSION_SWORD_DANCE_ATTACKS[randomSwordAttackAnimationIndex];
+                                                float[] randomSwordSlashEntityRotationZ = BLADEMASTER024_ILLUSION_SWORD_DANCE_SLASH_ENTITY_ROTATION[randomSwordAttackAnimationIndex];
+
+                                                Vector3f TargetPolarLoc = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, SwordSlashDistShouldTravel, triggeredEntityFacingAngle);
+                                                ArrayList<Entity> entitiesToBeAdded = new ArrayList<>();
+                                                int tempReduceSlashCount = 0;
+                                                for (int i = 0; i < randomSwordSlashEntityRotationZ.length; i++) {
+                                                    SwordSlashCustomEntity swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, triggeredEntityFacingAngle, randomSwordSlashEntityRotationZ[i], 1, 255, 255, 255, triggeredEntityPos.x(), triggeredEntityPos.y() + 1.4f, triggeredEntityPos.z(), 12,
+                                                            randomTexturePath, 4, 1, 7, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 1.4f, TargetPolarLoc.z(), (remainingSlashCount % 5 == 0) ? ParticleRegistry.CREATE_TERRAIN_PARTICLE_TO_WHERE_ENTITY_STAND : DfoSwordmanSkillTreeConstants.NO_ANIMATION, false);
+
+                                                    swdEff.setEntityServerAction(Blademaster024_SwordSlashDamageAction(entity2, finalAoeRange, latestHoldingWeaponType, finalDmg, condition, new HashSet<>(), 0.02f, 0f), 2);
+
+                                                    entitiesToBeAdded.add(swdEff);
+                                                    tempReduceSlashCount++;
+                                                }
+
+                                                if (!entitiesToBeAdded.isEmpty()) {
+                                                    Blademaster024_AddSlashEntityAfterXTicks(entity2, startDmgTicks, SkillID + getEntityHashID(entitiesToBeAdded.get(0)) + ExtraMathMethods.randomInt(100), entitiesToBeAdded);
+                                                }
+
+                                                if (entity2 instanceof ServerPlayer sp1) {
+                                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, randomSwordAttackAnimation, entityAnimationSpeedMultiplier);
+                                                }
+
+                                                //Zenith of Sword Art Bonus
+                                                if (shouldTriggerCloneExtraSlash && ExtraMathMethods.randomFloat() < 0.3f) {
+                                                    SwdFadingCloneCustomEntity clone = GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 100, 0, 0, 0, 10 + (int) (20 * damageTickSpeedMultiplier),
+                                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, randomSwordAttackAnimation, entityAnimationSpeedMultiplier, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                                            BLADEMASTER024_ILLUSION_SWORD_DANCE_ZENITH_OF_SWORD_ART_SLASH_AGAIN_FADING_CLONE_CLIENT_ACTION, true, true, true);
+                                                    int slashAgainTick = clone.getMaxLifetime() / 2;
+                                                    float cloneSlashDamage = finalDmg * cloneExtraSlashMultiplier;
+                                                    clone.setEntityServerAction(Blademaster024_ZenithOfSwordArtFadingCloneServerAction(entity2, clone, startDmgTicks, slashAgainTick, randomSwordSlashEntityRotationZ, SwordSlashDistShouldTravel, finalAoeRange, cloneSlashDamage, latestHoldingWeaponType, condition), 1);
+                                                }
+                                                else {
+                                                    GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 100, 0, 0, 0, 10 + (int) (20 * damageTickSpeedMultiplier),
+                                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, randomSwordAttackAnimation, entityAnimationSpeedMultiplier, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                                            DfoSwordmanSkillTreeConstants.NO_ANIMATION, true, true, true);
+                                                }
+
+                                                reduceSlashCount = Math.max(1, tempReduceSlashCount);
+                                                BLADEMASTER024_HashMapRemainingSlashCount.put(entity2, remainingSlashCount - reduceSlashCount);
+                                            }
+                                            //terminate
+                                            else {
+                                                BLADEMASTER024_HashMapRemainingSlashCount.put(entity2, DfoSwordmanSkillTreeConstants.CONSTANT_INTEGER_N_777);
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        if (isActionInterrupted) {
+                                            SendActionOffPacket.setBooleanVal(true);
+                                            incrementEntityStateByAmountX(entity2, Constants.IS_IN_ACTION, -1);
+                                            SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                                        }
+                                        else {
+                                            if (!SendActionOffPacket.getBooleanVal()) {
+                                                if (ShouldPerformUpperSlash.getBooleanVal()) {
+                                                    ShouldPerformUpperSlash.setBooleanVal(false);
+
+                                                    Vector3f triggeredEntityPos = getEntityPos(entity2);
+                                                    float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+                                                    //play skill sound at target location
+                                                    DfoSwdSoundMethods.PlayWeaponTypeWieldingSound(latestHoldingWeaponType, getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1f);
+                                                    DfoSwdSoundMethods.PlayBlademaster005TripleSlashSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.5f, 3f);
+
+                                                    String randomTexturePath = BLADEMASTER024_ILLUSION_SWORD_DANCE + ExtraMathMethods.randomInt(10) + "/";
+
+                                                    Vector3f TargetPolarLoc = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, SwordSlashDistShouldTravel, triggeredEntityFacingAngle);
+                                                    ArrayList<Entity> entitiesToBeAdded = new ArrayList<>();
+
+                                                    SwordSlashCustomEntity swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, triggeredEntityFacingAngle, 180f, 1, 255,255,255, triggeredEntityPos.x(), triggeredEntityPos.y() + 1.4f, triggeredEntityPos.z(), 12,
+                                                            randomTexturePath, 1, 1, 10, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 1.4f, TargetPolarLoc.z(), ParticleRegistry.CREATE_TERRAIN_PARTICLE_TO_WHERE_ENTITY_STAND, false);
+
+
+                                                    if (latestHoldingWeaponType == DfoSkillTreeItemMethods.IS_SLOW_BLUDGEON && isAbleToReplaceSwordQiWithBludgeonShockwave) {
+                                                        swdEff.setEntityServerAction(Blademaster024_SwordSlashDamageAction(entity2, finalAoeRange, latestHoldingWeaponType, finalDmg, condition, new HashSet<>(), 0f, 0f), 2);
+                                                    }
+                                                    else {
+                                                        swdEff.setEntityServerAction(Blademaster024_SwordSlashDamageAction(entity2, finalAoeRange, latestHoldingWeaponType, finalDmg, condition, new HashSet<>(), 0f, 0.8f), 2);
+                                                    }
+
+                                                    entitiesToBeAdded.add(swdEff);
+
+                                                    Blademaster024_AddSlashEntityAfterXTicks(entity2, startDmgTicks, SkillID + getEntityHashID(entitiesToBeAdded.get(0)) + ExtraMathMethods.randomInt(100), entitiesToBeAdded);
+
+                                                    if (entity2 instanceof ServerPlayer sp1) {
+                                                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, BLADEMASTER024_ILLUSION_SWORD_DANCE_UPPER_SLASH1, entityAnimationSpeedMultiplier);
+                                                    }
+
+                                                    GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 100, 0, 0, 0, 10 + (int) (20 * damageTickSpeedMultiplier),
+                                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, BLADEMASTER024_ILLUSION_SWORD_DANCE_UPPER_SLASH1, entityAnimationSpeedMultiplier, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                                            DfoSwordmanSkillTreeConstants.NO_ANIMATION, true, true, true);
+                                                }
+                                                else {
+                                                    SendActionOffPacket.setBooleanVal(true);
+                                                    incrementEntityStateByAmountX(entity2, Constants.IS_IN_ACTION, -1);
+                                                    SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+
+                                                    if (entity2 instanceof ServerPlayer sp1) {
+                                                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, BLADEMASTER024_ILLUSION_SWORD_DANCE_DOWNWARD_SLASH, entityAnimationSpeedMultiplier);
+                                                    }
+                                                    float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                                                    if (latestHoldingWeaponType == DfoSkillTreeItemMethods.IS_SLOW_BLUDGEON && isAbleToReplaceSwordQiWithBludgeonShockwave) {
+                                                        int delayTicks = (int) (5 * damageTickSpeedMultiplier);
+                                                        SwdFadingCloneCustomEntity bludgeonFadingClone = GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 150, 0, 0, 0, 40 + delayTicks,
+                                                                GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, true, 4, 8, 8, true, true, BLADEMASTER024_ILLUSION_SWORD_DANCE_DOWNWARD_SLASH, entityAnimationSpeedMultiplier, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                                                BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE_FADING_CLONE_CLIENT_ACTION, true, true, true);
+
+                                                        float finalBludgeonSwordQiDamage = finalSwordQiDmg * (1f + BludgeonMasteryLastHitExtraDamageMultiplier);
+                                                        float finalBludgeonShockWaveAoe = finalAoeRange * (1f + BludgeonMasteryLastHitExtraDamageAndAOEMultiplier);
+                                                        Blademaster024_BludgeonLastHitShockWaveDamageAction(entity2, finalBludgeonShockWaveAoe, finalBludgeonSwordQiDamage, condition, delayTicks, actionPeriod, stunDurationTicks, bludgeonFadingClone);
+                                                    }
+                                                    else {
+                                                        GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 150, 0, 0, 0, 30 + (int) (20 * damageTickSpeedMultiplier),
+                                                                GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, BLADEMASTER024_ILLUSION_SWORD_DANCE_DOWNWARD_SLASH, entityAnimationSpeedMultiplier, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                                                DfoSwordmanSkillTreeConstants.NO_ANIMATION, true, true, true);
+
+                                                        Vector3f triggeredEntityPos = getEntityPos(entity2);
+                                                        float totalDistShouldPush = SwordSlashDistShouldTravel * 4f;
+                                                        Vector3f TargetPolarLoc = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, totalDistShouldPush, triggeredEntityFacingAngle);
+
+                                                        SwordSlashCustomEntity swdEff;
+                                                        ArrayList<Entity> entitiesToBeAdded = new ArrayList<>();
+                                                        //eff entity
+                                                        swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, triggeredEntityFacingAngle, 45f, 1, 255, 255, 255, triggeredEntityPos.x(), triggeredEntityPos.y() + 1.4f, triggeredEntityPos.z(), BLADEMASTER024_ILLUSION_SWORD_DANCE_SWORD_QI_MAX_LIFE_TIME,
+                                                                BLADEMASTER024_ILLUSION_SWORD_DANCE_SHOOT_SWORD_QI, 6, 6, 6, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 1.4f, TargetPolarLoc.z(), DfoSwordmanSkillTreeConstants.NO_ANIMATION, false);
+                                                        swdEff.setEntityServerAction(Blademaster024::Blademaster024_SwordSlashEffMovingAction, 2);
+                                                        entitiesToBeAdded.add(swdEff);
+
+                                                        swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, triggeredEntityFacingAngle, 315f, 1, 255, 255, 255, triggeredEntityPos.x(), triggeredEntityPos.y() + 1.4f, triggeredEntityPos.z(), BLADEMASTER024_ILLUSION_SWORD_DANCE_SWORD_QI_MAX_LIFE_TIME,
+                                                                BLADEMASTER024_ILLUSION_SWORD_DANCE_SHOOT_SWORD_QI, 6, 6, 6, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 1.4f, TargetPolarLoc.z(), DfoSwordmanSkillTreeConstants.NO_ANIMATION, false);
+                                                        swdEff.setEntityServerAction(Blademaster024::Blademaster024_SwordSlashEffMovingAction, 2);
+                                                        entitiesToBeAdded.add(swdEff);
+
+                                                        //damage entity
+                                                        swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, triggeredEntityFacingAngle, 90f, 1, 255, 255, 255, triggeredEntityPos.x(), triggeredEntityPos.y() + 0.2f, triggeredEntityPos.z(), BLADEMASTER024_ILLUSION_SWORD_DANCE_SWORD_QI_MAX_LIFE_TIME,
+                                                                BLADEMASTER024_ILLUSION_SWORD_DANCE_SHOOT_SWORD_QI, 6, 6, 6, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 0.2f, TargetPolarLoc.z(), ParticleRegistry.CREATE_TERRAIN_PARTICLE_TO_WHERE_ENTITY_STAND, false);
+                                                        swdEff.setEntityServerAction(Blademaster024_NormalSwordQiDamageAction(entity2, finalAoeRange, finalSwordQiDmg, condition, new HashSet<>(), resetDamageGroupPeriod, totalDistShouldPush / resetDamageGroupPeriod), 2);
+                                                        entitiesToBeAdded.add(swdEff);
+
+//                                                        Blademaster024_AddSlashEntityAfterXTicks(entity2, startDmgTicks, SkillID + getEntityHashID(swdEff) + ExtraMathMethods.randomInt(100), entitiesToBeAdded);
+                                                        Blademaster024_AddAllSlashEntityAtOnceAfterXTicks(entity2, startDmgTicks, SkillID + getEntityHashID(swdEff) + ExtraMathMethods.randomInt(100), entitiesToBeAdded);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+
+                                    //update val
+                                    ElapsedTicks.setIntCounter(updatedTick + actionPeriod);
+                                };
+
+                        //start loop actioning with fixed period ticks
+                        SBSTickEventMethods.setMethodActionTimer(entity1, SkillID, actionPeriod, action);
+                    }
+
+                };
+
+        tempSkillData.setActiveSkillAction1(tempSkillAction);
+
+
+        //=============================================
+        //IMPORTANT: clear value from hashmap once an entity's action is complete
+        MethodAction tempSkillCleanAction = (entity1) -> {
+            BLADEMASTER024_HashMapTriggeredTimes.remove(entity1);
+            BLADEMASTER024_HashMapRemainingSlashCount.remove(entity1);
+            BLADEMASTER024_HashMapSlashIntervalTick.remove(entity1);
+            BLADEMASTER024_HashMapPotentialSlashCount.remove(entity1);
+        };
+
+        tempSkillData.setClearSkillAction(tempSkillCleanAction);
+    }
+
+    public static void Blademaster024_AddSlashEntityAfterXTicks(LivingEntity dealer, int targetTick, String ActionID, ArrayList<Entity> slashEntityArr) {
+        IntegerValueHolder ElapsedTime = new IntegerValueHolder(0);
+        IntegerValueHolder ArrayIndexHolder = new IntegerValueHolder(0);
+
+        MethodAction action = (entity3) -> {
+            int currentTime = ElapsedTime.getIntCounter();
+            if (currentTime >= targetTick) {
+                int currentArrIndex = ArrayIndexHolder.getIntCounter();
+
+                if (currentArrIndex < slashEntityArr.size()) {
+                    addEntityToWorld(getEntityLevel(entity3), slashEntityArr.get(currentArrIndex));
+                    ArrayIndexHolder.setIntCounter(currentArrIndex + 1);
+                    ElapsedTime.setIntCounter(0);
+                }
+                else {
+                    SBSTickEventMethods.setSkillActionDone(dealer, ActionID);
+                }
+            }
+            ElapsedTime.setIntCounter(currentTime + 1);
+        };
+
+        SBSTickEventMethods.setMethodActionTimer(dealer, ActionID, 1, action);
+    }
+
+    public static void Blademaster024_AddAllSlashEntityAtOnceAfterXTicks(LivingEntity dealer, int targetTick, String ActionID, ArrayList<Entity> slashEntityArr) {
+        IntegerValueHolder ElapsedTime = new IntegerValueHolder(0);
+
+        MethodAction action = (entity3) -> {
+            int currentTime = ElapsedTime.getIntCounter();
+            if (currentTime >= targetTick) {
+
+                for (Entity entity: slashEntityArr) {
+                    addEntityToWorld(getEntityLevel(entity3), entity);
+                }
+
+                SBSTickEventMethods.setSkillActionDone(dealer, ActionID);
+            }
+            ElapsedTime.setIntCounter(currentTime + 1);
+        };
+
+        SBSTickEventMethods.setMethodActionTimer(dealer, ActionID, 1, action);
+    }
+
+    public static void Blademaster024_SwordSlashEffMovingAction(Entity slashEffEntity) {
+//        SwordSlashCustomTotalFrameOnlyEntity swdCustomEntity = (SwordSlashCustomTotalFrameOnlyEntity) slashEffEntity;
+        SwordSlashCustomEntity swdCustomEntity = (SwordSlashCustomEntity) slashEffEntity;
+        float distPercent = 1f * (swdCustomEntity.getMaxLifetime() - swdCustomEntity.getLifetime()) / swdCustomEntity.getMaxLifetime();
+        float newX = swdCustomEntity.getStartPosX() + (swdCustomEntity.getTargetPosX() - swdCustomEntity.getStartPosX()) * distPercent;
+        float newY = swdCustomEntity.getStartPosY() + (swdCustomEntity.getTargetPosY() - swdCustomEntity.getStartPosY()) * distPercent;
+        float newZ = swdCustomEntity.getStartPosZ() + (swdCustomEntity.getTargetPosZ() - swdCustomEntity.getStartPosZ()) * distPercent;
+        EntityMethods.moveEntityToXYZ(swdCustomEntity, newX, newY, newZ);
+    }
+
+
+    public static MethodEntityAction Blademaster024_NormalSwordQiDamageAction(LivingEntity dealer, float finalAoeRange, float finalDmg, Predicate<Entity> condition, HashSet<LivingEntity> damagedGroup, int damagedGroupResetTickPeriod, float totalDistShouldPushEachTime) {
+        return (slashEntity) -> {
+//            SwordSlashCustomTotalFrameOnlyEntity swdCustomEntity = (SwordSlashCustomTotalFrameOnlyEntity) slashEntity;
+            SwordSlashCustomEntity swdCustomEntity = (SwordSlashCustomEntity) slashEntity;
+
+            int currentSwdEntityElapsedLifetime = swdCustomEntity.getMaxLifetime() - swdCustomEntity.getLifetime();
+            float distPercent = 1f * (currentSwdEntityElapsedLifetime) / swdCustomEntity.getMaxLifetime();
+            float newX = swdCustomEntity.getStartPosX() + (swdCustomEntity.getTargetPosX() - swdCustomEntity.getStartPosX()) * distPercent;
+            float newY = swdCustomEntity.getStartPosY() + (swdCustomEntity.getTargetPosY() - swdCustomEntity.getStartPosY()) * distPercent;
+            float newZ = swdCustomEntity.getStartPosZ() + (swdCustomEntity.getTargetPosZ() - swdCustomEntity.getStartPosZ()) * distPercent;
+            EntityMethods.moveEntityToXYZ(swdCustomEntity, newX, newY, newZ);
+
+            //Sector damage cond
+            float slashEntityHorizontalFacing = getEntityHorizontalFacingDeg(slashEntity);
+
+            for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(slashEntity, finalAoeRange, condition)) {
+                if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                    if (!damagedGroup.contains(tempLivingEntity)) {
+                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(dealer, tempLivingEntity, finalDmg, false);
+
+                        DfoSwdSoundMethods.PlayWaveSwordHitSound(EntityMethods.getEntityLevel(slashEntity), EntityMethods.getEntityX(slashEntity), EntityMethods.getEntityY(slashEntity), EntityMethods.getEntityZ(slashEntity), 0.8f, 1.0f);
+                        damagedGroup.add(tempLivingEntity);
+
+                        float pushXZStrength = EntityMethods.calculatePushEntityStrength(totalDistShouldPushEachTime + 0.75f, dealer, tempLivingEntity);
+                        EntityMethods.pushEntityWithDeltaValue(tempLivingEntity, slashEntityHorizontalFacing, pushXZStrength, 0, true);
+                    }
+                }
+            }
+            if (currentSwdEntityElapsedLifetime == damagedGroupResetTickPeriod) {
+                damagedGroup.clear();
+            }
+        };
+    }
+
+    public static MethodAction Blademaster024_BludgeonShockwaveEffMethodAction(final Entity entity, final float finalAoeRange, SwdFadingCloneCustomEntity fadingCloneCustomEntity) {
+        return (triggeredEntity) -> {
+            SetupCircleTiltBlocksZone(getEntityPos(entity).add(0f, -1f, 0f), getEntityLevel(triggeredEntity),
+                    finalAoeRange, 70, 0.5f, 4,
+                    true, true, true, false);
+
+            fadingCloneCustomEntity.setIsBoundToEntity(false);
+        };
+    }
+
+    public static void Blademaster024_BludgeonLastHitShockWaveDamageAction(LivingEntity dealer, float shockWaveAoeZone, float shockWaveDmg, Predicate<Entity> condition, int delayTicks, int actionPeriod, int stunDuration, SwdFadingCloneCustomEntity fadingCloneCustomEntity) {
+        MethodAction slashDownwardBludgeonShockwaveAction = DfoSwordmanSkillMethods.generateCommonPhysicalDamageActionOneTimeAtEntityLocWithDelayTick(1f, DfoSkillTreeItemMethods.IS_SLOW_BLUDGEON, delayTicks, shockWaveAoeZone, shockWaveDmg, null, DfoSwdSoundMethods::PlayBludgeonStabHitSound, condition, 80f, 0.3f, 0f, true, actionPeriod, BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE, false, Blademaster024_BludgeonShockwaveEffMethodAction(dealer, shockWaveAoeZone, fadingCloneCustomEntity), DfoStatusGeneralMethods.AppliesStunAction(dealer, stunDuration));
+        SBSTickEventMethods.setMethodActionTimer(dealer, BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE, actionPeriod, slashDownwardBludgeonShockwaveAction);
+    }
+
+    public static MethodEntityAction Blademaster024_SwordSlashDamageAction(LivingEntity dealer, float finalAoeRange, int weaponType, float finalDmg, Predicate<Entity> condition, HashSet<LivingEntity> damagedGroup, float pushStrengthXZ, float pushStrengthY) {
+        return (slashEntity) -> {
+            SwordSlashCustomEntity swdCustomEntity = (SwordSlashCustomEntity) slashEntity;
+            float distPercent = 1f * (swdCustomEntity.getMaxLifetime() - swdCustomEntity.getLifetime()) / swdCustomEntity.getMaxLifetime();
+            float newX = swdCustomEntity.getStartPosX() + (swdCustomEntity.getTargetPosX() - swdCustomEntity.getStartPosX()) * distPercent;
+            float newY = swdCustomEntity.getStartPosY() + (swdCustomEntity.getTargetPosY() - swdCustomEntity.getStartPosY()) * distPercent;
+            float newZ = swdCustomEntity.getStartPosZ() + (swdCustomEntity.getTargetPosZ() - swdCustomEntity.getStartPosZ()) * distPercent;
+            EntityMethods.moveEntityToXYZ(swdCustomEntity, newX, newY, newZ);
+
+            //Sector damage cond
+            Vector3f slashEntityPos = new Vector3f(newX, newY, newZ);
+            float slashEntityHorizontalFacing = getEntityHorizontalFacingDeg(slashEntity);
+            Vector3f tempVecBehindTriggerEntity = Vector3fMethods.PolarProjectionFromVecHorizon(slashEntityPos, -0.5f, slashEntityHorizontalFacing);
+            Predicate<Entity> SectorDmgCond = (entity) -> {
+                float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(tempVecBehindTriggerEntity, getEntityPos(entity)));
+                float range = 75f; //150 deg
+
+                if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(slashEntityHorizontalFacing + range), MathMethods.RoundAngle(slashEntityHorizontalFacing - range))) {
+                    return false;
+                }
+
+                return DistanceBetweenEntities(entity, slashEntity) <= finalAoeRange;
+            };
+            for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(slashEntity, finalAoeRange, condition.and(SectorDmgCond))) {
+                if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                    if (!damagedGroup.contains(tempLivingEntity)) {
+                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(dealer, tempLivingEntity, finalDmg, false);
+
+                        DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, EntityMethods.getEntityLevel(slashEntity), EntityMethods.getEntityX(slashEntity), EntityMethods.getEntityY(slashEntity), EntityMethods.getEntityZ(slashEntity), 0.8f, 1.0f);
+                        damagedGroup.add(tempLivingEntity);
+
+                        float finalPushXZStrength = EntityMethods.calculatePushEntityStrength(pushStrengthXZ, dealer, tempLivingEntity);
+                        float finalPushYStrength = EntityMethods.calculatePushEntityStrength(pushStrengthY, dealer, tempLivingEntity);
+                        EntityMethods.pushEntityWithDeltaValue(tempLivingEntity, slashEntityHorizontalFacing, finalPushXZStrength, finalPushYStrength, true);
+                    }
+                }
+            }
+        };
+    }
+
+    public static MethodEntityAction Blademaster024_ZenithOfSwordArtFadingCloneServerAction(LivingEntity entity2, SwdFadingCloneCustomEntity swdFadingCloneCustomEntity, int afterXTicks, int slashAgainTick, final float[] randomSwordSlashEntityRotationZ, float SwordSlashDistShouldTravel, float finalAoeRange, float finalDmg, int latestHoldingWeaponType, Predicate<Entity> condition) {
+        return (entity) -> {
+            if (swdFadingCloneCustomEntity.getLifetime() == slashAgainTick) {
+                swdFadingCloneCustomEntity.setEntityServerAction(null, 777);
+                ArrayList<Entity> entitiesToBeAdded = new ArrayList<>();
+
+                float cloneFacingAngle = getEntityHorizontalFacingDeg(swdFadingCloneCustomEntity);
+                Vector3f triggeredEntityPos = getEntityPos(swdFadingCloneCustomEntity);
+                Vector3f TargetPolarLoc = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, SwordSlashDistShouldTravel, cloneFacingAngle);
+
+                for (int i = 0; i < randomSwordSlashEntityRotationZ.length; i++) {
+                    SwordSlashCustomEntity swdEff = GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(entity2, cloneFacingAngle, randomSwordSlashEntityRotationZ[i], 1, 255, 255, 255, triggeredEntityPos.x(), triggeredEntityPos.y() + 1.4f, triggeredEntityPos.z(), 12,
+                            BLADEMASTER024_ILLUSION_SWORD_DANCE + ExtraMathMethods.randomInt(10) + "/", 4, 1, 7, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, false, true, TargetPolarLoc.x(), TargetPolarLoc.y() + 1.4f, TargetPolarLoc.z(), DfoSwordmanSkillTreeConstants.NO_ANIMATION, false);
+
+                    swdEff.setEntityServerAction(Blademaster024_SwordSlashDamageAction(entity2, finalAoeRange, latestHoldingWeaponType, finalDmg, condition, new HashSet<>(), 0.02f, 0f), 2);
+
+                    entitiesToBeAdded.add(swdEff);
+                }
+
+                if (!entitiesToBeAdded.isEmpty()) {
+                    Blademaster024_AddSlashEntityAfterXTicks(entity2, afterXTicks, SkillID + getEntityHashID(entitiesToBeAdded.get(0)) + ExtraMathMethods.randomInt(100), entitiesToBeAdded);
+                }
+            }
+        };
+    }
+
+
+    //Client entity action
+    public static void Blademaster024_ClientMethodInit(HashMap<String, MethodEntityAction> clientMethodMap) {
+        clientMethodMap.put(BLADEMASTER024_ILLUSION_SWORD_DANCE_BLUDGEON_SHOCKWAVE_FADING_CLONE_CLIENT_ACTION, Blademaster024::Blademaster024_FadingCloneClientAction);
+        clientMethodMap.put(BLADEMASTER024_ILLUSION_SWORD_DANCE_ZENITH_OF_SWORD_ART_SLASH_AGAIN_FADING_CLONE_CLIENT_ACTION, Blademaster024::Blademaster024_ZenithOfSwordArtFadingCloneClientAction);
+    }
+
+    public static void Blademaster024_FadingCloneClientAction(Entity entity) {
+        SwdFadingCloneCustomEntity swdFadingCloneCustomEntity = (SwdFadingCloneCustomEntity) entity;
+        if (swdFadingCloneCustomEntity.getLifetime() == 40) {
+            swdFadingCloneCustomEntity.setIsBoundToEntity(false);
+        }
+    }
+
+    public static void Blademaster024_ZenithOfSwordArtFadingCloneClientAction(Entity entity) {
+        SwdFadingCloneCustomEntity swdFadingCloneCustomEntity = (SwdFadingCloneCustomEntity) entity;
+        MethodEntityAction entityAction = swdFadingCloneCustomEntity.getClientMethodEntityLoopAction();
+
+        if (entityAction == null) {
+            int slashAgainTick = Math.max(1, swdFadingCloneCustomEntity.getMaxLifetime() / 2);
+            entityAction = Blademaster024_ZenithOfSwordArtFadingCloneClientAction(slashAgainTick);
+            swdFadingCloneCustomEntity.setClientMethodEntityLoopAction(entityAction);
+        }
+
+        entityAction.executeAction(swdFadingCloneCustomEntity);
+    }
+
+    public static MethodEntityAction Blademaster024_ZenithOfSwordArtFadingCloneClientAction(final int slashAgainTick) {
+        return (entity) -> {
+            SwdFadingCloneCustomEntity swdFadingCloneCustomEntity = (SwdFadingCloneCustomEntity) entity;
+
+            if (swdFadingCloneCustomEntity.getLifetime() == slashAgainTick) {
+                int randomSwordAttackAnimationIndex = ExtraMathMethods.randomInt(BLADEMASTER024_ILLUSION_SWORD_DANCE_ATTACKS.length);
+                String randomSwordAttackAnimation = BLADEMASTER024_ILLUSION_SWORD_DANCE_ATTACKS[randomSwordAttackAnimationIndex];
+                swdFadingCloneCustomEntity.setAnimationName(randomSwordAttackAnimation);
+                swdFadingCloneCustomEntity.setGeoAnimationSpeedModifier(swdFadingCloneCustomEntity.getGeoAnimationSpeedModifier() * 1.2f);
+
+                swdFadingCloneCustomEntity.setClientActionName(DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+            }
+        };
+    }
+
+
+
+    //Configuration
+    private static boolean getSPlayerToggleOffForceToTerminateSwordDance(ServerPlayer sp1) {
+        try {
+            return getSPlayerConfig().get(sp1).get(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG).get(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG).getIntValue() != 0;
+        }
+        catch (Exception ignored) {
+
+        }
+        return false;
+    }
+
+    public static void ClientConfigInit() {
+        HashMap<String, MethodConfigHelper> GeneralSetting = new HashMap<String, MethodConfigHelper>();
+        GeneralSetting.put(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG, new MethodConfigHelper(GlobalClientPlayerValues::DefaultSettingOnOff, 0, true));
+        getCPlayerConfig2Settings().put(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG, GeneralSetting);
+    }
+
+    public static void ServerConfigInit(HashMap<String, HashMap<String, MethodConfigHelper>> SPlayerConfigMap) {
+        getSConfig().add(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG);
+        getSConfig().add(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG);
+        HashMap<String, MethodConfigHelper> GeneralSetting = new HashMap<String, MethodConfigHelper>();
+        GeneralSetting.put(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG, new MethodConfigHelper(null, 0, true));
+        SPlayerConfigMap.put(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG, GeneralSetting);
+    }
+
+    public static void ServerConfigAfterInit(ServerPlayer sp1, HashMap<String, HashMap<String, MethodConfigHelper>> SPlayerConfigMap) {
+        //sync to client
+        int val = SPlayerConfigMap.get(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG).get(DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG).getIntValue();
+        NetworkingFetchMsgMethods.FetchConfigKeyValToClientSide(sp1, DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_CONFIG, DfoSwordmanSkillTreeConstants.BLADEMASTER_0_24_ILLUSION_SWORD_DANCE_TOGGLE_OFF_FORCE_TERMINATE_ACTION_WHEN_SWITCH_WEAPON_CONFIG, val);
+    }
+}

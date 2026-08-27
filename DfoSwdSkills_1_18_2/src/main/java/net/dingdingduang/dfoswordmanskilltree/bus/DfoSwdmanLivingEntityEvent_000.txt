@@ -1,0 +1,585 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoShockStatus;
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralType;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.IgnoreDamageCalcEventDamageSource;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.MagicDamageSource;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.PhysicalDamageSource;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoAnimationAndTextureName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.networking.DfoSwdNetworkingFetchMsgMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.BlademasterSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster001;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster002;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster004;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster017;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster009;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster013;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.networking.NetworkingFetchMsgMethods;
+import net.dingdingduang.somebasicskills.sbsattributes.SBSAttributes;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.event.entity.EntityLeaveWorldEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+import modified.org.joml.Vector3f;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods.getLivingEntityCorrespondingStatus;
+import static net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods.getLivingEntityPreviousEffectMap;
+import static net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods.Generate2DAnimatedTexEntity64;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInPolarProjectionRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.somebasicskills.globalmethods.SBSAttributeMethods.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerLivingEntityValues.getSLivingEntityState;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.*;
+import static net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor.applyTimedBeingAttackedToEntity;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID)
+public class DfoSwordmanLivingEntityEvent {
+    //LivingEntityDeathEvent, remove from hashmap?
+
+    //after being attacked
+//    @SubscribeEvent
+//    public static void EntityAfterDamageCalcEvent(LivingDamageEvent event) {
+//        LivingEntity entity = event.getEntity();
+
+        //TODO: redo damage calc with a server config to turn on / off
+//        CombatRules.getDamageAfterAbsorb(); // armor
+//        CombatRules.getDamageAfterMagicAbsorb() // protection
+
+//        printInGameMsg("2");
+//        printInGameMsg("entity name: "+entity.getName().getString());
+//        printInGameMsg("after damage: " + event.getAmount());
+//    }
+
+//    //Entity: player
+//    @SubscribeEvent
+//    public static void PlayerAttackSBEvent(AttackEntityEvent event) {
+//        event.setCanceled(true);
+//    }
+
+//    @SubscribeEvent
+//    public static void DfoSwordLivingEntityFallingEvent(LivingFallEvent event) {
+//        LivingEntity entity = event.getEntity();
+//        HashMap<LivingEntity, HashMap<String, Integer>> ServerLivingEntityState = getSLivingEntityState();
+//        HashMap<String, Integer> LivingEntityState;
+//        if (ServerLivingEntityState != null && ServerLivingEntityState.containsKey(entity) && (LivingEntityState = ServerLivingEntityState.get(entity)) != null) {
+//            //strike from air
+//            if (LivingEntityState.containsKey(DfoSwordmanSkillTreeConstants.IS_IMMUNE_FALLING_DMG)) {
+//                event.setDamageMultiplier(0);
+////                event.setCanceled(true);
+//            }
+//            printInGameMsg("is immune fall: "+LivingEntityState.containsKey(DfoSwordmanSkillTreeConstants.IS_IMMUNE_FALLING_DMG));
+//        }
+//    }
+
+    //Entity: the one before being hit
+    @SubscribeEvent
+    public static void DfoSwordLivingEntityBeforeGettingHurtEvent(LivingHurtEvent event) {
+        //init
+        LivingEntity entity = event.getEntity();
+        float incomingDMG = event.getAmount();
+        HashMap<LivingEntity, HashMap<String, Integer>> ServerLivingEntityState = getSLivingEntityState();
+
+        //prevent endless loop event
+        DamageSource dmgSrc = event.getSource();
+
+        if (dmgSrc instanceof IgnoreDamageCalcEventDamageSource ignoreDamageCalcEventDamageSource) {
+//            printInGameMsg("ignored!: "+ignoreDamageCalcEventDamageSource.getDmgType());
+//            event.setCanceled(false);
+            return;
+        }
+
+        Entity damageSourceEntity = dmgSrc.getEntity();
+        LivingEntity damageSourceEntityOwner = null;
+        int damageSourceEntityWeaponType;
+
+        if (dmgSrc.getDirectEntity() instanceof LivingEntity le1) {
+            damageSourceEntityOwner = le1;
+            damageSourceEntityWeaponType = DfoSkillTreeItemMethods.getWeaponType(damageSourceEntityOwner);
+            if (dmgSrc instanceof PhysicalDamageSource physicalDamageSource) {
+                Blademaster017.Blademaster017_LivingEntityEventOverdriveDurability(le1);
+            }
+            //Test
+//            if (le1 != null && entity != null) {
+//                DfoStatusGeneralMethods.ApplyStunStatusToTargetLivingEntity(damageSourceEntityOwner, entity, 40, 1);
+//            DfoStatusGeneralMethods.ApplyBleedingExplosionToTargetLivingEntity(damageSourceEntityOwner, entity);
+//            }
+            Blademaster009.Blademaster009_KatanaTriggerDamageWhenDealingAnyPhysicalDamage(dmgSrc, damageSourceEntityWeaponType, damageSourceEntityOwner, entity, incomingDMG);
+        }
+
+
+        //========================================
+        //status calculation
+        ConcurrentHashMap<LivingEntity, HashMap<String, DfoStatusGeneralType>> tempStatusMap = getLivingEntityCorrespondingStatus();
+        HashMap<String, DfoStatusGeneralType> tempLivingEntityStatusMap;
+//        double shockDamage = DfoStatusGeneralMethods.getShockStatusDamageFromLivingEntity(entity);
+        if (tempStatusMap != null && tempStatusMap.containsKey(entity) && !(tempLivingEntityStatusMap = tempStatusMap.get(entity)).isEmpty()) {
+            float shockDamage = 0;
+            HashSet<String> tempStatusSetTBR = new HashSet<>();
+
+            for (Map.Entry<String, DfoStatusGeneralType> tempMapEntry: tempLivingEntityStatusMap.entrySet()) {
+                int currentInflictedTimes;
+                if (tempMapEntry.getValue() instanceof DfoShockStatus shockStatus) {
+                    if ((currentInflictedTimes = shockStatus.getInflictedTimes()) < shockStatus.getMaxInflictedTimes()) {
+                        shockStatus.setInflictedTimes(currentInflictedTimes + 1);
+                        shockDamage += (float) shockStatus.getAmount();
+                    }
+                    else {
+                        tempStatusSetTBR.add(tempMapEntry.getKey());
+                    }
+                }
+            }
+
+            for (String tempTBRStatus: tempStatusSetTBR) { tempLivingEntityStatusMap.remove(tempTBRStatus); }
+
+//            if (shockDamage > 0 && SBConditions.hasMoreThanZeroHealth(entity)) {
+//                float reducedHPAmount = getLivingEntityCurrentHP(entity) - shockDamage;
+//                if (reducedHPAmount > 1) {
+//                    setLivingEntityCurrentHP(entity, reducedHPAmount);
+//                }
+//                else {
+//                    if (damageSourceEntityOwner != null) {
+//                        LivingEntityDamageTarget(damageSourceEntityOwner, entity, shockDamage);
+//                    }
+//                }
+//            }
+
+            if (shockDamage > 0) {
+                if (damageSourceEntityOwner != null) {
+                    shockDamage = shockDamage * DfoStatusGeneralMethods.getShockStatusDamageMultiplier(damageSourceEntityOwner);
+//                printInGameMsg("triggeredShock: "+shockDamage);
+//                printInGameMsg("owner: "+damageSourceEntity.getName().getString());
+//                printInGameMsg("target: "+entity.getName().getString());
+                    DfoGeneralDamageSrc.LivingEntityDamageTargetWithShock(getEntityLevel(damageSourceEntityOwner), damageSourceEntityOwner, entity, shockDamage);
+                }
+                else {
+                    //other type damage like fall, burning etc
+//                    printInGameMsg("damagesource ignored? :" + dmgSrc.getMsgId());
+//                    printInGameMsg("damagesource ignored bool? :" + (dmgSrc instanceof IgnoreDamageCalcEventDamageSource));
+                    DfoGeneralDamageSrc.LivingEntityDamageTargetWithShock(getEntityLevel(entity), entity, entity, shockDamage);
+                }
+            }
+        }
+
+        //========================================================
+        HashMap<String, Integer> LivingEntityState;
+        String SkillID;
+        SkillDataJson tempSkillData;
+        int SkillLVL;
+
+//        printInGameMsg("before dmg: "+incomingDMG);
+
+        if (ServerLivingEntityState != null) {
+            //============================================
+            //total dmg calculation
+            if (damageSourceEntityOwner != null && ServerLivingEntityState.containsKey(damageSourceEntityOwner) && (LivingEntityState = ServerLivingEntityState.get(damageSourceEntityOwner)) != null) {
+                float totalBase = 0f, totalMultiplier = 1f;
+
+                boolean isEntityInAction = LivingEntityState.containsKey(Constants.IS_IN_ACTION) && LivingEntityState.get(Constants.IS_IN_ACTION) == 1;
+                boolean isEntityChanneling = LivingEntityState.containsKey(Constants.IS_CHANNELING) && LivingEntityState.get(Constants.IS_CHANNELING) == 1;
+                boolean isEntityOnGround = isEntityBPosOnGround(damageSourceEntityOwner);
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+                //aerial slash
+                if (!isEntityInAction && !isEntityChanneling && !isEntityOnGround) {
+                    totalMultiplier = totalMultiplier * Blademaster013.Blademaster013_AerialAttackMultiplier(damageSourceEntityOwner, totalMultiplier);
+                }
+
+
+                //===========================================
+                totalBase = MathMethods.max(0f, totalBase);
+                totalMultiplier = MathMethods.max(1f, totalMultiplier);
+                incomingDMG = (incomingDMG + totalBase) * totalMultiplier;
+            }
+
+
+//            printInGameMsg("after dmg calc: "+incomingDMG);
+
+            //================================
+            //dmg reduction
+            if (ServerLivingEntityState.containsKey(entity) && (LivingEntityState = ServerLivingEntityState.get(entity)) != null) {
+//            printInGameMsg("is guard: "+LivingEntityState.get(DfoSwordmanSkillTreeConstants.IS_GUARDING));
+
+                boolean isEntityInAction = LivingEntityState.containsKey(Constants.IS_IN_ACTION) && LivingEntityState.get(Constants.IS_IN_ACTION) == 1;
+                boolean isEntityChanneling = LivingEntityState.containsKey(Constants.IS_CHANNELING) && LivingEntityState.get(Constants.IS_CHANNELING) == 1;
+
+
+                //============================================
+                //dmg reduction
+                //TODO: check if action/channeling should be interrupted
+                boolean isGuarding = LivingEntityState.containsKey(DfoSwordmanSkillTreeConstants.IS_GUARDING);
+                if (getSuperArmorAttrVal(entity) <= 0 && !isGuarding) {
+                    //Blademaster002 Auto Guard
+                    int autoGuardTriggerChance = Blademaster002.Blademaster002_getAutoGuardBuffTriggerChance(entity);
+                    Boolean triggeredGuardAtFirstTime = Blademaster002.getBLADEMASTER002_HashMapIsTriggeredAtFirstTime().get(entity);
+
+                    if (damageSourceEntity != null && !isEntityInAction && !isEntityChanneling && autoGuardTriggerChance > 0 && ExtraMathMethods.randomInt(100) < autoGuardTriggerChance) {
+                        ServerSkillMethods.incrementEntityStateByAmountX(entity, Constants.IS_IN_ACTION, 1);
+
+                        if (triggeredGuardAtFirstTime == null) {
+                            Blademaster002.getBLADEMASTER002_HashMapIsTriggeredAtFirstTime().put(entity, DfoSwordmanSkillTreeConstants.CONSTANT_BOOLEAN_TRUE);
+                            triggeredGuardAtFirstTime = DfoSwordmanSkillTreeConstants.CONSTANT_BOOLEAN_TRUE;
+                        }
+                        IntegerValueHolder tempTickCounter = new IntegerValueHolder(0);
+                        int actionPeriod = 5;
+
+                        float AngleBtn = Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), getEntityPos(damageSourceEntity));
+//                        float AngleBtn = ExtraMathMethods.randomFloat(360f);
+                        EntityMethods.setEntityHorizontalFacingDeg(entity, AngleBtn);
+                        int randomInt = (ExtraMathMethods.randomFloat() > 0.5) ? 1 : 2;
+                        String AnimationChannelingName = String.format("guard%d_channeling",randomInt);
+                        if (entity instanceof ServerPlayer sp1) {
+                            DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerHorizontalFacing(sp1, AngleBtn);
+                            //TODO: [?] add this because need to send inaction packet from server
+                            NetworkingFetchMsgMethods.FetchPlayerStateToClientSide(sp1,  Constants.IS_IN_ACTION, Constants.ACTION_ON);
+
+                            SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, AnimationChannelingName, 15f);
+                        }
+
+                        GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256BoundToEntity(entity, 255, 255, 255, 1f, 0, 2.5f, 0, 8, Blademaster002.AutoGuardIconFlash, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                DfoSwordmanSkillTreeConstants.NO_ANIMATION, 8, 0, 8, false, false, true, null, 777, true);
+                        GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity, AngleBtn, 0, 1, 255, 255, 224, 150, 0, 0, 0, 20,
+                                GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, AnimationChannelingName, 1f, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                DfoSwordmanSkillTreeConstants.NO_ANIMATION, true, false, true);
+
+                        MethodAction action = (entity2) -> {
+                            int currentPassedTicks = tempTickCounter.getIntCounter();
+
+                            if (currentPassedTicks > Blademaster002.BuffActionTotalTicks) {
+                                ServerSkillMethods.incrementEntityStateByAmountX(entity2, Constants.IS_IN_ACTION, -1);
+                                SBSTickEventMethods.setSkillActionDone(entity2, Blademaster002.IsBuffActionActiveSTRID);
+                            }
+                            else {
+                                tempTickCounter.setIntCounter(currentPassedTicks + actionPeriod);
+                            }
+                        };
+                        float tempD = Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(damageSourceEntity), getEntityPos(entity));
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(1f, tempD);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(1f, tempD);
+
+                        setEntitySPDeltaMovement(entity, newX, 0, newZ, true);
+
+                        //start loop action
+                        SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity, Blademaster002.IsBuffActionActiveSTRID, actionPeriod, action, Blademaster002::Blademaster002_ResetAutoGuardIsTriggeredFirstly, false);
+                    }
+
+                    if (triggeredGuardAtFirstTime != null) {
+                        incomingDMG = Blademaster002.Blademaster002_triggerGuard(entity, damageSourceEntity, incomingDMG, dmgSrc, LivingEntityState);
+                    }
+                    //execute indomitable spirit
+                    else {
+                        boolean shouldChannelingSkillBeAffected = true;
+                        if (entity instanceof ServerPlayer sp0) {
+                            String LastPlayerSkillId = getSPlayerLastTriggeredChannelingActiveSkillID().get(sp0);
+                            if (getID2SkillData().containsKey(LastPlayerSkillId)) {
+                                shouldChannelingSkillBeAffected = getID2SkillData().get(LastPlayerSkillId).isChannelingShouldShowWindow();
+                            }
+                        }
+
+                        if (isEntityChanneling && shouldChannelingSkillBeAffected && getUninterruptibleAttrVal(entity) < ExtraMathMethods.randomFloat()) {
+//                        printInGameMsg("uninterruptibleatt: "+ getUninterruptibleAttrVal(entity));
+                            LivingEntityState.put(Constants.ACTION_INTERRUPTED, 1);
+
+                            LivingEntityState.put(Constants.IS_CHANNELING, 0);
+                            LivingEntityState.put(Constants.CHANNELING_INTERRUPTED, 1);
+                            if (entity instanceof ServerPlayer sp1) {
+                                NetworkingFetchMsgMethods.FetchPlayerStateToClientSide(sp1, Constants.IS_CHANNELING, 0);
+                                String lastChannelingSkillID = getSPlayerLastTriggeredChannelingActiveSkillID().get(sp1);
+                                if (lastChannelingSkillID != null) {
+                                    NetworkingFetchMsgMethods.FetchPlayerResetLastKeyActionFromServer(sp1, lastChannelingSkillID);
+                                }
+                                NetworkingFetchMsgMethods.FetchPlayerIsImmobilizedBooleanFromServer(sp1, true);
+                                if (getTimedAttributeValueFromLivingEntity(entity, SBSAttributes.SBS_ATTRIBUTE_BEING_ATTACKED, Constants.OP_ADDITION) < 8) {
+                                    applyTimedBeingAttackedToEntity(entity, 10, 9f, Constants.OP_ADDITION, false, DfoSwordmanSkillTreeConstants.BEING_ATTACKED, null,
+                                            DfoSwordmanLivingEntityEvent::PlayerBeingHitLambdaFunc);
+                                    //[?] TODO: play being hit action?
+                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+                                }
+
+                                //Counter Strike Packet
+                                Blademaster004.Blademaster004_SendPacketIfMeetConditionsToClientSide(damageSourceEntity, sp1);
+                            }
+                        } else {
+                            LivingEntityState.put(Constants.ACTION_INTERRUPTED, 1);
+                            if (entity instanceof ServerPlayer sp1) {
+                                NetworkingFetchMsgMethods.FetchPlayerIsImmobilizedBooleanFromServer(sp1, true);
+                                if (getTimedAttributeValueFromLivingEntity(entity, SBSAttributes.SBS_ATTRIBUTE_BEING_ATTACKED, Constants.OP_ADDITION) < 10) {
+                                    applyTimedBeingAttackedToEntity(entity, 10, 9f, Constants.OP_ADDITION, false, DfoSwordmanSkillTreeConstants.BEING_ATTACKED, null,
+                                            DfoSwordmanLivingEntityEvent::PlayerBeingHitLambdaFunc);
+                                }
+                                //[?] TODO: play being hit action?
+                                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+
+                                //Counter Strike Packet
+                                Blademaster004.Blademaster004_SendPacketIfMeetConditionsToClientSide(damageSourceEntity, sp1);
+                            }
+                        }
+                    }
+                }
+
+
+
+                //-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+                //guard
+                if (isGuarding) {
+//                    PlaySoundAtLocation(SoundRegistry.SWD_EFF_01.get(), getEntityLevel(entity), getEntityX(entity), getEntityY(entity), getEntityZ(entity), 0.6f, 1.0f);
+
+                    Predicate<Entity> guardCond;
+//                String SkillID = "BLADEMASTER_0_1";
+                    SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_GUARD;
+                    tempSkillData = getID2SkillData().get(SkillID);
+                    int GuardLVL = 0;
+                    double physicalDmgBlockPercent, magicalDmgBlockPercent;
+                    if (entity instanceof ServerPlayer sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            GuardLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (GuardLVL > 0) {
+                                GuardLVL = GuardLVL - 1; // index out of boundary
+                            }
+                        }
+                        guardCond = defaultSkillTargetCondition(sp1);
+                    }
+                    else {
+                        guardCond = defaultSkillTargetCondition();
+                    }
+
+                    physicalDmgBlockPercent = tempSkillData.getValueMultiplierList_01().get(GuardLVL);
+                    magicalDmgBlockPercent = tempSkillData.getValueMultiplierList_01().get(GuardLVL);
+
+//                if (damageSourceEntity == null) {
+//                    damageSourceEntity = dmgSrc.getDirectEntity();
+//                }
+
+//                Entity damageSourceOwnerEntity = dmgSrc.getDirectEntity();
+                    if (damageSourceEntity != null) {
+                        Vector3f HurtEntityLoc = getEntityPos(entity);
+                        Vector3f DamageSourceLoc = getEntityPos(damageSourceEntity);
+                        float AngleBtn = Vector3fMethods.AngleFromLocationToLocationHorizontal(DamageSourceLoc, HurtEntityLoc);
+//                    printInGameMsg("VvvvvvvvvvvvvvvvvvV");
+//                    printInGameMsg("dmgedEntity Angle: " + MathMethods.RoundAngle(entity.getYRot()));
+//                    printInGameMsg("Source Angle: " + MathMethods.RoundAngle(damageSourceEntity.getYRot()));
+//                    printInGameMsg("Between Angle: " + AngleBtn);
+
+                        float entityFacingAngle = getEntityHorizontalFacingDeg(entity);
+                        float tempD = MathMethods.RoundAngle(AngleBtn - 180f); //front for -180 deg
+                        float range = 70f; //140 deg
+//                    printInGameMsg("result: " + tempD);
+
+                        //front
+                        if (tempD <= MathMethods.RoundAngle(entityFacingAngle) + range
+                                && tempD >= MathMethods.RoundAngle(entityFacingAngle) - range) {
+//                        printInGameMsg("YES!!!");
+                            //play sound when guarding
+                            DfoSwdSoundMethods.PlaySwordGuardingSound(getEntityLevel(entity), getEntityX(entity), getEntityY(entity), getEntityZ(entity), 0.6f, 1.0f);
+                            int isPerfectGuard = Blademaster001.getEntityGuardTicks(entity);
+//                        printInGameMsg("ticks: "+ isPerfectGuard);
+                            if (isPerfectGuard < 11) {
+//                            printInGameMsg("perfect!");
+
+                                physicalDmgBlockPercent += 0.25;
+                                magicalDmgBlockPercent += 0.25;
+                                //reflection
+                                //play sound when guarding
+                                DfoSwdSoundMethods.PlaySwordReflectionSound(getEntityLevel(entity), getEntityX(entity), getEntityY(entity), getEntityZ(entity), 0.6f, 1.0f);
+
+                                float newXPercent = Vector3fMethods.PolarProjectionFromXHorizon(1f, entityFacingAngle);
+                                float newZPercent = Vector3fMethods.PolarProjectionFromZHorizon(1f, entityFacingAngle);
+                                float newX = 2f * newXPercent;
+                                float newZ = 2f * newZPercent;
+
+                                Generate2DAnimatedTexEntity64(entity, "textures/entity/skilleff/blademaster/guard_reflection/", 8, newX, 0f, newZ, true);
+//                            Generate2DAnimatedTexEntity64(entity, "textures/skillicons/sword/blademaster/blademaster_0_1.png", 100, newX, 1f, newZ);
+
+                                newX = 0.15f * newXPercent;
+                                newZ = 0.15f * newZPercent;
+//                                Predicate<? super Entity> tempCond = SBConditions.defaultConditionCheck();
+//                                Predicate<? super Entity> tempCond = SBConditions.defaultSkillTargetCondition();
+
+                                for (Entity a : GroupEnumEntitiesInPolarProjectionRangeFilter(entity, 1.2f, guardCond, 0.5f, true)) {
+                                    if (a instanceof LivingEntity target) {
+                                        setEntityDeltaMovement(target, newX, 0, newZ);
+//                                        LivingEntityDamageTarget(entity, target, (incomingDMG / 2) +
+//                                                (float) ((getEntityAttackDamage(entity) * tempSkillData.getDamageMultiplierList_01().get(GuardLVL))
+//                                                        + (tempSkillData.getDamageList_01().get(GuardLVL))));
+                                        DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity, target,
+                                                (float) ((getEntityAttackDamage(entity) * tempSkillData.getDamageMultiplierList_01().get(GuardLVL))
+                                                        + (tempSkillData.getDamageList_01().get(GuardLVL))),
+                                                false);
+                                    }
+                                }
+                                Blademaster001.setEntityGuardTicks(entity, DfoSwordmanSkillTreeConstants.CONSTANT_INTEGER_777);
+                            }
+                            //TODO reduce magic
+                            if (dmgSrc.type().msgId().hashCode() == DfoSwordmanSkillTreeConstants.IS_MAGIC.hashCode() || dmgSrc instanceof MagicDamageSource magicDamageSource) {
+                                incomingDMG = (float) (incomingDMG * (1.0 - ExtraMathMethods.clamp(magicalDmgBlockPercent, 0, 1)));
+//                                event.setAmount(incomingDMG);
+                            } else {
+//                            printInGameMsg("current reduction dmg percent: " + (1.0 - ExtraMathMethods.clamp(physicalDmgBlockPercent, 0, 1)));
+                                incomingDMG = (float) (incomingDMG * (1.0 - ExtraMathMethods.clamp(physicalDmgBlockPercent, 0, 1)));
+//                                event.setAmount(incomingDMG);
+                            }
+                            //TEST
+//                        event.setAmount(0);
+                        }
+                        else {
+//                        printInGameMsg("guard failed!!!");
+                            if (entity instanceof ServerPlayer sp1) {
+                                //To client packet
+                                NetworkingFetchMsgMethods.FetchPlayerStateToClientSide(sp1, Constants.IS_CHANNELING, 0);
+
+                                NetworkingFetchMsgMethods.FetchPlayerIsImmobilizedBooleanFromServer(sp1, true);
+                                if (getTimedAttributeValueFromLivingEntity(entity, SBSAttributes.SBS_ATTRIBUTE_BEING_ATTACKED, Constants.OP_ADDITION) < 8) {
+                                    applyTimedBeingAttackedToEntity(entity, 10, 9f, Constants.OP_ADDITION, false, DfoSwordmanSkillTreeConstants.BEING_ATTACKED, null,
+                                            DfoSwordmanLivingEntityEvent::PlayerBeingHitLambdaFunc);
+                                    //[?] TODO: play being hit action?
+                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.NO_ANIMATION);
+                                }
+
+                                //Counter Strike Packet
+                                Blademaster004.Blademaster004_SendPacketIfMeetConditionsToClientSide(damageSourceEntity, sp1);
+                            }
+                            if (LivingEntityState.containsKey(Constants.IS_CHANNELING)) {
+                                LivingEntityState.put(Constants.IS_CHANNELING, 0);
+                                LivingEntityState.put(Constants.CHANNELING_INTERRUPTED, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        event.setAmount(incomingDMG);
+    }
+
+//    @SubscribeEvent
+//    public static void SBImmobilizationEvent(LivingEvent.LivingJumpEvent event) {
+//        if (event.getEntity() != null && event.getEntity().hasEffect(EffectRegistry.IMMOBILIZATION.get())) {
+//            event.getEntity().setDeltaMovement(0, 0, 0);
+////            return;
+//        }
+//    }
+
+    public static void PlayerBeingHitLambdaFunc(LivingEntity entity) {
+        getSLivingEntityState().get(entity).put(Constants.ACTION_INTERRUPTED, 0);
+        if (entity instanceof ServerPlayer sp2) {
+            NetworkingFetchMsgMethods.FetchPlayerIsImmobilizedBooleanFromServer(sp2, false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingKnockBack(LivingKnockBackEvent event) {
+        LivingEntity entity = event.getEntity();
+
+//        printInGameMsg("triggered! "+entity.getName().getString());
+        HashMap<LivingEntity, HashMap<String, Integer>> ServerLivingEntityState = getSLivingEntityState();
+        HashMap<String, Integer> LivingEntityState;
+        //guard
+        if (ServerLivingEntityState != null && ServerLivingEntityState.containsKey(entity) && (LivingEntityState = ServerLivingEntityState.get(entity)) != null) {
+            if (LivingEntityState.containsKey(DfoSwordmanSkillTreeConstants.MC_NO_KNOCKBACK) && LivingEntityState.get(DfoSwordmanSkillTreeConstants.MC_NO_KNOCKBACK) > 0) {
+                event.setCanceled(true);
+//                event.setStrength(0.01f);
+//                printInGameMsg("revoked knockback");
+                return;
+            }
+//            else {
+//                printInGameMsg("dont revoke");
+//            }
+
+//            printInGameMsg("is guard: "+LivingEntityState.get(DfoSwordmanSkillTreeConstants.IS_GUARDING));
+            //guard or autoguard
+            Boolean triggeredGuardAtFirstTime = Blademaster002.getBLADEMASTER002_HashMapIsTriggeredAtFirstTime().get(entity);
+
+            if (getSuperArmorAttrVal(entity) > 0 || (LivingEntityState.containsKey(DfoSwordmanSkillTreeConstants.IS_GUARDING) && LivingEntityState.containsKey(Constants.IS_CHANNELING) && LivingEntityState.get(Constants.IS_CHANNELING) == 1) || (triggeredGuardAtFirstTime != null) ) {
+                //play sound when guarding
+//                PlaySoundAtLocation(SoundRegistry.SWD_EFF_01.get(), getEntityLevel(entity), getEntityX(entity), getEntityY(entity), getEntityZ(entity), 0.6f, 1.0f);
+
+//                printInGameMsg("last attacker: "+event.getEntity().getLastAttacker().getName().getString());
+//                event.setStrength(0.01f);
+                event.setCanceled(true);
+//                setEntityDeltaMovement(entity, 0, 0, 0);
+            }
+        }
+//        event.setCanceled(true);
+    }
+
+
+//    @SubscribeEvent
+//    public static void itemUseStartEvent(LivingEntityUseItemEvent.Start event) {
+//        if (event.getEntity() instanceof Player player) {
+//            PlayerPatch<?> playerpatch = EpicFightCapabilities.getEntityPatch(event.getEntity(), PlayerPatch.class);
+//
+//            if (playerpatch == null) {
+//                return;
+//            }
+//
+//            InteractionHand hand = player.getItemInHand(InteractionHand.MAIN_HAND).equals(event.getItem()) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+//            CapabilityItem itemCap = playerpatch.getHoldingItemCapability(hand);
+//
+//            if (!playerpatch.getEntityState().canUseSkill()) {
+//                event.setCanceled(true);
+//            } else if (event.getItem() == player.getOffhandItem() && !playerpatch.getHoldingItemCapability(InteractionHand.MAIN_HAND).getStyle(playerpatch).canUseOffhand()) {
+//                event.setCanceled(true);
+//            }
+//
+//            if (itemCap.getUseAnimation(playerpatch) == UseAnim.BLOCK) {
+//                event.setDuration(Integer.MAX_VALUE);
+//            }
+//        }
+//    }
+//
+
+    //LivingSwapItemsEvent,
+
+//    @SubscribeEvent
+//    public static void itemUseStopEvent(LivingEntityUseItemEvent.Stop event) {
+//        if (!event.getEntity().level().isClientSide()) {
+//            if (event.getEntity() instanceof ServerPlayer player) {
+//                ServerPlayerPatch playerpatch = EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class);
+//
+//                if (playerpatch != null) {
+//                    boolean canceled = playerpatch.getEventListener().triggerEvents(EventType.SERVER_ITEM_STOP_EVENT, new ItemUseEndEvent(playerpatch, event));
+//                    event.setCanceled(canceled);
+//                }
+//            }
+//        }
+//    }
+
+    @SubscribeEvent
+    public static void RemoveEntityFromStoredMapOnDeath(EntityLeaveWorldEvent event) {
+        if (event.getWorld() instanceof ServerLevel && event.getEntity() instanceof LivingEntity entity && !(entity instanceof ServerPlayer)) {
+            getLivingEntityCorrespondingStatus().remove(entity);
+            getLivingEntityPreviousEffectMap().remove(entity);
+        }
+    }
+}

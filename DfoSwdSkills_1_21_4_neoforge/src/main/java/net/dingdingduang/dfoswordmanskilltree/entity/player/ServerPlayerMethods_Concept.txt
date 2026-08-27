@@ -1,0 +1,61 @@
+package temp.sbasiclibs.entity.player;
+
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.server.ServerLifecycleHooks;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.GeneralMethods.getMinecraftServerInstance;
+
+public class ServerPlayerMethods {
+    public static PlayerList pl1 = null;
+    public static Map<Integer, ServerPlayer> ID_PlayerMap = new TreeMap<>();
+    public static Map<ServerPlayer, Integer> Player_IDMap = new TreeMap<>();
+
+    public static ServerPlayer GetPlayerByID(int a) {
+        plUpdate();
+        return ID_PlayerMap.get(a);
+    }
+
+    public static int GetPlayerIDbyServerPlayer(ServerPlayer a) {
+        plUpdate();
+        return Player_IDMap.get(a);
+    }
+
+    public static void plUpdate() {
+        PlayerList playerlist1 = getMinecraftServerInstance().getPlayerList();
+
+        if (!pl1.equals(playerlist1)) {
+            ID_PlayerMap = new TreeMap<>();
+            Player_IDMap = new TreeMap<>();
+            List<ServerPlayer> serverplayerlist1 = playerlist1.getPlayers();
+            int tempi = 0;
+            Iterator<ServerPlayer> var = serverplayerlist1.iterator();
+
+            ServerPlayer serverplayer;
+            while (var.hasNext()) {
+                serverplayer = var.next();
+                ID_PlayerMap.put(tempi, serverplayer);
+                Player_IDMap.put(serverplayer, tempi);
+            }
+            //while (!serverplayer.getGameProfile().getName().equalsIgnoreCase(pUsername));
+        }
+    }
+
+//    public static void banUsingItem(Player a) {
+//        InteractionHand hand = a.getItemInHand(InteractionHand.MAIN_HAND).equals(event.getItem()) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+//        a.startUsingItem(InteractionHand.MAIN_HAND);
+//        ForgeEventFactory.onItemUseStart(a, a.getUseItem(), Integer.MAX_VALUE);
+//        ForgeEventFactory.onItemUseTick(a, a.getUseItem(), Integer.MAX_VALUE);
+//    }
+
+//    public static void resumeUsingItem(Player a) {
+//        a.stopUsingItem();
+//        ForgeEventFactory.onUseItemStop(a, a.getUseItem(), a.getUseItemRemainingTicks());
+//    }
+}

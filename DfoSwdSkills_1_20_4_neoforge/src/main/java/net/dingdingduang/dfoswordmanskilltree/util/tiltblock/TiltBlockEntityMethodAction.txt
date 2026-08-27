@@ -1,0 +1,5 @@
+package net.dingdingduang.dfoswordmanskilltree.util.tiltblock;
+
+public interface TiltBlockEntityMethodAction {
+    boolean executeAction();
+}

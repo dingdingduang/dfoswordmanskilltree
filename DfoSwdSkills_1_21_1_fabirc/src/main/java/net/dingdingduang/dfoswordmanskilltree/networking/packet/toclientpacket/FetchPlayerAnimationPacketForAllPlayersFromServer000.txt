@@ -1,0 +1,58 @@
+package net.dingdingduang.dfoswordmanskilltree.networking.packet.toclientpacket;
+
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getClientLevel;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getMinecraftInstance;
+import static net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods.SetPlayerAnimationClient;
+import static net.dingdingduang.dfoswordmanskilltree.sbanimation.TestAnimationMethods.TestAnimation2;
+
+public class FetchPlayerAnimationPacketForAllPlayersFromServer {
+    private final String AnimFileName;
+    private final String AnimActionName;
+    private final long AnimatedPlayerMostSignificantBits;
+    private final long AnimatedPlayerLeastSignificantBits;
+    private final String PlayerName;
+
+    public FetchPlayerAnimationPacketForAllPlayersFromServer(String animFileName, String animActionName,
+                                                             long animatedPlayerMostSignificantBits, long animatedPlayerLeastSignificantBits,
+                                                             String playerName) {
+        this.AnimFileName = animFileName;
+        this.AnimActionName = animActionName;
+        this.AnimatedPlayerMostSignificantBits = animatedPlayerMostSignificantBits;
+        this.AnimatedPlayerLeastSignificantBits = animatedPlayerLeastSignificantBits;
+        this.PlayerName = playerName;
+    }
+
+    public FetchPlayerAnimationPacketForAllPlayersFromServer(FriendlyByteBuf buf) {
+        this.AnimFileName = buf.readUtf();
+        this.AnimActionName = buf.readUtf();
+        this.AnimatedPlayerMostSignificantBits = buf.readLong();
+        this.AnimatedPlayerLeastSignificantBits = buf.readLong();
+        this.PlayerName = buf.readUtf();
+    }
+
+    public void toBytes(FriendlyByteBuf buf) {
+        buf.writeUtf(this.AnimFileName);
+        buf.writeUtf(this.AnimActionName);
+        buf.writeLong(this.AnimatedPlayerMostSignificantBits);
+        buf.writeLong(this.AnimatedPlayerLeastSignificantBits);
+        buf.writeUtf(this.PlayerName);
+    }
+
+    public boolean handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            //do shiet on client side
+            if (getClientLevel() == null) { return; }
+//            SetPlayerAnimationClient(getMinecraftInstance().player, this.AnimFileName, this.AnimActionName);
+            TestAnimation2(this.AnimatedPlayerMostSignificantBits, this.AnimatedPlayerLeastSignificantBits, this.PlayerName);
+            SBPlayerAnimatorMethods.SetPlayerAnimationByEntityID(, this.AnimFileName, this.AnimActionName);
+        });
+
+        return true;
+    }
+}

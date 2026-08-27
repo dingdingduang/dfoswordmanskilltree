@@ -1,0 +1,452 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.buff.EffBuffEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.buff.alternative.EffBuffAltEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.groundquake.EffGroundQuakeEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.stab.EffStabEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.strikefromair.EffStrikeFromAirEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.swdfadingclone.SwdFadingCloneCustomEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.SwordSlashPurpleEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.SwordSlashWhiteEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.SwordSlashYellowEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.custom.SwordSlashCustomEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.twodmodel.TwoDEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.twodmodelanimated.TwoDAnimatedTex128Entity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.twodmodelanimated.TwoDAnimatedTex256Entity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.twodmodelanimated.TwoDAnimatedTex64Entity;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.twodmodelanimatedyrot.customcolor.TwoDAnimatedTexRGB256Entity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+
+import java.util.HashMap;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityFXEffectMethods.MCLoadEntityRecursive;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+
+public class GeoModelSpawnMethods {
+    private static HashMap<String, CompoundTag> EntityCompoundTagCache = new HashMap<String, CompoundTag>();
+
+
+
+    public static SwordSlashYellowEntity GenerateYellowSlash(Entity owner, float horizontalRotation, float rotationZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_SLASH_YELLOW);
+
+        SwordSlashYellowEntity Entity000 = (SwordSlashYellowEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+1f, getEntityZ(owner), horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashPurpleEntity GeneratePurpleSlash(Entity owner, float horizontalRotation, float rotationZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_SLASH_PURPLE);
+
+        SwordSlashPurpleEntity Entity000 = (SwordSlashPurpleEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+1f, getEntityZ(owner), horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashWhiteEntity GenerateWhiteSlash(Entity owner, float horizontalRotation, float rotationZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_SLASH_WHITE);
+
+        SwordSlashWhiteEntity Entity000 = (SwordSlashWhiteEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+1f, getEntityZ(owner), horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashWhiteEntity GenerateRGBSlash(Entity owner, float horizontalRotation, float rotationZ, float scale, int cRed, int cGreen, int cBlue) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_SLASH_WHITE);
+
+        SwordSlashWhiteEntity Entity000 = (SwordSlashWhiteEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+1f, getEntityZ(owner), horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        Entity000.setColor(cRed, cGreen, cBlue);
+        Entity000.setEntityScale(scale);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashWhiteEntity GenerateRGBSlashWithTargetLoc(Entity owner, float horizontalRotation, float rotationZ, float scale, int cRed, int cGreen, int cBlue, float addX, float addY, float addZ, String AnimationName, float vx, float vy, float vz) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_SLASH_WHITE);
+
+        SwordSlashWhiteEntity Entity000 = (SwordSlashWhiteEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        Entity000.setColor(cRed, cGreen, cBlue);
+        Entity000.setEntityScale(scale);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setTargetLoc(getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, vx, vy, vz, true);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashCustomEntity GenerateCustomSlashWithTargetLoc(Entity owner, float horizontalRotation, float rotationZ, float scale,
+                                                                          int cRed, int cGreen, int cBlue, float x, float y, float z, int maxLifetime,
+                                                                          String TexturePath, int StartTotalFrame, int LoopTotalFrame, int EndTotalFrame, boolean isStartFading, boolean isEndFading,
+                                                                          String AnimationName, boolean isBoundToEntity, boolean hasTargetLoc, float vx, float vy, float vz, String ParticleName) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_FANCY_SLASH_CUSTOM);
+
+        SwordSlashCustomEntity Entity000 = (SwordSlashCustomEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, x, y, z, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        Entity000.setColor(cRed, cGreen, cBlue);
+        Entity000.setEntityScale(scale);
+        Entity000.setLifetime(maxLifetime);
+        Entity000.setMaxLifetime(maxLifetime);
+        Entity000.setTextureName(TexturePath, StartTotalFrame, LoopTotalFrame, EndTotalFrame, isStartFading, isEndFading);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setOwner(owner);
+        Entity000.setIsBoundToEntity(isBoundToEntity);
+        Entity000.setParticleName(ParticleName);
+        if (hasTargetLoc) {
+            Entity000.setTargetLoc(x, y, z, vx, vy, vz, true);
+        }
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwordSlashCustomEntity GenerateCustomSlash(Entity owner, float horizontalRotation, float rotationZ, float scale,
+                                                             int cRed, int cGreen, int cBlue, float x, float y, float z, int maxLifetime,
+                                                             String TexturePath, int StartTotalFrame, int LoopTotalFrame, int EndTotalFrame, boolean isStartFading, boolean isEndFading, String AnimationName, String ParticleName) {
+        return GenerateCustomSlashWithTargetLoc(owner, horizontalRotation, rotationZ, scale, cRed, cGreen, cBlue, x, y, z, maxLifetime, TexturePath, StartTotalFrame, LoopTotalFrame, EndTotalFrame, isStartFading, isEndFading, AnimationName, false, false, 0f, 0f, 0f, ParticleName);
+    }
+
+    public static SwordSlashCustomEntity GenerateCustomSlashBoundToEntity(Entity owner, float horizontalRotation, float rotationZ, float scale,
+                                                             int cRed, int cGreen, int cBlue, float additionalX, float additionalY, float additionalZ, int maxLifetime,
+                                                             String TexturePath, int StartTotalFrame, int LoopTotalFrame, int EndTotalFrame, boolean isStartFading, boolean isEndFading, String AnimationName, String ParticleName) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.SWD_FANCY_SLASH_CUSTOM);
+
+        SwordSlashCustomEntity Entity000 = (SwordSlashCustomEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner), getEntityZ(owner), horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        Entity000.setColor(cRed, cGreen, cBlue);
+        Entity000.setEntityScale(scale);
+        Entity000.setLifetime(maxLifetime);
+        Entity000.setMaxLifetime(maxLifetime);
+        Entity000.setTextureName(TexturePath, StartTotalFrame, LoopTotalFrame, EndTotalFrame, isStartFading, isEndFading);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setOwner(owner);
+        Entity000.setIsBoundToEntity(true);
+        Entity000.setTargetPosX(additionalX);
+        Entity000.setTargetPosY(additionalY);
+        Entity000.setTargetPosZ(additionalZ);
+        Entity000.setParticleName(ParticleName);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+
+    //==============================
+    //2D Tex
+    //==============================
+    public static TwoDAnimatedTexRGB256Entity Generate2DRGBImageEntity(Entity owner, String TexturePath, String animName, float addXPos, float addYPos, float addZPos, int totalFrame, float horizontalRotation, float scale, int cRed, int cGreen, int cBlue) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_256PX_COLOR_CUSTOM_NBT_NAME);
+
+        TwoDAnimatedTexRGB256Entity Entity000 = (TwoDAnimatedTexRGB256Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addXPos, getEntityY(owner)+addYPos, getEntityZ(owner)+addZPos, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setAnimationName(animName);
+        Entity000.setColor(cRed, cGreen, cBlue);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        Entity000.setTextureName(TexturePath);
+        Entity000.setEntityScale(scale);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDEntity Generate2DEntity64(Entity owner, String TexturePath, int lifetime) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_64PX_ICON_NBT_NAME);
+
+        TwoDEntity Entity000 = (TwoDEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+1f, getEntityZ(owner), 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(lifetime);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex64Entity Generate2DAnimatedTexEntity64(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_64PX_NBT_NAME);
+
+        TwoDAnimatedTex64Entity Entity000 = (TwoDAnimatedTex64Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex64Entity Generate2DAnimatedTexAlternativeEntity64(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_64PX_FIXED_YAXIS_NBT_NAME);
+
+        TwoDAnimatedTex64Entity Entity000 = (TwoDAnimatedTex64Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex128Entity Generate2DAnimatedTexEntity128(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_128PX_NBT_NAME);
+
+        TwoDAnimatedTex128Entity Entity000 = (TwoDAnimatedTex128Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex128Entity Generate2DAnimatedTexAlternativeEntity128(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_128PX_FIXED_YAXIS_NBT_NAME);
+
+        TwoDAnimatedTex128Entity Entity000 = (TwoDAnimatedTex128Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex256Entity Generate2DAnimatedTexEntity256(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_256PX_NBT_NAME);
+
+        TwoDAnimatedTex256Entity Entity000 = (TwoDAnimatedTex256Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static TwoDAnimatedTex256Entity Generate2DAnimatedTexAlternativeEntity256(Entity owner, String TexturePath, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.ENTITY_2D_ANIMATED_256PX_FIXED_YAXIS_NBT_NAME);
+
+        TwoDAnimatedTex256Entity Entity000 = (TwoDAnimatedTex256Entity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, 0.0f, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+
+
+    //==================================
+    //generate eff entity
+    public static EffBuffEntity GenerateEffBuffEntity(Entity owner, String TexturePath, String AnimationName, float scale, int lifeTime, float addX, float addY, float addZ, boolean isBoundToEntity, Entity targetEntity) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.EFF_BUFF);
+
+        EffBuffEntity Entity000 = (EffBuffEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, ExtraMathMethods.randomFloat(360), 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(lifeTime+Entity000.getRandomDelayTicks());
+        Entity000.setMaxLifeTime(lifeTime+Entity000.getRandomDelayTicks());
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setEntityScale(scale);
+        if (isBoundToEntity) {
+            Entity000.setBoundToEntity(true, getEntityHashID(targetEntity));
+        }
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static EffBuffAltEntity GenerateEffBuffAltEntity(Entity owner, String TexturePath, String AnimationName, float scale, int lifeTime, float addX, float addY, float addZ, boolean isBoundToEntity, Entity targetEntity) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.EFF_BUFF_ALT);
+
+        EffBuffAltEntity Entity000 = (EffBuffAltEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, ExtraMathMethods.randomFloat(360), 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(lifeTime);
+        Entity000.setMaxLifeTime(lifeTime);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setEntityScale(scale);
+        if (isBoundToEntity) {
+            Entity000.setBoundToEntity(true, getEntityHashID(targetEntity));
+        }
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static EffStabEntity GenerateEffStabEntity(Entity owner, float horizontalRotation, float rotationX, String TexturePath, String AnimationName, float scale, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.EFF_STAB);
+
+        EffStabEntity Entity000 = (EffStabEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setRotationX(rotationX);
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setEntityScale(scale);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static EffStrikeFromAirEntity GenerateEffStrikeFromAirEntity(Entity owner, float horizontalRotation, float rotationX, String TexturePath, String AnimationName, float scale, int lifetime, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.EFF_STRIKE_FROM_AIR);
+
+        EffStrikeFromAirEntity Entity000 = (EffStrikeFromAirEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setRotationX(rotationX);
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(lifetime);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setEntityScale(scale);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static EffGroundQuakeEntity GenerateEffGroundQuakeEntity(Entity owner, float horizontalRotation, float rotationX, String TexturePath, String AnimationName, float scale, int totalFrame, float addX, float addY, float addZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+GeoModelRegistryName.COLON+GeoModelRegistryName.EFF_GROUND_QUAKE);
+
+        EffGroundQuakeEntity Entity000 = (EffGroundQuakeEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner)+addX, getEntityY(owner)+addY, getEntityZ(owner)+addZ, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+
+        Entity000.setRotationX(rotationX);
+        Entity000.setTextureName(TexturePath);
+        Entity000.setLifetime(totalFrame);
+        Entity000.setMaxLifeTime(totalFrame);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setEntityScale(scale);
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+
+    public static SwdFadingCloneCustomEntity GenerateCustomFadingCloneEntity(Entity owner, float horizontalRotation, float rotationX, float scale,
+                                                                             int cRed, int cGreen, int cBlue, int cAlpha, float additionalX, float additionalY, float additionalZ, int maxLifetime,
+                                                                             String TexturePath, boolean isBoundToEntity, int StartTotalFrame, int LoopTotalFrame, int EndTotalFrame, boolean isStartFading, boolean isEndFading, String AnimationName, float AnimationSpeedModifier, String ParticleName,
+                                                                             boolean shouldRenderMainHandWeapon, boolean shouldRenderOffhandWeapon) {
+        String entityID = DfoSwordmanSkillTreeConstants.MOD_ID + GeoModelRegistryName.COLON + GeoModelRegistryName.EFF_SWD_FADING_CLONE_ENTITY_NBT_NAME;
+        CompoundTag nbtEntityTag;
+        if (!EntityCompoundTagCache.containsKey(entityID)) {
+            nbtEntityTag = new CompoundTag();
+            nbtEntityTag.putString("id", entityID);
+        }
+        else {
+            nbtEntityTag = EntityCompoundTagCache.get(entityID);
+        }
+
+        SwdFadingCloneCustomEntity Entity000 = (SwdFadingCloneCustomEntity) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner) + additionalX, getEntityY(owner) + additionalY, getEntityZ(owner) + additionalZ, horizontalRotation, 0.0f);
+            return tempEntity;
+        });
+        Entity000.setRotationX(rotationX);
+        Entity000.setColor(cRed, cGreen, cBlue, cAlpha);
+        Entity000.setEntityScale(scale);
+        Entity000.setLifetime(maxLifetime);
+        Entity000.setMaxLifetime(maxLifetime);
+        Entity000.setTextureName(TexturePath, StartTotalFrame, LoopTotalFrame, EndTotalFrame, isStartFading, isEndFading);
+        Entity000.setAnimationName(AnimationName);
+        Entity000.setOwner(owner);
+        Entity000.setGeoAnimationSpeedModifier(AnimationSpeedModifier);
+        if (isBoundToEntity) {
+            Entity000.setIsBoundToEntity(isBoundToEntity);
+            Entity000.setTargetPosX(additionalX);
+            Entity000.setTargetPosY(additionalY);
+            Entity000.setTargetPosZ(additionalZ);
+        }
+        Entity000.setParticleName(ParticleName);
+        if (owner instanceof LivingEntity livingEntityOwner) {
+            if (shouldRenderMainHandWeapon && !DfoSkillTreeItemMethods.isEntityMainHandHavingNoWeaponType(livingEntityOwner)) {
+                Entity000.setShouldRenderMainHandWeapon(shouldRenderMainHandWeapon);
+                Entity000.setOwnerMainHandWeaponStrID(DfoSkillTreeItemMethods.getMainHandNBTID(livingEntityOwner));
+            }
+            if (shouldRenderOffhandWeapon && !DfoSkillTreeItemMethods.isEntityOffhandHavingNoWeaponType(livingEntityOwner)) {
+                Entity000.setShouldRenderOffhandWeapon(shouldRenderOffhandWeapon);
+                Entity000.setOwnerOffhandWeaponStrID(DfoSkillTreeItemMethods.getOffHandNBTID(livingEntityOwner));
+            }
+        }
+        addEntityToWorld(getEntityLevel(owner), Entity000);
+        return Entity000;
+    }
+}

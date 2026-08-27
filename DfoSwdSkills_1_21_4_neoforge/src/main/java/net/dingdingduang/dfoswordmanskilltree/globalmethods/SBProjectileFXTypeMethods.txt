@@ -1,0 +1,107 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.minecraft.world.entity.LivingEntity;
+
+import org.joml.Vector3f;
+import net.dingdingduang.dfoswordmanskilltree.entity.ProjectileDummy;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityFXEffectMethods.BindEffectToEntity;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityFXEffectMethods.SetupEffEntity;
+
+public class SBProjectileFXTypeMethods {
+    private static final float PLAYER_EYE_HEIGHT = 1.62f;
+
+    public static ProjectileDummy createTestProj(Vector3f location, LivingEntity owner, int lifetime, boolean hasContinuousDMG, boolean hasFinalBlowDMG, boolean isSplit, String FXnamespace, String FXeffFileNameOnly) {
+        ProjectileDummy Entity001 = SetupEffEntity(owner, getEntityX(owner), getEntityY(owner)+0.75, getEntityZ(owner), getEntityHorizontalFacingDeg(owner), getEntityVerticalFacingDeg(owner));
+//        BindEffectToEntity(Entity001, "mmofx", "fire_nova");
+//        BindEffectToEntity(Entity001, "photon", "8gatestest");
+//        BindEffectToEntity(Entity001, "mmofx", "fireball");
+        BindEffectToEntity(Entity001, FXnamespace, FXeffFileNameOnly);
+        Entity001.setLifetime(Math.max(lifetime, 10));
+        Entity001.setOwner(owner);
+
+        int radius = 5;
+
+        if (isSplit) {
+            Entity001.setFinalBlow(true, 3, radius, "mmofx", "fire_nova", 0.0F);
+//            ((ProjectileDummy) Entity001).setSplit(true, 2, 3, true, (ProjectileDummy) Entity001);
+            //TODO new copy of constructor, wait for animation will show movement, otherwise will split immediately
+            Entity001.setSplit(true, 2, 3, true, (ProjectileDummy) Entity001, 45.0F, 150, true, 100, true, 0.1F, false);
+//            Entity001.setSplit(true, 1, 3, true, Entity001, 45.0, 100, true, 100, true, 0.1, false);
+
+            Entity001.setShootFromCurrentRotation(true);
+            Entity001.increaseEntityHeightBy(1.6f-0.75f);
+
+//            Entity001.setSplit(true, 1, 3, true, (ProjectileDummy) Entity001, 45.0, 150, true, 100, false, 0.1, true);
+        }
+
+        SpawnEntity(Entity001);
+        return Entity001;
+    }
+
+    public static ProjectileDummy createPierceProjectile(Vector3f location, LivingEntity owner, float range, float totalDist, float speed, float damage, int maxEntityPierce, int lifetime, float horizontalDeg, float verticalDeg, String FXnamespace, String FXeffFileNameOnly, boolean dragEntities) {
+        ProjectileDummy pierceProj = SetupEffEntity(owner, location.x(), location.y()+PLAYER_EYE_HEIGHT, location.z(), horizontalDeg, verticalDeg);
+
+        BindEffectToEntity(pierceProj, FXnamespace, FXeffFileNameOnly);
+        pierceProj.setShootFromCurrentRotation(true);
+        pierceProj.setLifetime(Math.max(lifetime, 10));
+        pierceProj.setTotalDist(true, totalDist);
+        pierceProj.setSpeed(speed);
+        pierceProj.setOwner(owner);
+
+        pierceProj.setContinuousDMG(true, range, damage, 3);
+        pierceProj.setContinuousDMGFXBeingHit("photon", "blood1", 0.6F, false);
+        pierceProj.setCollision(true, true, false);
+        pierceProj.setMaxHitCountForEveryEntity(true,1);
+        if (maxEntityPierce > 0) {
+            pierceProj.setLimitedTarget(true, maxEntityPierce);
+        }
+
+        if (dragEntities) {
+            pierceProj.setAbilityToDragEntitiesAround(true, range);
+        }
+
+        SpawnEntity(pierceProj);
+        return pierceProj;
+    }
+
+    public static ProjectileDummy createAOEzone(Vector3f location, LivingEntity owner, float range, float damage, int maxEntityDMGCount, int dmgIntervalTick, int lifetime, float horizontalDeg, float verticalDeg, String FXnamespace, String FXeffFileNameOnly, String CenterFXnamespace, String CenterFXeffFileNameOnly) {
+        ProjectileDummy AOEzone = SetupEffEntity(owner, location.x(), location.y(), location.z(), horizontalDeg, verticalDeg);
+
+        BindEffectToEntity(AOEzone, FXnamespace, FXeffFileNameOnly);
+        AOEzone.setLifetime(Math.max(lifetime, 10));
+//        AOEzone.setSpeed(0);
+        AOEzone.setCollision(false, false, false);
+//        AOEzone.setContinuousDMGFXBeingHit("photon", "blood1", 0, true);
+//        AOEzone.setContinuousDMGcenterFX("mmofx", "frost_nova", 0);
+        AOEzone.setContinuousDMGcenterFX(CenterFXnamespace, CenterFXeffFileNameOnly, 0);
+        AOEzone.setOwner(owner);
+
+        AOEzone.setContinuousDMG(true, damage, range, Math.max(dmgIntervalTick, 1));
+        AOEzone.setCollision(false);
+
+        if (maxEntityDMGCount > 0) {
+            AOEzone.setMaxHitCountForEveryEntity(true, maxEntityDMGCount);
+        }
+
+        SpawnEntity(AOEzone);
+        return AOEzone;
+    }
+
+    public static ProjectileDummy createClassicFireballProjectile(Vector3f location, LivingEntity owner, float range, float totalDist, float speed, float damage, int lifetime, float horizontalDeg, float verticalDeg, String FXnamespace, String FXeffFileNameOnly, String FinalFXnamespace, String FinalFXeffFileNameOnly, float FinalFXHeight) {
+        ProjectileDummy fireball = SetupEffEntity(owner, location.x(), location.y()+PLAYER_EYE_HEIGHT, location.z(), horizontalDeg, verticalDeg);
+
+        BindEffectToEntity(fireball, FXnamespace, FXeffFileNameOnly);
+        fireball.setShootFromCurrentRotation(true);
+        fireball.setLifetime(Math.max(lifetime, 10));
+        fireball.setTotalDist(true, totalDist);
+        fireball.setSpeed(speed);
+        fireball.setOwner(owner);
+//        fireball.setFinalBlow(true, damage, range, "mmofx", "fire_nova", 0.25);
+        fireball.setFinalBlow(true, damage, range, FinalFXnamespace, FinalFXeffFileNameOnly, FinalFXHeight);
+
+        SpawnEntity(fireball);
+        return fireball;
+    }
+}

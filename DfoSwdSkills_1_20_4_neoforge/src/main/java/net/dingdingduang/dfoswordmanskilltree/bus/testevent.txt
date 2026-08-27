@@ -1,0 +1,69 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.gui.overlay.SkillsInCooldownClientTimerOverlay;
+import net.dingdingduang.somebasicskills.networking.NetworkingSendMsgMethods;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.getMinecraftInstance;
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.printInGameMsg;
+import static net.dingdingduang.somebasicskills.globalmethods.SoundMethods.PlayLocalInCooldownSound;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalClientPlayerValues.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalClientPlayerValues.getClientPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.gui.overlay.SkillChannelingOverlay.getSkillChannelingOverlayInstance;
+import static net.dingdingduang.somebasicskills.keyboard.keyboardoverlaytimer.PlayerKeyComboListenerOverlayTimer.getPlayerKerboardOverlayTimerInstance;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class testevent {
+    @Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, value = Dist.CLIENT)
+    private static class SBSInputEvents {
+        @SubscribeEvent
+        public static void SBSInputEvent(InputEvent.Key event) {
+            Minecraft minecraft = getMinecraftInstance();
+
+            if (minecraft.player == null) { return; }
+
+            String actionName;
+            switch (event.getAction()) {
+                case 0:
+                    actionName = "released";
+                    break;
+                case 1:
+                    actionName = "down";
+                    break;
+                case 2:
+                    actionName = "holding";
+                    break;
+                default:
+                    actionName = "unidentified";
+            }
+
+            printInGameMsg(String.format("keycode: %d, action: %s", event.getKey(), actionName));
+
+        }
+
+        //releasing a pressed key
+        private static boolean isKeyReleased(InputEvent.Key e) {
+            return e.getAction() == 0;
+        }
+
+        //pressing down on a key
+        private static boolean isKeyDown(InputEvent.Key e) {
+            return e.getAction() == 1;
+        }
+
+        //holding a key
+        private static boolean isKeyHolding(InputEvent.Key e) {
+            return e.getAction() == 2;
+        }
+    }
+}

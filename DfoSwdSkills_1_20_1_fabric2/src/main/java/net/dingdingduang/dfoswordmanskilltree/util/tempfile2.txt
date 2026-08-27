@@ -1,0 +1,44 @@
+
+    public static Predicate<Entity> getShootBaseOnVerticalRotationCond(float EntityHorizontalFacingAngle, float EntityVerticalRotation, Vector3f damageCenter, float errorDegRange) {
+//        float fromVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation - errorDegRange);
+//        float toVerticalDeg = MathMethods.RoundAngle(EntityVerticalRotation + errorDegRange);
+
+        return (target) -> {
+            if (target instanceof ServerPlayer) { return false; }
+            Vector3f targetPosLow = getEntityPos(target);
+            Vector3f targetPosMid = getEntityPos(target).add(0, 1.6f, 0);
+            Vector3f targetPosHigh = getEntityPos(target).add(0, 3.2f, 0);
+            Vector3f[] targetPosLMH = {targetPosLow, targetPosMid, targetPosHigh};
+            printInGameMsg("=================");
+            boolean isMeetCond = false;
+            for (Vector3f targetPos: targetPosLMH) {
+                float opposite = Math.abs(damageCenter.y() - targetPos.y());
+//                printInGameMsg("vertical rot: " + EntityVerticalRotation);
+//            float thetaDeg = 90 - Math.abs(EntityVerticalRotation);
+                float thetaDeg = Math.abs(EntityVerticalRotation);
+//                printInGameMsg("thetaDeg: " + thetaDeg);
+                float thetaRad = MathMethods.AngleToRadians(thetaDeg);
+                float sinTheta = MathMethods.sin(thetaRad);
+                float hypotenuse = (sinTheta == 0) ? opposite : opposite / MathMethods.sin(thetaRad);
+                float HorizontalAngleBtn = Vector3fMethods.AngleFromLocationToLocationHorizontal(damageCenter, targetPos);
+
+                Vector3f guesstimationVector3f = (hypotenuse == 0) ? new Vector3f(damageCenter.x(), targetPos.y(), damageCenter.z()) : Vector3fMethods.PolarProjectionFromRotation(damageCenter, hypotenuse, HorizontalAngleBtn, EntityVerticalRotation);
+//            Vector3f guesstimationVector3f = (hypotenuse == 0) ? new Vector3f(damageCenter.x(), targetPos.y(), damageCenter.z()) : Vector3fMethods.PolarProjectionFromRotation(damageCenter, Vector3fMethods.vec3fDistanceTo(damageCenter, targetPos), HorizontalAngleBtn, EntityVerticalRotation);
+                Entity AirObj = GeoModelSpawnMethods.GenerateBMSwdTempestBlockEff(target, 0f, 6f, 0, guesstimationVector3f.x(), guesstimationVector3f.y(), guesstimationVector3f.z(),
+                        160, guesstimationVector3f.x(), guesstimationVector3f.y(), guesstimationVector3f.z(), Blademaster025.BLADEMASTER025_TEMPEST_ORBIT_EFF, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, null, 777, true);
+
+//                printInGameMsg("opp: " + opposite + ", hyp: " + hypotenuse);
+//                printInGameMsg("------------- distbtn: " + Vector3fMethods.vec3fDistanceTo(guesstimationVector3f, targetPos));
+                isMeetCond = Vector3fMethods.vec3fDistanceTo(guesstimationVector3f, targetPos) < 2f;
+                if (isMeetCond) { break; }
+            }
+            return isMeetCond;
+
+
+//            float targetVerticalBtnFacingAngle = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationVertical(damageCenter, targetPos) * MathMethods.RAD_TO_DEG);
+//
+////            boolean meetVerticalCond = Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle - errorDegRange, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle + errorDegRange, fromVerticalDeg, toVerticalDeg);
+//            //meet vertical
+//            return Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle - errorDegRange, fromVerticalDeg, toVerticalDeg) || Vector3fMethods.IsAngleDegBetweenAB(targetVerticalBtnFacingAngle + errorDegRange, fromVerticalDeg, toVerticalDeg);
+        };
+    }

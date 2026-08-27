@@ -1,0 +1,21 @@
+package net.dingdingduang.dfoswordmanskilltree.effect;
+
+import net.minecraft.world.effect.MobEffectCategory;
+//import net.minecraftforge.fml.common.Mod;
+
+//@Mod.EventBusSubscriber
+public class Immobilization extends MobEffectClassDummy {
+    public Immobilization(MobEffectCategory pCategory, int pColor) {
+        super(pCategory, pColor);
+    }
+
+//    @Override
+//    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
+//        return pDuration % 40 == 0;
+//    }
+//
+//    @Override
+//    public void applyEffectTick(LivingEntity entity, int pAmplifier) {
+//        int abc = 123;
+//    }
+}

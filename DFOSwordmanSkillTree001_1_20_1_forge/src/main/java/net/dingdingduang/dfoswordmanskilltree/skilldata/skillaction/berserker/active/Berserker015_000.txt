@@ -1,0 +1,252 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.berserker.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.entity.DfoGeneralEntitySpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer.clientparticlehelper.ClientParticleHelperEntity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions;
+import net.dingdingduang.dfoswordmanskilltree.networking.DfoSwdNetworkingFetchMsgMethods;
+import net.dingdingduang.dfoswordmanskilltree.particle.ParticleMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.berserker.BerserkerSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.keybindingctrl.KeyboardMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.BooleanValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.globalmethods.SBSAttributeMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+import net.dingdingduang.somebasicskills.util.MethodEntityAction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import org.joml.Vector3f;
+
+import java.util.HashMap;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getClientPlayer;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.isClientSide;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.somebasicskills.globalmethods.ClientPlayerMethods.getCPlayerSkillDamage;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.incrementEntityStateByAmountX;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.incrementEntityStateByAmountXNoPacket;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Berserker015 {
+    public static final String SkillID = BerserkerSkillTreeInitialization.BERSERKER_BLOODY_BURST;
+
+    public static final String Berserker015_CIRCLE_START = "textures/entity/skilleff/berserker/blood_fury/ground_circle_initial/";
+    public static final String Berserker015_CIRCLE_ANIM = "textures/entity/skilleff/berserker/blood_fury/ground_circle_start/";
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+
+        double skillDamageMultiplier = getCPlayerSkillDamage();
+        Double DamageMultiplier = skillData.getDamageMultiplierList_01().get(correctSkillLevel);
+        Double ConstantDamage = skillData.getDamageList_01().get(correctSkillLevel);
+        Double TotalHPConsumptionPercentage = skillData.getValueMultiplierList_01().get(correctSkillLevel);
+        Float finalDmg = (float) ( ( (DamageMultiplier + BerserkerSkillTreeInitialization.BERSERKER_TOTAL_HP_CONSUMPTION_MULTIPLIER_3 * TotalHPConsumptionPercentage) * getEntityAttackDamage(getClientPlayer()) + ConstantDamage) * skillDamageMultiplier);
+        Double AOE = skillData.getEffectArea().get(correctSkillLevel);
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%d%%", (int) (DamageMultiplier.floatValue() * 100)),
+                String.format("%s", ConstantDamage),
+                String.format("%d%%", (int) (TotalHPConsumptionPercentage.floatValue() * 100)),
+                String.format("%s", finalDmg),
+                String.format("%s", AOE)
+        );
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Berserker015::getSkillDescription);
+
+        //Condition
+        tempSkillData.setClientConditionRequirement(DfoSwordmanSkillMethods::defaultSkillClientCondition);
+        tempSkillData.setClientCondReqPassedAction(DfoSwordmanSkillMethods::defaultSkillClientConditionPassedAction);
+
+        tempSkillData.setClientCondReqPassedAction((SkillID2) -> {
+            KeyboardMethods.KidnapClientPlayerMovementKeybindings();
+        });
+
+
+        if (isClientSide()) {
+            return;
+        }
+
+
+
+        //====================================
+        //setup skill action
+        MethodAction tempSkillAction =
+                (entity1) -> {
+                    int playerSkillLVL = 0;
+
+                    float aoeRange;
+                    float damageBase;
+                    float damageMultiplier;
+                    float skillDamageMultiplier = 1f + SBSAttributeMethods.getSkillDamageAttrVal(entity1);
+                    Predicate<Entity> condition;
+
+//                    int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity1);
+
+                    incrementEntityStateByAmountXNoPacket(entity1, Constants.IS_IN_ACTION, 1);
+
+                    SkillDataJson skill1 = getID2SkillData().get(SkillID);
+
+                    float ExtraDamageMultiplier = 0;
+                    if (entity1 instanceof ServerPlayer sp1) {
+                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_START, 1);
+                        condition = defaultSkillTargetCondition(sp1).and(SBConditions.isNotTargetEntity(entity1));
+
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (playerSkillLVL <= 0) { return; }
+                            playerSkillLVL = playerSkillLVL - 1;
+                        }
+                    }
+                    else {
+                        condition = defaultSkillTargetCondition().and(SBConditions.isNotTargetEntity(entity1));
+                    }
+                    float TotalHPConsumptionPercentage = skill1.getValueMultiplierList_01().get(playerSkillLVL).floatValue();
+                    ExtraDamageMultiplier = ExtraDamageMultiplier + BerserkerSkillTreeInitialization.BERSERKER_TOTAL_HP_CONSUMPTION_MULTIPLIER_3 * TotalHPConsumptionPercentage;
+
+                    float EntityHorizontalFacingAngle = getEntityHorizontalFacingDeg(entity1);
+                    Vector3f EntityLoc = getEntityPos(entity1);
+
+                    int DurationTicks = (int) (skill1.getDuration().get(playerSkillLVL).floatValue() * 20);
+
+                    aoeRange = skill1.getEffectArea().get(playerSkillLVL).floatValue();
+                    damageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+                    damageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue() + ExtraDamageMultiplier;
+
+                    float effScale = DfoSwordmanSkillMethods.getEntityScaleByAOE(aoeRange);
+
+                    Entity EffEntityCenter = GeoModelSpawnMethods.Generate2DAnimatedTexCustomFlatEntity256(entity1, EntityHorizontalFacingAngle, 255, 255, 255, effScale, 0, 0.1f, 0, DurationTicks + 20, false,
+                            EntityLoc.x(), EntityLoc.y(), EntityLoc.z(),  EntityLoc.x(), EntityLoc.y(), EntityLoc.z(), Berserker015_CIRCLE_START, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, 1, false, 5, 5, 1,
+                            true, true, true, null, 777, true);
+
+                    Vector3f randPos;
+                    for (int loopA = 0; loopA < 360; loopA = loopA + 60) {
+                        for (float dist = 0; dist <= aoeRange; dist = dist + 0.5f) {
+                            randPos = Vector3fMethods.PolarProjectionFromVecHorizon(EntityLoc, dist, loopA + EntityHorizontalFacingAngle);
+                            DfoGeneralEntitySpawnMethods.SetupClientParticleHelperNoLoc(entity1, 0, aoeRange, DurationTicks + 20, randPos.x(), randPos.y(), randPos.z(), DfoSwordmanSkillTreeConstants.NO_ANIMATION, Berserker015_PILLAR_PARTICLE, null, 777, true);
+                            randPos = Vector3fMethods.randomVecIn2DCircle(aoeRange, EntityLoc);
+                            DfoGeneralEntitySpawnMethods.SetupClientParticleHelperNoLoc(entity1, 0, aoeRange, DurationTicks + 20, randPos.x(), randPos.y(), randPos.z(), DfoSwordmanSkillTreeConstants.NO_ANIMATION, Berserker015_PILLAR_PARTICLE, null, 777, true);
+                        }
+                    }
+
+                    //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+                    //start Actioning
+                    int dmgStartTicks = 5;
+                    int dmgPeriod = 10;
+                    int dmgEndTicks = DurationTicks + 15;
+                    int ResetKeyBoardTick = 10;
+
+                    float finalAoeRange = aoeRange;
+                    float finalDmg = (float) ( (damageMultiplier * getEntityAttackDamage(entity1) + damageBase) * skillDamageMultiplier);
+                    int actionPeriod = 1;
+
+                    IntegerValueHolder ElapsedTicks = new IntegerValueHolder(0);
+                    BooleanValueHolder ResetKeyBoardHolder = new BooleanValueHolder(false);
+
+                    String actionID = SkillID + EntityMethods.getEntityTickCount(entity1);
+
+                    MethodAction action =
+                            (entity2) ->  {
+                                int updatedTick = ElapsedTicks.getIntCounter();
+                                if (updatedTick < dmgEndTicks) {
+
+                                    boolean isInterrupted = ServerSkillMethods.isLivingEntityActionInterrupted(entity2);
+                                    if (!ResetKeyBoardHolder.getBooleanVal() && (isInterrupted || updatedTick == ResetKeyBoardTick)) {
+                                        ResetKeyBoardHolder.setBooleanVal(true);
+                                        incrementEntityStateByAmountX(entity2, Constants.IS_IN_ACTION, -1);
+
+                                        if (entity2 instanceof ServerPlayer sp1) {
+                                            SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_END, 1);
+                                            DfoSwdNetworkingFetchMsgMethods.FetchClientPlayerKeyboardFreeFromServer(sp1, DfoSwordmanSkillTreeConstants.KidnapMovementKeys);
+                                        }
+                                    }
+
+                                    //start damage
+                                    if (updatedTick >= dmgStartTicks && updatedTick % dmgPeriod == 0) {
+                                        //spawn model
+                                        GeoModelSpawnMethods.Generate2DAnimatedTexCustomFlatEntity256(EffEntityCenter, EntityHorizontalFacingAngle, 255, 255, 255, effScale, 0, 0.1f, 0, 12, false,
+                                                EntityLoc.x(), EntityLoc.y(), EntityLoc.z(),  EntityLoc.x(), EntityLoc.y(), EntityLoc.z(), Berserker015_CIRCLE_ANIM, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, DfoSwordmanSkillTreeConstants.NO_ANIMATION, 1, false, 5, 5, 6,
+                                                false, false, true, null, 777, true);
+
+                                        boolean playHitSound = false;
+                                        for (Entity tempEntity: GroupEnumEntitiesInRangeFilter(EffEntityCenter, finalAoeRange, condition)) {
+                                            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                                                if (!playHitSound) {
+                                                    playHitSound = true;
+                                                    DfoSwdSoundMethods.PlayBooDongHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                                                }
+                                                pushEntityWithDeltaValueXYZ(tempLivingEntity, 0, 0.22f, 0, true);
+
+                                                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+                                            }
+                                        }
+                                    }
+
+                                    //update val
+                                    ElapsedTicks.setIntCounter(updatedTick + actionPeriod);
+                                }
+                                else {
+                                    SBSTickEventMethods.setSkillActionDone(entity2, actionID);
+                                }
+                            };
+                    //Actioning ends
+                    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+                    //start loop actioning with fixed period ticks
+                    SBSTickEventMethods.setMethodActionTimer(entity1, actionID, actionPeriod, action);
+                };
+
+        tempSkillData.setActiveSkillAction1(tempSkillAction);
+    }
+
+    //client
+    public static final String Berserker015_PILLAR_PARTICLE = "Berserker015_Pillar";
+
+    public static void Berserker015_ParticleRegistry(HashMap<String, MethodEntityAction> particleMap) {
+        particleMap.put(Berserker015_PILLAR_PARTICLE, Berserker015::CreateBloodPillarParticleMethodReference);
+    }
+
+    public static void CreateBloodPillarParticleMethodReference(Entity entity) {
+        ClientParticleHelperEntity clientParticleHelperEntity = (ClientParticleHelperEntity) entity;
+        if (clientParticleHelperEntity.getLifetime() % 4 == 0) {
+            Vector3f center = getEntityPos(clientParticleHelperEntity);
+            float aoeRange = getEntityVerticalFacingDeg(entity);
+
+            Vector3f randomDelta;
+            for (int i = 0; i < 20; i++) {
+                float randHorizontalFacing = ExtraMathMethods.randomFloat(360f);
+                float randVerticalFacing = -ExtraMathMethods.randomFloat(30f) - 60f;
+                float randomDist = ExtraMathMethods.randomFloat() * aoeRange;
+                int lifetime = (int) (randomDist * 5);
+
+                randomDelta = Vector3fMethods.PolarProjectionFromRotation(randomDist * 0.1f, randHorizontalFacing, randVerticalFacing);
+                ParticleMethods.GenerateWhiteParticle(center.x(), center.y(), center.z(),
+                        randomDelta.x(), randomDelta.y() + 0.1f, randomDelta.z(),
+                        0.33f, 2f + ExtraMathMethods.randomFloat() * 2, lifetime, 0.86f, 0.08f, 0.24f);
+            }
+        }
+    }
+}

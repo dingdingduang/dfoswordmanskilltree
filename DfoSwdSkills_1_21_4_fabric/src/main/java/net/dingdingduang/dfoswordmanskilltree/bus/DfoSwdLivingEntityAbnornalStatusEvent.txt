@@ -1,0 +1,5 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+public class DfoSwdLivingEntityAbnornalStatusEvent {
+
+}

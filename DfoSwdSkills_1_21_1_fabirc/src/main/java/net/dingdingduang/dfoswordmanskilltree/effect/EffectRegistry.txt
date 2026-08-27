@@ -1,0 +1,29 @@
+package net.dingdingduang.dfoswordmanskilltree.effect;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraftforge.eventbus.api.IEventBus;
+//import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+import static net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants.MOD_ID;
+
+public class EffectRegistry {
+    public static final DeferredRegister<MobEffect> MOB_EFFECT_REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, MOD_ID);
+
+    //Effects
+    public static final RegistryObject<MobEffect> IMMOBILIZATION = MOB_EFFECT_REGISTRY.register("immobilization", () -> new Immobilization(MobEffectCategory.HARMFUL, 9154528).addAttributeModifier(Attributes.MOVEMENT_SPEED, "ca4d31be-0c5e-4b24-a187-0c385aea6204", -10.0, AttributeModifier.Operation.MULTIPLY_TOTAL));
+//    public static final RegistryObject<MobEffect> IMMOBILIZATION = MOB_EFFECT_REGISTRY.register("immobilization", () -> new Immobilization(MobEffectCategory.HARMFUL, 0xFFFFFF).addAttributeModifier(Attributes.MOVEMENT_SPEED, "ca4d31be-0c5e-4b24-a187-0c385aea6204", -10.0, AttributeModifier.Operation.MULTIPLY_TOTAL).addAttributeModifier(Attributes.JUMP_STRENGTH, "1f1e045d-47c3-41b2-8adb-d1a023a1981e", -10.0, AttributeModifier.Operation.MULTIPLY_TOTAL));
+
+//    public static void register() {
+//        MOB_EFFECT_REGISTRY.register(FMLJavaModLoadingContext.get().getModEventBus());
+//    }
+
+    public static void register(IEventBus eventBus) {
+        MOB_EFFECT_REGISTRY.register(eventBus);
+    }
+}

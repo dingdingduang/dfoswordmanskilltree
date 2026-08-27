@@ -1,0 +1,19 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.world.entity.Entity;
+
+public class GeoCompoundTagHelperMethods {
+    public static final int NOT_IN_TAG = 114514;
+    public static final int INTEGER_COMPOUND_TAG_TYPE = 99;
+
+    public static int getKeyValFromTag(CompoundTag compoundTag, Entity tempEntity, String keyName, EntityDataAccessor<Integer> EntityDataKey) {
+        if (compoundTag.contains(keyName, INTEGER_COMPOUND_TAG_TYPE)) {
+            int tempInt001 = compoundTag.getInt(keyName);
+            tempEntity.getEntityData().set(EntityDataKey, tempInt001);
+            return tempInt001;
+        }
+        return NOT_IN_TAG;
+    }
+}

@@ -1,0 +1,110 @@
+package net.dingdingduang.dfoswordmanskilltree.test;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.floatingsword.FloatingSwordEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.SwordSlashPurpleEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.swordslash.SwordSlashYellowEntity;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+
+import modified.org.joml.Vector3f;
+import net.dingdingduang.dfoswordmanskilltree.entity.ProjectileDummy;
+import net.dingdingduang.dfoswordmanskilltree.entity.SBTimer;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityFXEffectMethods.MCLoadEntityRecursive;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.SBProjectileFXTypeMethods.*;
+
+public class testMethods {
+    public static LivingEntity summonAZombie(Entity a) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", "minecraft:zombie");
+
+        LivingEntity Entity000 = (LivingEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a), getEntityY(a), getEntityZ(a), getEntityHorizontalFacingDeg(a), getEntityVerticalFacingDeg(tempEntity));
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static LivingEntity summonAZombie(Vector3f a) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", "minecraft:zombie");
+
+        LivingEntity Entity000 = (LivingEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(a.x(), a.y(), a.z(), 0, 0);
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static FloatingSwordEntity summonASword(Entity a) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":dfoswordmanfloatingsword");
+
+        FloatingSwordEntity Entity000 = (FloatingSwordEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a) + ExtraMathMethods.randomFloat()*5, getEntityY(a) + ExtraMathMethods.randomFloat()*5, getEntityZ(a) + ExtraMathMethods.randomFloat()*5, ExtraMathMethods.randomFloat(360), ExtraMathMethods.randomFloat(180));
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static FloatingSwordEntity summonASword(Entity a, float yrot, float xrot) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":dfoswordmanfloatingsword");
+
+        FloatingSwordEntity Entity000 = (FloatingSwordEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a), getEntityY(a) + 1, getEntityZ(a), yrot, xrot);
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static SwordSlashYellowEntity summonASlash(Entity a, float yrot, float xrot, float rotationZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":dfoswordslashyellowdummy");
+
+        SwordSlashYellowEntity Entity000 = (SwordSlashYellowEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a), getEntityY(a) + 1, getEntityZ(a), yrot, xrot);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        return Entity000;
+    }
+
+    public static SwordSlashPurpleEntity summonAPurpleSlash(Entity a, float yrot, float xrot, float rotationZ) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":dfoswordslashpurpledummy");
+
+        SwordSlashPurpleEntity Entity000 = (SwordSlashPurpleEntity) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a), getEntityY(a) + 1, getEntityZ(a), yrot, xrot);
+            return tempEntity;
+        });
+        Entity000.setRotationZ(rotationZ);
+        return Entity000;
+    }
+
+    public static SBTimer summonATimer(Entity a) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":sbtimer");
+
+        SBTimer Entity000 = (SBTimer) MCLoadEntityRecursive(nbtEntityTag, getServerLevel(), (tempEntity) -> {
+            tempEntity.moveTo(getEntityX(a), getEntityY(a), getEntityZ(a), getEntityHorizontalFacingDeg(a), getEntityVerticalFacingDeg(tempEntity));
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static void CreateEntityTEST(Player player) {
+        ProjectileDummy temp1 = createPierceProjectile(Vector3fMethods.convertMCVec3fToVector3f(player.position()), player, 1, 20, 0.5F, 1, 7, 100, getEntityHorizontalFacingDeg(player), getEntityVerticalFacingDeg(player), "photon", "frostball", true);
+//        temp1.increaseEntityHeightBy(1.62f);
+//        ProjectileDummy temp2 = createClassicFireballProjectile(player.position(), player, 10, 1000, 0.5,10, 100, getEntityHorizontalFacingDeg(player), getEntityVerticalFacingDeg(player), "mmofx", "fireball", "mmofx", "fire_nova", 0.5);
+//        temp2.increaseEntityHeightBy(1.62);
+//        ProjectileDummy temp3 = createAOEzone(Vector3fMethods.convertMCVec3fToVector3f(player.position()), player, 10, 1.0f,  0, 10, 100, getEntityHorizontalFacingDeg(player), getEntityVerticalFacingDeg(player), "photon", "frostball", "mmofx", "frost_nova");
+    }
+}

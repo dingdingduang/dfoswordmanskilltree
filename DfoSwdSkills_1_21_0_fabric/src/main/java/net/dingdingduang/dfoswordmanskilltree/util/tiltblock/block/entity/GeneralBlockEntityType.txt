@@ -1,0 +1,23 @@
+package net.dingdingduang.dfoswordmanskilltree.util.tiltblock.block.entity;
+
+import com.mojang.datafixers.types.Type;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
+import software.bernie.example.registry.BlockRegistry;
+import software.bernie.example.block.tile.HabitatTileEntity;
+
+import java.util.Set;
+
+public class GeneralBlockEntityType<T extends BlockEntity> extends BlockEntityType<T> {
+    public GeneralBlockEntityType(GeneralBlockEntityFactory pFactory, Set<Block> pValidBlocks, Type<?> pDataType) {
+        super((BlockEntityType.BlockEntityFactory<? extends T>) pFactory, pValidBlocks, pDataType);
+    }
+
+    @Override
+    public boolean isValid(BlockState pState) {
+        return true;
+    }
+}

@@ -1,0 +1,170 @@
+package net.dingdingduang.dfoswordmanskilltree.test;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import org.lwjgl.glfw.GLFW;
+
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getMinecraftInstance;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public class testPressKeyTranslateRot {
+    //orientation
+    public static final KeyMapping STBasicLibs_TestTranslateEventXLeft =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest1", GLFW.GLFW_KEY_LEFT, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventXRight =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest2", GLFW.GLFW_KEY_RIGHT, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventZForward =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest3", GLFW.GLFW_KEY_UP, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventZBackward =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest4", GLFW.GLFW_KEY_DOWN, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventYUp =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest5", GLFW.GLFW_KEY_Z, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventYDown =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest6", GLFW.GLFW_KEY_X, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventXROTUP =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest7", GLFW.GLFW_KEY_C, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventXROTUPDOWN =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest8", GLFW.GLFW_KEY_V, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventYROTUP =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest9", GLFW.GLFW_KEY_B, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventYROTUPDOWN =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest10", GLFW.GLFW_KEY_N, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventZROTUP =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest11", GLFW.GLFW_KEY_M, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    public static final KeyMapping STBasicLibs_TestTranslateEventZROTUPDOWN =
+            new KeyMapping(
+                    "key.display_STBasicLibsModKeyTest12", GLFW.GLFW_KEY_COMMA, "key.categories." + DfoSwordmanSkillTreeConstants.MOD_ID);
+
+    @SubscribeEvent
+    public static void registerKeyMappingsEvent2(RegisterKeyMappingsEvent event) {
+        event.register(STBasicLibs_TestTranslateEventXLeft);
+        event.register(STBasicLibs_TestTranslateEventXRight);
+        event.register(STBasicLibs_TestTranslateEventZForward);
+        event.register(STBasicLibs_TestTranslateEventZBackward);
+        event.register(STBasicLibs_TestTranslateEventYUp);
+        event.register(STBasicLibs_TestTranslateEventYDown);
+
+        event.register(STBasicLibs_TestTranslateEventXROTUP);
+        event.register(STBasicLibs_TestTranslateEventXROTUPDOWN);
+        event.register(STBasicLibs_TestTranslateEventYROTUP);
+        event.register(STBasicLibs_TestTranslateEventYROTUPDOWN);
+        event.register(STBasicLibs_TestTranslateEventZROTUP);
+        event.register(STBasicLibs_TestTranslateEventZROTUPDOWN);
+    }
+
+    public static float tempFloatNewX = 0;
+    public static float tempFloatNewY = 0;
+    public static float tempFloatNewZ = 0;
+
+    public static float tempFloatNewRotX = 0;
+    public static float tempFloatNewRotY = 0;
+    public static float tempFloatNewRotZ = 0;
+
+    @Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, value = Dist.CLIENT)
+    private static class InputEvents2 {
+        @SubscribeEvent
+        public static void inputEvent2(InputEvent.Key event) {
+            Minecraft minecraft = getMinecraftInstance();
+            Player player = minecraft.player;
+            if (player == null || minecraft.screen != null) return;
+//            if (event.getKey() == STBasicLibs_TestKeyEvent.getKey().getValue()) {
+            if (STBasicLibs_TestTranslateEventXLeft.isDown()) {
+                tempFloatNewX = tempFloatNewX - 0.5f;
+                printInGameMsg("newX: "+tempFloatNewX);
+            }
+            if (STBasicLibs_TestTranslateEventXRight.isDown()) {
+                tempFloatNewX = tempFloatNewX + 0.5f;
+                printInGameMsg("newX: "+tempFloatNewX);
+            }
+            if (STBasicLibs_TestTranslateEventZForward.isDown()) {
+                tempFloatNewY = tempFloatNewY - 0.5f;
+                printInGameMsg("newY: "+tempFloatNewY);
+            }
+            if (STBasicLibs_TestTranslateEventZBackward.isDown()) {
+                tempFloatNewY = tempFloatNewY + 0.5f;
+                printInGameMsg("newY: "+tempFloatNewY);
+            }
+            if (STBasicLibs_TestTranslateEventYDown.isDown()) {
+                tempFloatNewZ = tempFloatNewZ - 0.5f;
+                printInGameMsg("newZ: "+tempFloatNewZ);
+            }
+            if (STBasicLibs_TestTranslateEventYUp.isDown()) {
+                tempFloatNewZ = tempFloatNewZ + 0.5f;
+                printInGameMsg("newZ: "+tempFloatNewZ);
+            }
+
+
+
+            if (STBasicLibs_TestTranslateEventXROTUP.isDown()) {
+                tempFloatNewRotX = tempFloatNewRotX + 15f;
+                printInGameMsg("new XROT: "+tempFloatNewRotX);
+            }
+            if (STBasicLibs_TestTranslateEventXROTUPDOWN.isDown()) {
+                tempFloatNewRotX = tempFloatNewRotX - 15f;
+                printInGameMsg("new XROT: "+tempFloatNewRotX);
+            }
+            if (STBasicLibs_TestTranslateEventYROTUP.isDown()) {
+                tempFloatNewRotY = tempFloatNewRotY + 15f;
+                printInGameMsg("new YROT: "+tempFloatNewRotY);
+            }
+            if (STBasicLibs_TestTranslateEventYROTUPDOWN.isDown()) {
+                tempFloatNewRotY = tempFloatNewRotY - 15f;
+                printInGameMsg("new YROT: "+tempFloatNewRotY);
+            }
+            if (STBasicLibs_TestTranslateEventZROTUP.isDown()) {
+                tempFloatNewRotZ = tempFloatNewRotZ + 15f;
+                printInGameMsg("new ZROT: "+tempFloatNewRotZ);
+            }
+            if (STBasicLibs_TestTranslateEventZROTUPDOWN.isDown()) {
+                tempFloatNewRotZ = tempFloatNewRotZ - 15f;
+                printInGameMsg("new ZROT: "+tempFloatNewRotZ);
+            }
+        }
+
+        //releasing a pressed key
+        private static boolean isKeyReleased(InputEvent.Key e) {
+            return e.getAction() == 0;
+        }
+
+        //pressing down on a key
+        private static boolean isKeyDown(InputEvent.Key e) {
+            return e.getAction() == 1;
+        }
+
+        //holding a key
+        private static boolean isKeyHolding(InputEvent.Key e) {
+            return e.getAction() == 2;
+        }
+    }
+}

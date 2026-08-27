@@ -1,0 +1,20 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.World;
+import modified.org.joml.Vector3f;
+
+public class BlockMethods {
+    public static boolean isXYZCoordinateAirBlock(World worldLevel, float x, float y, float z) {
+        int floored_X = MathMethods.floor(x);
+        int floored_Y = MathMethods.floor(y);
+        int floored_Z = MathMethods.floor(z);
+
+        return worldLevel.getBlockState(new BlockPos(floored_X, floored_Y, floored_Z)).isAir();
+    }
+
+    public static boolean isPosVecAirBlock(World worldLevel, Vector3f pos) {
+        return isXYZCoordinateAirBlock(worldLevel, pos.x(), pos.y(), pos.z());
+    }
+}

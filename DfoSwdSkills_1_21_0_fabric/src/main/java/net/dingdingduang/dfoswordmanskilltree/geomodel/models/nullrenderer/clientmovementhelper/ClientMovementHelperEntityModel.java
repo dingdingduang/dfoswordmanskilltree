@@ -1,0 +1,23 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer.clientmovementhelper;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.DfoSwdGeneralGeoEntityResources;
+import net.minecraft.util.Identifier;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.GeoRenderer;
+
+public class ClientMovementHelperEntityModel extends GeoModel<ClientMovementHelperEntity> {
+    @Override
+    public Identifier getModelResource(ClientMovementHelperEntity object) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_MODEL_RESOURCE;
+    }
+
+    @Override
+    public Identifier getTextureResource(ClientMovementHelperEntity object) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_TEXTURE_RESOURCE;
+    }
+
+    @Override
+    public Identifier getAnimationResource(ClientMovementHelperEntity animatable) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_ANIMATION_RESOURCE;
+    }
+}

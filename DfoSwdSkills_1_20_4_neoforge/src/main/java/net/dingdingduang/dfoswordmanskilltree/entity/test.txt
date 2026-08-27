@@ -1,0 +1,47 @@
+
+        int lifetime = 10;
+        int periodTick = 3;
+        double finaldamage = 1.0D; //finaldamage when apply
+        double totalDist = -1.0D; //total distance it should travel
+        double distTravel = 0.0D; //totalDist has traveled
+        boolean expiredWhenReachTotalDist = false;
+        int updateDistPeriodTick = 1;
+        double speed = 0.25D; //totalDist += speed per tick
+        SoundEvent sound = SoundEvents.TRIDENT_THROW;
+        String FXnamespace = null;
+        String FXeffNameOnly = null;
+        HashMap<Entity, Integer> DamagedEntityGroup = new HashMap<Entity, Integer>();
+        Predicate<? super Entity> pFilter = entity ->  isEnemyEntity(entity) && hasMoreThanZeroHealth(entity);
+        boolean HasCollision = true;
+        boolean CollideWithBlock = true;
+        boolean CollideWithLivingEntity = true;
+        double collisionBoundingBoxRange = 1.0;
+        boolean HasFinalBlow = false;
+        boolean isFinalBlowZoneCircular = true;
+        double FinalBlowRange = 1.0;
+        String FinalBlowEffNamespace = null;
+        String FinalBlowEffFilename = null;
+        boolean HasContinuousDMG = false;
+        boolean isContinuousDmgZoneCircular = true;
+        double ContinuousDMG = 1.0;
+        double ContinuousDmgRange = 2.0;
+        int ContinuousDmgTick = 3;
+        String ContinuousDMGHitEffNamespace = null;
+        String ContinuousDMGHitEffFilename = null;
+        boolean HasAbilityToDragEntities = false;
+        boolean DragDelta = true;
+        boolean HasLimitedTarget = false;
+        int LimitedTarget = -1;
+        boolean HasMaxHitCountForEveryEntity = false;
+        int MaxHitCountForEveryEntity = 4096;
+        boolean CanSplit = false;
+        boolean isSplitAncestor = true;
+        ProjectileDummy SplitParent;
+        int SplitRemainingTime = 0;
+        int SplitNumber = 2;
+        boolean HasSplitMovementAnimation = false;
+        Vec3 SplitMovementAnimationTargetLocation = null;
+        int SplitMovementAnimationTicks = 10;
+        boolean WaitSplitMovementAnimationCompletion = false;
+        HashMap<MobEffectInstance, Integer> EffectMap = new HashMap<MobEffectInstance, Integer>();
+        HashMap<MobEffectInstance, Integer> DeathRattleEffectMap = new HashMap<MobEffectInstance, Integer>();

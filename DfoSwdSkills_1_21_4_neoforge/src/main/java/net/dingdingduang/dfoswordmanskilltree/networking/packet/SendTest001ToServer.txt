@@ -1,0 +1,104 @@
+package net.dingdingduang.dfoswordmanskilltree.networking.packet;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+
+
+public class SendTest001ToServer {
+//    private final float posX;
+//    private final float posY;
+    private final float posZ;
+
+//    public SendTest000ToServer(float x, float y, float z) {
+    public SendTest001ToServer(float z) {
+//        this.posX = x;
+//        this.posY = y;
+        this.posZ = z;
+    }
+
+    public SendTest001ToServer(FriendlyByteBuf buf) {
+//        this.posX = buf.readFloat();
+//        this.posY = buf.readFloat();
+        this.posZ = buf.readFloat();
+    }
+
+    public void toBytes(FriendlyByteBuf buf) {
+//        buf.writeFloat(this.posX);
+//        buf.writeFloat(this.posY);
+        buf.writeFloat(this.posZ);
+    }
+
+    public boolean handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            //do shiet on server side
+            ServerPlayer sp1 = ctx.get().getSender();
+
+//            testMethods.CreateEntityTEST(sp1);
+//            FloatingSwordEntity tempE = summonASword(sp1);
+//            tempE.playAnimation();
+//            tempE.setAbc("swordfloating");
+
+            if (sp1 != null) {
+//                SwordSlashYellowEntity tempEntity = summonASlash(sp1, getEntityHorizontalFacingDeg(sp1), getEntityVerticalFacingDeg(sp1), this.posZ);
+//                SwordSlashPurpleEntity tempEntity = summonAPurpleSlash(sp1, getEntityHorizontalFacingDeg(sp1), getEntityVerticalFacingDeg(sp1), this.posZ);
+
+                //random
+//                float[] tempfloatarr = new float[] { 0.0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f, 360f };
+//                float tempfloat = tempfloatarr[ExtraMathMethods.randomInt(tempfloatarr.length)];
+//                SwordSlashPurpleEntity tempEntity = summonAPurpleSlash(sp1, getEntityHorizontalFacingDeg(sp1), getEntityVerticalFacingDeg(sp1), tempfloat);
+//                printInGameMsg("random f: "+tempfloat);
+
+//                setEntityHorizontalFacingDeg(tempEntity, getEntityHorizontalFacingDeg(sp1));
+//                setEntityVerticalFacingDeg(tempEntity, getEntityVerticalFacingDeg(sp1));
+//                SpawnEntity(tempEntity);
+
+//                SwordSlashWhiteEntity tempEntity = GeoModelSpawnMethods.GenerateWhiteSlash(sp1, getEntityHorizontalFacingDeg(sp1), this.posZ);
+//                SwordSlashWhiteEntity tempEntity = GeoModelSpawnMethods.GenerateRGBSlash(sp1, getEntityHorizontalFacingDeg(sp1), this.posZ, 1f, ExtraMathMethods.randomInt(255), ExtraMathMethods.randomInt(255), ExtraMathMethods.randomInt(255));
+
+                float entityX = getEntityX(sp1);
+                float entityY = getEntityY(sp1);
+                float entityZ = getEntityZ(sp1);
+
+//                GeoModelSpawnMethods.GenerateCustomSlashWithTargetLoc(sp1, getEntityHorizontalFacingDeg(sp1), 45f, 1, 255, 255, 255, 0, 2, 0, 100,
+//                        "textures/entity/test/", 3, 5, 7, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60);
+
+//                GeoModelSpawnMethods.GenerateCustomSlash(sp1, getEntityHorizontalFacingDeg(sp1), 45f, 1, 255, 255, 255, entityX, entityY, entityZ, 29,
+//                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_FLAME, 5, 1, 22, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+//
+//                GeoModelSpawnMethods.GenerateCustomSlash(sp1, getEntityHorizontalFacingDeg(sp1), 0, 1, 255, 69, 0, entityX+2, entityY+2, entityZ+2, 18,
+//                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 5, 1, 12, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+//
+//                GeoModelSpawnMethods.GenerateCustomSlash(sp1, getEntityHorizontalFacingDeg(sp1), 0, 1, 255, 215, 0, entityX+2, entityY+2, entityZ-2, 18,
+//                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 5, 1, 12, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+//
+//                GeoModelSpawnMethods.GenerateCustomSlash(sp1, getEntityHorizontalFacingDeg(sp1), 0, 1, 0, 255, 255, entityX-2, entityY+2, entityZ+2, 18,
+//                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 5, 1, 12, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+//
+//                GeoModelSpawnMethods.GenerateCustomSlash(sp1, getEntityHorizontalFacingDeg(sp1), 0, 1, 0, 191, 255, entityX-2, entityY+2, entityZ-2, 18,
+//                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 5, 1, 12, true, true, GeoAnimationName.EFF_SLASH_ANIMATION_NAME_NEG30_2_POS60, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+
+
+//                for (int i = 0; i < 360; i = i + 45) {
+//                    GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256(sp1, i, 1f, 0, 1.4f, 0, 300, false, 0, 0, 0, 0, 0, 0,
+//                            "textures/entity/skilleff/blademaster/flow_stance/stab/slash_zanbato/", false, 3, 3, 7, true, true, true);
+//                }
+//                GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256(sp1, testPressKey.tempfloat22, 1f, 0, 1.4f, 0, 1200, false, 0, 0, 0, 0, 0, 0,
+//                        "textures/entity/skilleff/blademaster/flow_stance/stab/slash_zanbato/", false, 3, 3, 7, true, true, true);
+//
+//                printInGameMsg("deg: "+ testPressKey.tempfloat22);
+//                testPressKey.tempfloat22 = testPressKey.tempfloat22 + 22.5f;
+            }
+            else {
+                printInGameMsg("sp1 is null!");
+            }
+        });
+
+        return true;
+    }
+}

@@ -1,0 +1,45 @@
+package net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+
+import java.util.HashSet;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.getEntityLevel;
+
+public class DfoGeneralDamageSrc {
+    public static String SHOCK_DAMAGE_TYPE_STR_ID = "dfo_light_shock";
+    public static Holder<DamageType> PENETRATE_DAMAGE_TYPE = null;
+
+    public static DamageSource lightDmgShockStatus(LivingEntity owner, Entity pCausingEntity, Entity pDirectEntity) {
+        if (PENETRATE_DAMAGE_TYPE == null) {
+            PENETRATE_DAMAGE_TYPE = getEntityLevel(owner).registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DfoGeneralDamageTypes.SHOCK_DAMAGE_TYPE);
+
+            HashSet<TagKey<DamageType>> bindTags = new HashSet<>();
+            bindTags.add(DamageTypeTags.BYPASSES_ARMOR);
+            bindTags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+            bindTags.add(DamageTypeTags.BYPASSES_SHIELD);
+            bindTags.add(DamageTypeTags.BYPASSES_COOLDOWN);
+            bindTags.add(DamageTypeTags.BYPASSES_EFFECTS); // EFFECTS like resistance
+            ((Holder.Reference<DamageType>) PENETRATE_DAMAGE_TYPE).bindTags(bindTags);
+        }
+        IgnoreDamageCalcEventDamageSource ignoreDamageCalcEventDamageSource = new IgnoreDamageCalcEventDamageSource(PENETRATE_DAMAGE_TYPE, pCausingEntity, pDirectEntity);
+        ignoreDamageCalcEventDamageSource.setDmgType(DfoSwordmanSkillTreeConstants.DAMAGE_TYPE_LIGHT);
+        return ignoreDamageCalcEventDamageSource;
+    }
+
+    public static void LivingEntityDamageTargetWithShock(LivingEntity dealer, LivingEntity target, float amount) {
+        EntityMethods.addKnockbackResist(target);
+        EntityMethods.DealerDamageTarget(lightDmgShockStatus(dealer, dealer, dealer), target, amount);
+        EntityMethods.removeKnockbackResist(target);
+//        target.hurt(lightDmgShockStatus(dealer, dealer, dealer), amount);
+    }
+}

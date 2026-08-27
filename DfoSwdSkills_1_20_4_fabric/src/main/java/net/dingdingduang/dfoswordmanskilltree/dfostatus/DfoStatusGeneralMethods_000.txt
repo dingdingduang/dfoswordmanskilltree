@@ -1,0 +1,97 @@
+package net.dingdingduang.dfoswordmanskilltree.dfostatus;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+
+import net.minecraft.entity.LivingEntity;
+
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.globalmethods.SBSAttributeMethods;
+import net.dingdingduang.somebasicskills.sbsattributes.SBSAttributes;
+import net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor;
+import net.dingdingduang.somebasicskills.sbsattributes.statusquery.AttributeServerPlayerStatusQueryMethods;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class DfoStatusGeneralMethods {
+    public final static int GENERAL_MAX_INFLICT_TIMES_FOR_SHOCK_STATUS = 10;
+    public final static int GENERAL_DURATION_TICKS_FOR_SHOCK_STATUS = 200;
+
+    private final static String SHOCK_STATUS_DOT = AttributeServerPlayerStatusQueryMethods.TEMPORARY_PREFIX + AttributeServerPlayerStatusQueryMethods.ABNORMAL_STATUS_SHOCK_BASE + "DOT_";
+    private static int currentShockStatusActiveCounter = 0;
+
+    private final static int oneSec2Tick = 20;
+    private final static int attrTimerPeriod = 10;
+
+    private static ConcurrentHashMap<LivingEntity, HashMap<String, DfoStatusGeneralType>> LivingEntityCorrespondingStatus;
+
+    public static int getShockStatusHashCodeID() { return AttributeServerPlayerStatusQueryMethods.ABNORMAL_STATUS_SHOCK_BASE.hashCode(); }
+    public static ConcurrentHashMap<LivingEntity, HashMap<String, DfoStatusGeneralType>> getLivingEntityCorrespondingStatus() { return LivingEntityCorrespondingStatus; }
+    public static void setLivingEntityCorrespondingStatus(ConcurrentHashMap<LivingEntity, HashMap<String, DfoStatusGeneralType>> livingEntityCorrespondingStatus) { LivingEntityCorrespondingStatus = livingEntityCorrespondingStatus; }
+
+    public static double getShockStatusDamageFromLivingEntity(LivingEntity target) {
+        return SBSAttributeMethods.getTimedAttributeValueFromLivingEntity(target, SBSAttributes.SBS_ATTRIBUTE_ABNORMAL_STATUS_SHOCK, Constants.OP_ADDITION) + SBSAttributeMethods.getPermAttributeValueFromLivingEntity(target, SBSAttributes.SBS_ATTRIBUTE_ABNORMAL_STATUS_SHOCK, Constants.OP_ADDITION);
+    }
+
+    public static float getShockStatusDamageMultiplier(LivingEntity dealer) {
+        return 1f + (float) SBSAttributeMethods.getTimedAttributeValueFromLivingEntity(dealer, SBSAttributes.SBS_ATTRIBUTE_ABNORMAL_STATUS_SHOCK, Constants.OP_MULTIPLY_BASE);
+    }
+
+    //TODO: only 1-3 eff entity exist if apply status, dont do alot spawn entities!
+    public static void ApplyShockStatusToTargetLivingEntity(LivingEntity owner, LivingEntity target, int durationTicks, double dmgAmount, int maxInflictedTimes, boolean allowDup, String SkillID) {
+        if (LivingEntityCorrespondingStatus == null) { LivingEntityCorrespondingStatus = new ConcurrentHashMap<>(); }
+        if (!LivingEntityCorrespondingStatus.containsKey(target)) { LivingEntityCorrespondingStatus.put(target, new HashMap<>()); }
+        if (dmgAmount <= 0) { return; }
+
+        StringBuilder tempShockStatusIDBuilder = new StringBuilder();
+        tempShockStatusIDBuilder.append(SHOCK_STATUS_DOT);
+        if (allowDup) {
+            tempShockStatusIDBuilder.append(currentShockStatusActiveCounter);
+            tempShockStatusIDBuilder.append("_");
+            currentShockStatusActiveCounter++;
+        }
+        tempShockStatusIDBuilder.append(SkillID);
+        String shockStatusSkillID = tempShockStatusIDBuilder.toString();
+
+        float eightPercentTotalShockDmg = (float) dmgAmount * 0.8f / maxInflictedTimes;
+        DfoShockStatus tempShockStatus = new DfoShockStatus(getShockStatusHashCodeID(), durationTicks, eightPercentTotalShockDmg, maxInflictedTimes);
+
+        LivingEntityCorrespondingStatus.get(target).put(shockStatusSkillID, tempShockStatus);
+
+        //damage over time
+        float twentyPercentCurrentShockDmg = (float) dmgAmount * 0.2f * getShockStatusDamageMultiplier(owner);
+        float ticks2Sec = durationTicks * 0.05f;
+        float dotShockDmg = twentyPercentCurrentShockDmg / ticks2Sec;
+
+        GeoModelSpawnMethods.GenerateEffBuffAltEntity(owner, "textures/entity/skilleff/common/buff/abnormal/shock/", "buff_moving_down", 1.5f, durationTicks, 0, 0, 0, true, target);
+
+        MethodAction shockDotDamageMethodAction = (target2) -> {
+//            int remainingTime = tempShockStatus.getRemainingTicks() - attrTimerPeriod;
+//            tempShockStatus.setRemainingTicks(remainingTime);
+//            if (remainingTime >= 0 && remainingTime % oneSec2Tick == 0) {
+//                DfoGeneralDamageSrc.LivingEntityDamageTargetWithShock(owner, target, dotShockDmg);
+//            }
+            int remainingTime = tempShockStatus.getRemainingTicks() - attrTimerPeriod;
+            tempShockStatus.setRemainingTicks(remainingTime);
+            if (remainingTime >= 0 && remainingTime % oneSec2Tick == 0) {
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithShock(owner, target, (float) getShockStatusDamageFromLivingEntity(target));
+            }
+        };
+
+        MethodAction shockDotDamageCleanMethodAction = (target2) -> {
+            if (LivingEntityCorrespondingStatus.containsKey(target2)) {
+                LivingEntityCorrespondingStatus.get(target2).remove(shockStatusSkillID);
+
+                if (LivingEntityCorrespondingStatus.get(target2).size() <= 0) {
+                    LivingEntityCorrespondingStatus.remove(target2);
+                    currentShockStatusActiveCounter = 0;
+                }
+            }
+        };
+
+//        TimedAttributesDistributor.applyTimedAbnormalStatusShockToEntity(target, durationTicks, twentyPercentCurrentShockDmg, Constants.OP_ADDITION, false, shockStatusSkillID, shockDotDamageMethodAction, shockDotDamageCleanMethodAction);
+        TimedAttributesDistributor.applyTimedAbnormalStatusShockToEntity(target, durationTicks, dotShockDmg, Constants.OP_ADDITION, false, shockStatusSkillID, shockDotDamageMethodAction, shockDotDamageCleanMethodAction);
+    }
+}

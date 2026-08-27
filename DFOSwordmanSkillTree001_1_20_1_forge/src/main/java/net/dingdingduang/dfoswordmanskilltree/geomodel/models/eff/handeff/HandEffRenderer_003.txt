@@ -1,0 +1,360 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.handeff;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions;
+import net.dingdingduang.dfoswordmanskilltree.globalvalues.GlobalClientMaps;
+import net.dingdingduang.dfoswordmanskilltree.particle.ParticleMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
+
+import org.jetbrains.annotations.Nullable;
+import org.joml.*;
+import software.bernie.geckolib.core.object.Color;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
+import java.lang.Math;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+
+public class HandEffRenderer extends GeoEntityRenderer<HandEffEntity> {
+    private static final float WeaponHandOffsetX = 1F;
+    private static final float WeaponHandOffsetY = 9.55F;
+
+    public HandEffRenderer(EntityRendererProvider.Context renderManager) {
+        super(renderManager, new HandEffModel());
+        this.shadowRadius = 0.0f;
+    }
+
+    @Override
+    public int getBlockLightLevel(HandEffEntity pEntity, BlockPos pPos) {
+        return 15;
+    }
+
+    @Override
+    public ResourceLocation getTextureLocation(HandEffEntity instance) {
+        return GlobalClientMaps.getReusableResourceByStringID(instance.getTextureFilePathName());
+//        return new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, instance.getTextureName());
+    }
+
+    @Override
+    public RenderType getRenderType(HandEffEntity animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick) {
+        return super.getRenderType(animatable, texture, bufferSource, partialTick);
+    }
+
+    @Override
+    public boolean shouldRender(HandEffEntity pEntity, Frustum pCamera, double pCamX, double pCamY, double pCamZ) {
+//        return Vector3fMethods.Vec3fDistanceTo(EntityMethods.getEntityPos(getClientPlayer()), EntityMethods.getEntityPos(pEntity)) <= 32f;
+        Entity player = getClientPlayer();
+        return Vector3fMethods.Vec3fDistanceTo(EntityMethods.getEntityX(player), EntityMethods.getEntityY(player), EntityMethods.getEntityZ(player), EntityMethods.getEntityX(pEntity), EntityMethods.getEntityY(pEntity), EntityMethods.getEntityZ(pEntity)) <= 32f;
+    }
+
+    @Override
+    public void render(HandEffEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        this.animatable = entity;
+
+        poseStack.pushPose();
+
+        Entity owner = entity.getOwner();
+        if (owner instanceof LivingEntity livingEntity) {
+            //client move
+//            moveEntityToPos(entity, getEntityPos(livingEntity));
+            Vector3f lerpVec = getEntityClientPosWithPartialTicks(livingEntity, partialTick);
+            moveEntityToPos(entity, lerpVec);
+
+            renderHandPrep(entity, livingEntity, poseStack, partialTick, entityYaw, bufferSource, packedLight);
+        }
+//        this.defaultRender(poseStack, entity, bufferSource, (RenderType) null, (VertexConsumer) null, entityYaw, partialTick, packedLight);
+//        this.defaultRender(poseStack, entity, bufferSource, RenderType.entityTranslucent(getTextureLocation(entity)), (VertexConsumer) null, entityYaw, partialTick, packedLight);
+//        this.defaultRender(poseStack, entity, bufferSource, RenderType.entityTranslucentEmissive(getTextureLocation(entity)), (VertexConsumer) null, entityYaw, partialTick, packedLight);
+
+        poseStack.popPose();
+    }
+
+
+    @Override
+    public Color getRenderColor(HandEffEntity animatable, float partialTick, int packedLight) {
+        return Color.ofRGBA(255, 255, 255, 255);
+    }
+
+    private void renderHandPrep(HandEffEntity handEffEntity, LivingEntity pLivingEntity, PoseStack pPoseStack, float pPartialTicks, float entityYaw, MultiBufferSource bufferSource, int packedLight) {
+        pPoseStack.pushPose();
+        Matrix4f HandEffRotationMatrix = new Matrix4f();
+
+        if (!SBConditions.isSpectator(pLivingEntity)) {
+            HumanoidModel<?> humanoidModel = getOwnerHumanoidModel(pLivingEntity);
+            if (humanoidModel != null) {
+                float entityBodyYRotLerp = Vector3fMethods.lerp1D(pPartialTicks, pLivingEntity.yBodyRotO, pLivingEntity.yBodyRot);
+
+                if (pLivingEntity.hasPose(Pose.SLEEPING)) {
+                    Direction direction = pLivingEntity.getBedOrientation();
+                    if (direction != null) {
+                        float f4 = pLivingEntity.getEyeHeight(Pose.STANDING) - 0.1F;
+                        pPoseStack.translate((float)(-direction.getStepX()) * f4, 0.0F, (float)(-direction.getStepZ()) * f4);
+                        HandEffRotationMatrix.translate((float)(-direction.getStepX()) * f4, 0.0F, (float)(-direction.getStepZ()) * f4);
+                    }
+                }
+
+                setupRotations(pLivingEntity, pPoseStack, entityBodyYRotLerp, pPartialTicks, HandEffRotationMatrix);
+                pPoseStack.scale(-1.0F, -1.0F, 1.0F);
+                HandEffRotationMatrix.scale(-1.0F, -1.0F, 1.0F);
+                scale(pLivingEntity, pPoseStack, pPartialTicks, HandEffRotationMatrix);
+                pPoseStack.translate(0.0F, -1.501F, 0.0F);
+                HandEffRotationMatrix.translate(0.0F, -1.501F, 0.0F);
+
+                ModelPart bone = HandEffGetModelPartMethods.getModelPart(handEffEntity.getModelPartName(), humanoidModel);
+                setuptranslate(pPoseStack, bufferSource, pLivingEntity, handEffEntity, entityYaw, bone, packedLight, pPartialTicks, HandEffRotationMatrix);
+            }
+        }
+
+        pPoseStack.popPose();
+    }
+
+    private static HumanoidModel<?> getOwnerHumanoidModel(LivingEntity owner) {
+        EntityRenderer<? super LivingEntity> entityRenderer = getMinecraftInstance().getEntityRenderDispatcher().getRenderer(owner);
+        if (entityRenderer instanceof LivingEntityRenderer<?, ?> livingRenderer) {
+            EntityModel<?> entityModel = livingRenderer.getModel();
+
+            if (entityModel instanceof HumanoidModel<?> humanoidModel) {
+                return humanoidModel;
+            }
+        }
+        return null;
+    }
+
+    public void setuptranslate(PoseStack pPoseStack, MultiBufferSource bufferSource, LivingEntity pLivingEntity, HandEffEntity handEffEntity, float pRotationYaw, ModelPart bone, int packedLight, float partialTicks, Matrix4f HandEffRotationMatrix) {
+        pPoseStack.pushPose();
+        pPoseStack.translate(bone.x * DfoSwordmanSkillTreeConstants.OneOver16, bone.y * DfoSwordmanSkillTreeConstants.OneOver16, bone.z * DfoSwordmanSkillTreeConstants.OneOver16);
+//        pPoseStack.translate(testPressKeyTranslateRot.tempFloatNewX * DfoSwordmanSkillTreeConstants.OneOver16, testPressKeyTranslateRot.tempFloatNewY * DfoSwordmanSkillTreeConstants.OneOver16, testPressKeyTranslateRot.tempFloatNewZ * DfoSwordmanSkillTreeConstants.OneOver16);
+//        printInGameMsg("x: "+bone.x+", y: "+bone.y+", z: "+bone.z);
+        HandEffRotationMatrix.translate(bone.x * DfoSwordmanSkillTreeConstants.OneOver16, bone.y * DfoSwordmanSkillTreeConstants.OneOver16, bone.z * DfoSwordmanSkillTreeConstants.OneOver16);
+
+        setupRotation(pPoseStack, bufferSource, pLivingEntity, handEffEntity, pRotationYaw, bone, packedLight, partialTicks, HandEffRotationMatrix);
+        pPoseStack.popPose();
+    }
+
+    public void setupRotation(PoseStack pPoseStack, MultiBufferSource bufferSource, LivingEntity pLivingEntity, HandEffEntity handEffEntity, float pRotationYaw, ModelPart bone, int packedLight, float partialTicks, Matrix4f HandEffRotationMatrix) {
+        pPoseStack.pushPose();
+
+        Quaternionf rotator;
+        if (bone.zRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisZN = new Vector3f(0, 0, 1);
+            rotator.rotationAxis(bone.zRot, AxisZN);
+//            pPoseStack.rotateAround(rotator, 0, 0, testPressKeyTranslateRot.tempFloatNewRotZ);
+//            pPoseStack.rotateAround(rotator, 0, 0, testPressKeyTranslateRot.tempFloatNewZ);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewX, testPressKeyTranslateRot.tempFloatNewY, testPressKeyTranslateRot.tempFloatNewZ);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+//            pPoseStack.mulPose(rotator);
+
+            HandEffRotationMatrix.rotateAround(rotator, 0, 0, 0);
+        }
+
+        if (bone.yRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisYP = new Vector3f(0, 1, 0);
+            rotator.rotationAxis(bone.yRot, AxisYP);
+//            rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotY), AxisYP);
+//            pPoseStack.rotateAround(rotator, 0, testPressKeyTranslateRot.tempFloatNewRotY, 0);
+//            pPoseStack.rotateAround(rotator, 0, testPressKeyTranslateRot.tempFloatNewY, 0);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewX, testPressKeyTranslateRot.tempFloatNewY, testPressKeyTranslateRot.tempFloatNewZ);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+//            pPoseStack.mulPose(rotator);
+            HandEffRotationMatrix.rotateAround(rotator, 0, 0, 0);
+        }
+
+        if (bone.xRot != 0) {
+            rotator = new Quaternionf();
+            Vector3f AxisXN = new Vector3f(1, 0, 0);
+            rotator.rotationAxis(bone.xRot, AxisXN);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewRotX, 0, 0);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewX, 0, 0);
+//            pPoseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewX, testPressKeyTranslateRot.tempFloatNewY, testPressKeyTranslateRot.tempFloatNewZ);
+            pPoseStack.rotateAround(rotator, 0, 0, 0);
+//            pPoseStack.mulPose(rotator);
+            HandEffRotationMatrix.rotateAround(rotator, 0, 0, 0);
+        }
+//        printInGameMsg("xrot: "+bone.xRot+", yrot: "+bone.yRot+", zrot: "+bone.zRot);
+
+        finalRenderItem(pPoseStack, bufferSource, pLivingEntity, handEffEntity, pRotationYaw, bone, packedLight, partialTicks, HandEffRotationMatrix);
+        pPoseStack.popPose();
+    }
+
+    public void finalRenderItem(PoseStack pPoseStack, MultiBufferSource bufferSource, LivingEntity pLivingEntity, HandEffEntity handEffEntity, float pRotationYaw, ModelPart bone, int packedLight, float partialTicks, Matrix4f HandEffRotationMatrix) {
+        pPoseStack.pushPose();
+
+
+//        pPoseStack.translate(testPressKeyTranslateRot.tempFloatNewX * DfoSwordmanSkillTreeConstants.OneOver16, WeaponHandOffsetY * DfoSwordmanSkillTreeConstants.OneOver16, testPressKeyTranslateRot.tempFloatNewZ * DfoSwordmanSkillTreeConstants.OneOver16);
+        float tempWeaponHandOffsetX = this.animatable.getModelPartName().hashCode() == HandEffGetModelPartMethods.LEFT_ARM.hashCode() ? WeaponHandOffsetX: -WeaponHandOffsetX;
+        pPoseStack.translate(tempWeaponHandOffsetX * DfoSwordmanSkillTreeConstants.OneOver16, WeaponHandOffsetY * DfoSwordmanSkillTreeConstants.OneOver16, 0);
+        HandEffRotationMatrix.translate(tempWeaponHandOffsetX * DfoSwordmanSkillTreeConstants.OneOver16, WeaponHandOffsetY * DfoSwordmanSkillTreeConstants.OneOver16, 0);
+
+        pPoseStack.pushPose();
+
+        Quaternionf rotator;
+
+//        rotator = new Quaternionf();
+//        Vector3f AxisZN = new Vector3f(0, 0, -1);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotZ), AxisZN);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+//
+//        rotator = new Quaternionf();
+//        Vector3f AxisYP = new Vector3f(0, 1, 0);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotY), AxisYP);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+//
+//        rotator = new Quaternionf();
+//        Vector3f AxisXN = new Vector3f(-1, 0, 0);
+//        rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(testPressKeyTranslateRot.tempFloatNewRotX), AxisXN);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+//        rotator = new Quaternionf();
+//        Vector3f AxisZN = new Vector3f(0, 0, -1);
+//        rotator.rotationAxis(MathMethods.HALF_PI, AxisZN);
+//        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+        rotator = new Quaternionf();
+        Vector3f AxisYP = new Vector3f(0, 1, 0);
+        rotator.rotationAxis(-MathMethods.PI, AxisYP);
+        pPoseStack.rotateAround(rotator, 0, 0, 0);
+
+//        rotator = new Quaternionf();
+//        Vector3f AxisXN = new Vector3f(-1, 0, 0);
+//        rotator.rotationAxis(-MathMethods.HALF_PI, AxisXN);
+
+        float handEffEntityScale = handEffEntity.getEntityScale();
+        if (handEffEntityScale != 1.0F) {
+//            rotator.scale(handEffEntityScale);
+            pPoseStack.scale(handEffEntityScale, handEffEntityScale, handEffEntityScale);
+        }
+
+//        if (this.animatable.getPreviousParticleP0() != null) {
+//            ParticleMethods.GenerateWhiteParticle(this.animatable.getPreviousParticleP0().x(), this.animatable.getPreviousParticleP0().y(), this.animatable.getPreviousParticleP0().z(),
+//                    0, 0, 0, 1f, 8, 200, 1f, 1f, 1f);
+//            ParticleMethods.GenerateWhiteParticle(this.animatable.getPreviousParticleP1().x(), this.animatable.getPreviousParticleP1().y(), this.animatable.getPreviousParticleP1().z(),
+//                    0, 0, 0, 1f, 8, 200, 1f, 1f, 1f);
+//        }
+        this.animatable.setPreviousParticleP0(this.animatable.getCurrentParticleP0());
+        this.animatable.setPreviousParticleP1(this.animatable.getCurrentParticleP1());
+        this.animatable.setPreviousRotationMatrix4f(this.animatable.getCurrentRotationMatrix4f());
+        Vector3f point0 = new Vector3f(0, 0, 0);
+//        Vector3f transformedPoint0 = HandEffRotationMatrix.transformPosition(point0).add(getEntityX(pLivingEntity), getEntityY(pLivingEntity), getEntityZ(pLivingEntity) );
+        Vector3f transformedPoint0 = HandEffRotationMatrix.transformPosition(point0);
+        Vector3f point1 = new Vector3f(0, 0, -2);
+//        Vector3f transformedPoint1 = HandEffRotationMatrix.transformPosition(point1).add(getEntityX(pLivingEntity), getEntityY(pLivingEntity), getEntityZ(pLivingEntity) );
+        Vector3f transformedPoint1 = HandEffRotationMatrix.transformPosition(point1);
+        this.animatable.setCurrentParticleP0(transformedPoint0);
+        this.animatable.setCurrentParticleP1(transformedPoint1);
+        this.animatable.setCurrentRotationMatrix4f(HandEffRotationMatrix);
+//        ParticleMethods.GenerateWhiteParticle(transformedPoint0.x(), transformedPoint0.y(), transformedPoint0.z(), 0, 0, 0, 1f, 8f, 100, 1f, 0, 0);
+//        ParticleMethods.GenerateGeoTrailingPlaneParticle(getEntityHashID(this.animatable), getEntityX(pLivingEntity), getEntityY(pLivingEntity), getEntityZ(pLivingEntity), 200);
+//        ParticleMethods.GenerateGeoTrailingPlaneParticle(getEntityHashID(this.animatable), transformedPoint0.x() + getEntityX(pLivingEntity), transformedPoint0.y() + getEntityY(pLivingEntity), transformedPoint0.z() + getEntityZ(pLivingEntity), 200);
+        ParticleMethods.GenerateGeoTrailingPlaneParticle(getEntityHashID(this.animatable), getEntityX(pLivingEntity), getEntityY(pLivingEntity), getEntityZ(pLivingEntity), 20);
+//        ParticleMethods.GenerateWhiteParticle(this.animatable.getCurrentParticleP0().x(), this.animatable.getCurrentParticleP0().y(), this.animatable.getCurrentParticleP0().z(),
+//                0, 0, 0, 1f, 8, 200, 1f, 1f, 1f);
+//        ParticleMethods.GenerateWhiteParticle(this.animatable.getCurrentParticleP1().x(), this.animatable.getCurrentParticleP1().y(), this.animatable.getCurrentParticleP1().z(),
+//                0, 0, 0, 1f, 8, 200, 1f, 1f, 1f);
+//        printInGameMsg(String.format("x = %.2f, y = %.2f, z = %.2f", transformedPoint0.x(), transformedPoint0.y(), transformedPoint0.z()));
+
+        this.defaultRender(pPoseStack, handEffEntity, bufferSource, RenderType.entityTranslucent(getTextureLocation(handEffEntity)), (VertexConsumer) null, pRotationYaw, partialTicks, packedLight);
+
+        pPoseStack.popPose();
+
+        pPoseStack.popPose();
+    }
+
+    private static boolean isShaking(LivingEntity pEntity) {
+        return pEntity.isFullyFrozen();
+    }
+
+    private static float sleepDirectionToRotation(Direction pFacing) {
+        switch (pFacing) {
+            case SOUTH -> {
+                return 90.0F;
+            }
+            case WEST -> {
+                return 0.0F;
+            }
+            case NORTH -> {
+                return 270.0F;
+            }
+            case EAST -> {
+                return 180.0F;
+            }
+            default -> {
+                return 0.0F;
+            }
+        }
+    }
+
+    private static float getFlipDegrees(LivingEntity pLivingEntity) {
+        return 90.0F;
+    }
+
+    private void setupRotations(LivingEntity pEntityLiving, PoseStack pMatrixStack, float pRotationYaw, float pPartialTicks, Matrix4f HandEffRotationMatrix) {
+        if (isShaking(pEntityLiving)) {
+            pRotationYaw += (float)(Math.cos((double)pEntityLiving.tickCount * (double)3.25F) * Math.PI * (double)0.4F);
+        }
+
+        if (!pEntityLiving.hasPose(Pose.SLEEPING)) {
+            pMatrixStack.mulPose(Axis.YP.rotationDegrees(180.0F - pRotationYaw));
+            HandEffRotationMatrix.rotate(Axis.YP.rotationDegrees(180.0F - pRotationYaw));
+        }
+
+        if (pEntityLiving.deathTime > 0) {
+            float f = ((float)pEntityLiving.deathTime + pPartialTicks - 1.0F) / 20.0F * 1.6F;
+            f = MathMethods.sqrt(f);
+            if (f > 1.0F) {
+                f = 1.0F;
+            }
+
+            pMatrixStack.mulPose(Axis.ZP.rotationDegrees(f * getFlipDegrees(pEntityLiving)));
+            HandEffRotationMatrix.rotate(Axis.ZP.rotationDegrees(f * getFlipDegrees(pEntityLiving)));
+        } else if (pEntityLiving.isAutoSpinAttack()) {
+            pMatrixStack.mulPose(Axis.XP.rotationDegrees(-90.0F - pEntityLiving.getXRot()));
+            pMatrixStack.mulPose(Axis.YP.rotationDegrees(((float)pEntityLiving.tickCount + pPartialTicks) * -75.0F));
+            HandEffRotationMatrix.rotate(Axis.XP.rotationDegrees(-90.0F - pEntityLiving.getXRot()));
+            HandEffRotationMatrix.rotate(Axis.YP.rotationDegrees(((float)pEntityLiving.tickCount + pPartialTicks) * -75.0F));
+        } else if (pEntityLiving.hasPose(Pose.SLEEPING)) {
+            Direction direction = pEntityLiving.getBedOrientation();
+            float f1 = direction != null ? sleepDirectionToRotation(direction) : pRotationYaw;
+            pMatrixStack.mulPose(Axis.YP.rotationDegrees(f1));
+            pMatrixStack.mulPose(Axis.ZP.rotationDegrees(getFlipDegrees(pEntityLiving)));
+            pMatrixStack.mulPose(Axis.YP.rotationDegrees(270.0F));
+            HandEffRotationMatrix.rotate(Axis.YP.rotationDegrees(f1));
+            HandEffRotationMatrix.rotate(Axis.ZP.rotationDegrees(getFlipDegrees(pEntityLiving)));
+            HandEffRotationMatrix.rotate(Axis.YP.rotationDegrees(270.0F));
+        } else if (LivingEntityRenderer.isEntityUpsideDown(pEntityLiving)) {
+            pMatrixStack.translate(0.0F, pEntityLiving.getBbHeight() + 0.1F, 0.0F);
+            pMatrixStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+            HandEffRotationMatrix.translate(0.0F, pEntityLiving.getBbHeight() + 0.1F, 0.0F);
+            HandEffRotationMatrix.rotate(Axis.ZP.rotationDegrees(180.0F));
+        }
+    }
+
+    private void scale(LivingEntity pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime, Matrix4f HandEffRotationMatrix) {
+        pMatrixStack.scale(0.9375F, 0.9375F, 0.9375F);
+        HandEffRotationMatrix.scale(0.9375F, 0.9375F, 0.9375F);
+    }
+}

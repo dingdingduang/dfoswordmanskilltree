@@ -1,0 +1,33 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
+
+public class BlockMethods {
+//    private static HashSet<String> PassableBlocks = new HashSet<>();
+//    private static boolean isInitialized = false;
+//
+//    private static void initializeBlockSet() {
+//        isInitialized = true;
+//    }
+
+    private static boolean isPassableBlock(Block block) { return false; }
+    private static boolean isPassableBlock(LiquidBlock block) { return true; }
+    private static boolean isPassableBlock(PipeBlock block) { return true; }
+    private static boolean isPassableBlock(BushBlock block) { return true; }
+    private static boolean isPassableBlock(SnowLayerBlock block) { return true; }
+    private static boolean isPassableBlock(PowderSnowBlock block) { return true; }
+    private static boolean isPassableBlock(NetherVines block) { return true; }
+    private static boolean isPassableBlock(NetherSproutsBlock block) { return true; }
+    private static boolean isPassableBlock(PlayerHeadBlock block) { return true; }
+    private static boolean isPassableBlock(RailBlock block) { return true; }
+    private static boolean isPassableBlock(RailState block) { return true; }
+    private static boolean isPassableBlock(TorchBlock block) { return true; }
+    private static boolean isPassableBlock(SculkVeinBlock block) { return true; }
+    private static boolean isPassableBlock(BaseCoralPlantTypeBlock block) { return true; }
+    private static boolean isPassableBlock(ScaffoldingBlock block) { return true; }
+
+    public static boolean isBlockStatePassable(BlockState bs) {
+        return isPassableBlock(bs.getBlock());
+    }
+}

@@ -1,0 +1,408 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.berserker.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoAnimationAndTextureName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.berserker.BerserkerSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active.Blademaster039;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.BooleanValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.anexampleskilltree.commonskilltree.CommonSkillInitialization;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.registries.SoundRegistry;
+import net.dingdingduang.somebasicskills.sbsattributes.PermAttributesDistributor;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import org.joml.Vector3f;
+
+import java.util.HashMap;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.setEntitySPDeltaMovement;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.somebasicskills.globalmethods.EffectMethods.applyEffectToLivingEntity;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.*;
+import static net.dingdingduang.somebasicskills.globalmethods.SoundMethods.PlaySoundAtLivingEntityLocationEX;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerLivingEntityValues.getSLivingEntityState;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Berserker010 {
+    public static final String SkillID = BerserkerSkillTreeInitialization.BERSERKER_BLOOD_FRENZY;
+    public static final String ChannelingActionID = SkillID + "_ChannelingActionID";
+    public static final String ChannelingFinishedID = SkillID + "_ChannelingFinishedID";
+
+    public static final String BERSERKER010_FRENZY_ATTACK_ACTION = "BERSERKER010_FRENZY_ATTACK_ACTION";
+
+    public static final int BERSERKER010_UPDATE_PERIOD = 200;
+
+    public static final float BERSERKER010_MINIMUM_FRENZY_HP_PERCENTAGE = 0.05f;
+
+    public static final String[] BERSERKER010_FRENZY_ATTACK_ANIMATION = {"frenzy_attack_slash_1", "frenzy_attack_slash_2", "frenzy_attack_slash_3", "frenzy_attack_slash_4", "frenzy_attack_slash_1"};
+    public static final int[][] BERSERKER010_FRENZY_DAMAGE_TICK = {{3, 5}, {3, 5}, {3, 5}, {3, 5}};
+    public static final float[][] BERSERKER010_FRENZY_SLASH_EFF_ROT = {{315f, 285f}, {95f, 30f}, {225f, 5f}, {60f, 5f}};
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        Double MinimumHPPercentageToActivate = skillData.getValueUsage_01().get(correctSkillLevel);
+        Double AttackDamageMultiplier = skillData.getDamageMultiplierList_01().get(correctSkillLevel);
+        Double AttackSpeedMultiplier = skillData.getValueMultiplierList_01().get(correctSkillLevel);
+        Double MovementSpeedMultiplier = skillData.getValueMultiplierList_02().get(correctSkillLevel);
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%d%%", (int) (MinimumHPPercentageToActivate.floatValue() * 100)),
+                String.format("%d%%", (int) (AttackDamageMultiplier.floatValue() * 100)),
+                String.format("%d%%", (int) (AttackSpeedMultiplier.floatValue() * 100)),
+                String.format("%d%%", (int) (MovementSpeedMultiplier.floatValue() * 100))
+        );
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Berserker010::getSkillDescription);
+
+        //condition: check to see if qualify before activate skill
+        tempSkillData.setClientConditionRequirement(DfoSwordmanSkillMethods::defaultSkillClientCondition);
+
+        //while channeling
+        tempSkillData.setChannelingSkillAction1(Berserker010::Berserker0010_ChannelingAction);
+        //final action
+//        tempSkillData.setActiveSkillAction1(Berserker010::Berserker0010_ActivatePassive);
+        tempSkillData.setActiveSkillAction1(DfoSwordmanSkillMethods::DoNothing);
+    }
+
+    public static void Berserker0010_ChannelingAction(LivingEntity entity1) {
+        if (SBSTickEventMethods.hasSkillActionRunning(entity1, SkillID)) {
+            SBSTickEventMethods.setSkillActionDone(entity1, SkillID);
+            Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity1);
+            printInGameMsg("cancel");
+        }
+        else {
+            int actionPeriod = 5;
+            //play buff on sound
+            DfoSwdSoundMethods.PlayChannelingStartSound(EntityMethods.getEntityLevel(entity1), EntityMethods.getEntityX(entity1), EntityMethods.getEntityY(entity1), EntityMethods.getEntityZ(entity1), 0.6f, 1.0f);
+
+            int playerSkillLVL = 0;
+            SkillDataJson skill1 = getID2SkillData().get(SkillID);
+            if (entity1 instanceof ServerPlayer sp1) {
+                playerSkillLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, SkillID);
+                if (playerSkillLVL <= 0) {
+                    return;
+                }
+                playerSkillLVL = playerSkillLVL - 1;
+                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_START);
+            }
+
+            float channelingTime = skill1.getChannelingTime().get(playerSkillLVL).floatValue();
+            int lifetime = (int) (channelingTime * 20);
+            if (channelingTime != 0) {
+                float channelingBarAnimationTime = 1 / channelingTime;
+                GeoModelSpawnMethods.GenerateRegularChannelingBarEntity(entity1, 1f, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_HEIGHT, 0, lifetime, channelingBarAnimationTime, true);
+            }
+
+            IntegerValueHolder remainingChannelingTicks = new IntegerValueHolder(lifetime);
+            IntegerValueHolder tempIntegerTicker = new IntegerValueHolder(0);
+
+            MethodAction action = (entity2) -> {
+                int currentPassedTicks = tempIntegerTicker.getIntCounter();
+                tempIntegerTicker.setIntCounter(currentPassedTicks + actionPeriod);
+                boolean contActioning = false;
+                HashMap<String, Integer> ServerLivingEntityState = getSLivingEntityState().get(entity2);
+                if (ServerLivingEntityState != null) {
+                    contActioning = ServerLivingEntityState.get(Constants.IS_CHANNELING) == 1;
+                }
+                if (!contActioning) {
+                    SBSTickEventMethods.setSkillActionDone(entity2, ChannelingActionID);
+                    //[!] remove entity here?
+                }
+
+                if ((currentPassedTicks - 5) % 500 == 0 && entity2 instanceof ServerPlayer sp1) {
+                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_LOOPING);
+                }
+
+                if (currentPassedTicks >= remainingChannelingTicks.getIntCounter()) {
+                    SBSTickEventMethods.setMethodActionTimer(entity2, ChannelingFinishedID, 1, Berserker010::Berserker0010_ActivatePassive);
+                }
+            };
+
+            //start loop action
+            SBSTickEventMethods.setMethodActionTimer(entity1, ChannelingActionID, actionPeriod, action);
+        }
+    }
+
+    public static void Berserker0010_ActivatePassive(LivingEntity entity0) {
+        SBSTickEventMethods.setSkillActionDone(entity0, ChannelingFinishedID);
+        if (SBSTickEventMethods.hasSkillActionRunning(entity0, SkillID)) {
+            SBSTickEventMethods.setSkillActionDone(entity0, SkillID);
+            Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity0);
+        }
+        else {
+            if (!isEntityChannellingInterrupted(entity0)) {
+                int playerSkillLVL = 0;
+                SkillDataJson skill1 = getID2SkillData().get(SkillID);
+                if (entity0 instanceof ServerPlayer sp1) {
+                    playerSkillLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, SkillID);
+                    if (playerSkillLVL <= 0) {
+                        SBSTickEventMethods.setSkillActionDone(entity0, SkillID);
+                        Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity0);
+                        return;
+                    }
+                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_END);
+                }
+                GeoModelSpawnMethods.GenerateCustomChannelingIconEntity(entity0, 1f, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_HEIGHT, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_LIFETIME, skill1.getResLocBtn(), true, true);
+
+                //play buff on sound
+                DfoSwdSoundMethods.PlayChannelingEndSound(EntityMethods.getEntityLevel(entity0), EntityMethods.getEntityX(entity0), EntityMethods.getEntityY(entity0), EntityMethods.getEntityZ(entity0), 0.6f, 1.0f);
+                Blademaster039.SwordmanGetNormalAttackAnimationSetMap().putIfAbsent(entity0, SkillID);
+                SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity0, SkillID, BERSERKER010_UPDATE_PERIOD, Berserker010_PassiveMethodAction(), null, false);
+            } else {
+                PlaySoundAtLivingEntityLocationEX(entity0, SoundRegistry.CHANNELING_FAILED_SOUND.get(), 0.4f, 1.0f);
+                if (SBSTickEventMethods.hasSkillActionRunning(entity0, SkillID)) {
+                    SBSTickEventMethods.setSkillActionDone(entity0, SkillID);
+                    Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity0);
+                }
+            }
+        }
+    }
+
+    public static MethodAction Berserker010_PassiveMethodAction() {
+        return (entity1) -> {
+            SkillDataJson skillData = getID2SkillData().get(SkillID);
+
+            int playerSkillLVL = 0;
+            float TotalHPConsumptionPercentage = 0;
+            if (entity1 instanceof ServerPlayer sp1) {
+                playerSkillLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, SkillID);
+                if (playerSkillLVL <= 0) {
+                    //de activate
+                    Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity1);
+                    SBSTickEventMethods.setSkillActionDone(entity1, SkillID);
+                    return;
+                }
+                playerSkillLVL = playerSkillLVL - 1;
+            }
+            TotalHPConsumptionPercentage = TotalHPConsumptionPercentage + skillData.getValueMultiplierList_01().get(playerSkillLVL).floatValue();
+
+            float MaxEntityHealth = EntityMethods.getLivingEntityMaxHP(entity1);
+            float hpShouldReduce = MaxEntityHealth * TotalHPConsumptionPercentage;
+            float currentEntityHealth = EntityMethods.getLivingEntityCurrentHP(entity1) - hpShouldReduce;
+            float currentHPPercentage = currentEntityHealth / MaxEntityHealth;
+
+            EntityMethods.setLivingEntityCurrentHP(entity1, MathMethods.max(0.01f, currentEntityHealth));
+
+            if (currentHPPercentage < BERSERKER010_MINIMUM_FRENZY_HP_PERCENTAGE) {
+                //de activate
+                SBSTickEventMethods.setSkillActionDone(entity1, SkillID);
+                Blademaster039.SwordmanGetNormalAttackAnimationSetMap().remove(entity1);
+            }
+        };
+    }
+
+    public static void Berserker010_Absorption(LivingEntity deadEntity) {
+        LivingEntity lastAttacker = EntityMethods.getLastEntityAttacker(deadEntity);
+
+        if (lastAttacker instanceof ServerPlayer sp1) {
+
+        }
+    }
+
+    public static void FrenzyNormalAttackRegister() {
+        Blademaster039.RegisterAttackAnimationSet(SkillID, Berserker010::FrenzyAttackActionSetup);
+    }
+
+    //============
+    public static void FrenzyAttackActionSetup(LivingEntity entity0) {
+        //identify weapon type
+        int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity0);
+        if (weaponType == DfoSkillTreeItemMethods.IS_HOLDING_NOTHING) {
+            return;
+        }
+
+        String[] weaponAnimArr = BERSERKER010_FRENZY_ATTACK_ANIMATION;
+        int actualAnimationShouldPlayIndex = weaponAnimArr.length - 1;
+
+        int playerSkillLVL = 0;
+        float aoeRange;
+        HashMap<LivingEntity, Integer> SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes = Blademaster039.SwordmanGetNormalAttackTriggerTimeMap();
+
+        //ASSUME SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes never be null
+        if (!SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes.containsKey(entity0)) {
+            SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes.put(entity0, 0);
+        }
+
+        SkillDataJson skill1 = getID2SkillData().get(SkillID);
+        if (entity0 instanceof ServerPlayer sp1) {
+            if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID) - 1;
+            }
+        }
+
+        aoeRange = skill1.getEffectArea().get(playerSkillLVL).floatValue();
+
+        float MainHandDamageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+        float MainHandDamageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue();
+
+        float OffHandDamageBase = skill1.getDamageList_02().get(playerSkillLVL).floatValue();
+        float OffHandDamageMultiplier = skill1.getDamageMultiplierList_02().get(playerSkillLVL).floatValue();
+
+        //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+        //start Actioning
+
+        Predicate<Entity> condition;
+        float[] entityAnimationArr = DfoSwordmanSkillMethods.getEntityAnimationSpeedMultiplierArr(entity0);
+        float finalAspd = entityAnimationArr[0];
+        float finalAnimationSpeed = entityAnimationArr[1];
+
+        //play animation and update condition
+        int triggeredTimes = SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes.get(entity0);
+        //reset trigger times
+        if (triggeredTimes - actualAnimationShouldPlayIndex >= actualAnimationShouldPlayIndex) {
+            SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes.put(entity0, actualAnimationShouldPlayIndex);
+        }
+        if (entity0 instanceof ServerPlayer sp1) {
+            SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, weaponAnimArr[SWORDMAN_NORMAL_ATTACK_HashMapTriggeredTimes.get(entity0) % actualAnimationShouldPlayIndex], finalAspd);
+
+            condition = defaultSkillTargetCondition(sp1);
+        }
+        else {
+            condition = defaultSkillTargetCondition();
+        }
+
+        float finalMainHandDmgDealt = (MainHandDamageMultiplier * (float) getEntityAttackDamage(entity0) + MainHandDamageBase);
+        float finalOffHandDmgDealt = (OffHandDamageMultiplier * (float) getEntityAttackDamage(entity0) + OffHandDamageBase);
+
+        int actionPeriod = 1;
+        MethodAction action = FrenzyAttackPrepAction(entity0, actionPeriod, weaponType, finalAnimationSpeed, finalMainHandDmgDealt, finalOffHandDmgDealt, aoeRange, condition);
+        SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity0, BERSERKER010_FRENZY_ATTACK_ACTION, actionPeriod, action, Blademaster039::clearAction, true);
+    }
+
+    public static MethodAction FrenzyAttackPrepAction(LivingEntity entity1, int actionPeriod, int weaponType, float finalAnimationSpeed, float finalMainHandDmgDealt, float finalOffHandDmgDealt, float aoeRange, Predicate<Entity> condition) {
+        HashMap<LivingEntity, Integer> AttackTriggerTimeMap = Blademaster039.SwordmanGetNormalAttackTriggerTimeMap();
+
+        int TotalTriggeredTimes = AttackTriggerTimeMap.get(entity1);
+        int triggeredTimes = TotalTriggeredTimes % 4;
+
+        int[] FrenzyDamageTick = BERSERKER010_FRENZY_DAMAGE_TICK[triggeredTimes];
+        float[] FrenzySlashEffZRot = BERSERKER010_FRENZY_SLASH_EFF_ROT[triggeredTimes];
+
+        int delayClearTicks = (int) ((FrenzyDamageTick[0] + 1) * finalAnimationSpeed) + 1;
+        int damage1tick = (int) (FrenzyDamageTick[0] * finalAnimationSpeed);
+        int playWieldingSound = (int) ((FrenzyDamageTick[0] + 1) * finalAnimationSpeed);
+
+        int damage2tick = (int) (FrenzyDamageTick[1] * finalAnimationSpeed);
+        int animTicks = damage2tick + 1;
+
+        int slashEntitySpawnTick1 = Math.max( (int) ((FrenzyDamageTick[0] - 1) * finalAnimationSpeed), 0);
+        int slashEntitySpawnTick2 = Math.max( (int) ((FrenzyDamageTick[1] - 1) * finalAnimationSpeed), 0);
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        //play wieldingSound
+                        if (currentTick == playWieldingSound) {
+                            DfoSwdSoundMethods.PlayWeaponTypeWieldingSound(weaponType, getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                        }
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //lightsabre
+                            //start damage
+                            if (currentTick == damage1tick) {
+                                FrenzyAttackDamageAction(entity2, weaponType, triggeredEntityFacingAngle, aoeRange + 1f, finalMainHandDmgDealt, condition);
+                                AttackTriggerTimeMap.put(entity2, TotalTriggeredTimes + 1);
+                            }
+                            if (currentTick == damage2tick) {
+                                FrenzyAttackDamageAction(entity2, weaponType, triggeredEntityFacingAngle, aoeRange + 1f, finalOffHandDmgDealt, condition);
+                            }
+
+                            //spawn slash entity
+                            if (currentTick == slashEntitySpawnTick1) {
+//                                GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, FrenzySlashEffZRot[0], 1f,175, 238, 238, 0, 1f, 0, true);
+                                GeoModelSpawnMethods.GenerateCustomSlashBoundToEntity(entity2, triggeredEntityFacingAngle, FrenzySlashEffZRot[0], 1.2f, BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[0], BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[1], BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[2], 0f, 1.4f, 0f, Math.max(18, animTicks),
+                                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 3, 2, 12, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+                            }
+
+                            if (currentTick == slashEntitySpawnTick2) {
+//                                GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, FrenzySlashEffZRot[1], 1f,175, 238, 238, 0, 1f, 0, true);
+                                GeoModelSpawnMethods.GenerateCustomSlashBoundToEntity(entity2, triggeredEntityFacingAngle, FrenzySlashEffZRot[1], 1.2f, BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[0], BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[1], BerserkerSkillTreeInitialization.BERSERKER_SLASH_COLOR[2], 0f, 1.4f, 0f, Math.max(18, animTicks),
+                                        GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_FANCY_SLASH_WHITE, 3, 2, 12, true, true, GeoAnimationAndTextureName.EFF_SLASH_ANIMATION_NAME_NEG60_2_POS15, DfoSwordmanSkillTreeConstants.NO_ANIMATION, true);
+                            }
+                        }
+
+                        //start moving around
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+                        SBSTickEventMethods.setSkillActionDone(entity2, BERSERKER010_FRENZY_ATTACK_ACTION);
+                    }
+                };
+
+        return action;
+    }
+
+    //slash
+    private static void FrenzyAttackDamageAction(LivingEntity entity2, int weaponType, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Predicate<Entity> SectorDmgCond = DfoSwordmanSkillMethods.getSectorCondition(entity2, 60f, aoeRange);
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (!playHitSound) {
+                    playHitSound = true;
+                    DfoSwdSoundMethods.PlayWeaponTypeHitEntitySound(weaponType, getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                }
+
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+                //stay in air
+                float additionalDeltaY = (isEntityFarFromGround(tempEntity, 0.5f)) ? 0f : 0.15f;
+                float pushXZStrength = 0f;
+
+                float pushYStrength = calculatePushEntityStrengthTargetOnly(MathMethods.max(getEntityDeltaY(tempLivingEntity), additionalDeltaY), tempLivingEntity);
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, pushYStrength, false);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+}

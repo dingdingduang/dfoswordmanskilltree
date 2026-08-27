@@ -1,0 +1,788 @@
+package temp.sbasiclibs.entity;
+
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraftforge.network.NetworkHooks;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+import org.joml.Vector3f;
+import util.net.dingdingduang.dfoswordmanskilltree.ExtraMathMethods;
+import util.net.dingdingduang.dfoswordmanskilltree.MathMethods;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.GeneralMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityFXEffectMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.EntityGroupMethods.*;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.Vector3fMethods.PolarProjectionFromRotation;
+import static globalmethods.net.dingdingduang.dfoswordmanskilltree.Vector3fMethods.PolarProjectionFromVecHorizon;
+import static condition.globalmethods.net.dingdingduang.dfoswordmanskilltree.SBConditions.*;
+
+public class ProjectileDummy extends ProjectileHelper {
+    private int lifetime = 10;
+    private float finalDamage = 1.0F; //finalDamage when apply
+    private float totalDist = -1.0F; //total distance it should travel
+    private float distTravel = 0.0F; //totalDist has traveled
+    private boolean expiredWhenReachTotalDist = false;
+    private int updateDistPeriodTick = 1;
+//    private float speed = 0.25F; //totalDist += speed per tick
+    private float speed = 0F; //totalDist += speed per tick
+    private SoundEvent sound = SoundEvents.TRIDENT_THROW;
+    private String FXnamespace = null;
+    private String FXeffNameOnly = null;
+
+    //    private Entity owner;
+//    private List<Entity> DamagedEntityGroup = Lists.newArrayList(); //damaged entity group
+    private HashMap<Entity, Integer> DamagedEntityGroup = new HashMap<Entity, Integer>(); //damaged entity group with hit counts
+    //condition
+    private Predicate<? super Entity> pFilter = entity ->  isEnemyEntity(entity) && hasMoreThanZeroHealth(entity);
+//    private Predicate<? super Entity> pFilter = entity ->  isEnemyEntity(entity) && hasMoreThanZeroHealth(entity) && DistanceBetweenEntitiesHorizontal(entity, this) <= this.collisionBoundingBoxRange;
+    //options
+    private boolean HasCollision = true;
+    private boolean CollideWithBlock = true;
+    private boolean CollideWithLivingEntity = true;
+    private float collisionBoundingBoxRange = 1.0F;
+
+    private boolean isMagicDMG = false;
+
+    private boolean HasFinalBlow = false;
+    private boolean isFinalBlowZoneCircular = true;
+    private float FinalBlowRange = 1.0F;
+//    private HashMap<String, String> FinalBlowFXEffMap = null;
+    private String FinalBlowEffNamespace = null;
+    private String FinalBlowEffFilename = null;
+    private float FinalBlowEffHeight = 0.0F;
+
+    //TODO: radius rect AABB customize
+    private boolean HasContinuousDMG = false;
+    private boolean isContinuousDmgZoneCircular = true;
+    private float ContinuousDMG = 1.0F; //this would be dot dmg if hasAppliedOnlyOneTimeDmgPerEntity is false
+    private float ContinuousDmgRange = 2.0F; //radius, AOE area
+    private int ContinuousDmgTick = 3; //radius, AOE area
+//    private HashMap<String, String> ContinuousDMGHitFXEffMap = null;
+    private String ContinuousDMGCenterEffNamespace = null;
+    private String ContinuousDMGCenterEffFilename = null;
+    private float ContinuousDMGCenterEffHeight = 1.0F;
+    private String ContinuousDMGHitEffNamespace = null;
+    private String ContinuousDMGHitEffFilename = null;
+    private float ContinuousDMGHitEffHeight = 1.0F;
+    private boolean ContinuousDMGHitEffBindToEntity = true; //cause lag when false
+    private boolean isBeam = false;
+
+    private boolean HasAbilityToDragEntities = false;
+    private boolean DragDelta = true;
+    private float DragRange = 1.0F;
+
+    private boolean HasLimitedTarget = false;
+    private int LimitedTarget = -1;
+
+    private boolean HasMaxHitCountForEveryEntity = false;
+    private int MaxHitCountForEveryEntity = 4096;
+
+    private boolean CanSplit = false;
+    private boolean isSplitAncestor = true;
+    private ProjectileDummy SplitParent;
+    private int SplitRemainingTime = 0;
+    private int SplitNumber = 2;
+    private int SplitLifetime = 10;
+    private float SplitFacingAngle = 45.0F;
+    private boolean HasSplitMovementAnimation = false;
+    private int SplitMovementAnimationTicks = 20;
+    private float SplitAnimationSpeed = 0.1F;
+    private boolean HasSplitHeightAnimation = false;
+    private float SplitAnimationMaxHeight = 1.0F; //getVec3Y(getEntityPos(this))+1.0F;
+    private float SplitAnimationMinHeight = 0.0F; //getVec3Y(getEntityPos(this));
+    private boolean WaitSplitMovementAnimationCompletion = false;
+
+    //Add Effect to living entities that got damaged
+    private HashMap<MobEffectInstance, Integer> EffectMap = new HashMap<MobEffectInstance, Integer>();
+    private HashMap<MobEffectInstance, Integer> DeathRattleEffectMap = new HashMap<MobEffectInstance, Integer>();
+
+    private boolean isHealing = false;
+
+    private boolean ShootFromCurrentRotation = false;
+
+    //TODO auto chase enemies missle
+
+    protected ProjectileDummy(EntityType<? extends ProjectileHelper> entityType, Level level) {
+        super(entityType, level);
+//        this.setNoGravity(true);
+        this.noPhysics = true;
+        this.blocksBuilding = false;
+    }
+
+    public void ProjectileDummyDuplicateSetting(ProjectileDummy temp) {
+        this.lifetime = temp.lifetime;
+        this.finalDamage = temp.finalDamage;
+        this.totalDist = temp.totalDist;
+        this.distTravel = temp.distTravel;
+        this.expiredWhenReachTotalDist = temp.expiredWhenReachTotalDist;
+        this.updateDistPeriodTick = temp.updateDistPeriodTick;
+        this.speed = temp.speed;
+        this.sound = temp.sound;
+        this.FXnamespace = temp.FXnamespace;
+        this.FXeffNameOnly = temp.FXeffNameOnly;
+        this.DamagedEntityGroup = temp.DamagedEntityGroup;
+        this.pFilter = temp.pFilter;
+        this.HasCollision = temp.HasCollision;
+        this.CollideWithBlock = temp.CollideWithBlock;
+        this.CollideWithLivingEntity = temp.CollideWithLivingEntity;
+        this.collisionBoundingBoxRange = temp.collisionBoundingBoxRange;
+        this.HasFinalBlow = temp.HasFinalBlow;
+        this.isFinalBlowZoneCircular = temp.isFinalBlowZoneCircular;
+        this.FinalBlowRange = temp.FinalBlowRange;
+        this.FinalBlowEffNamespace = temp.FinalBlowEffNamespace;
+        this.FinalBlowEffFilename = temp.FinalBlowEffFilename;
+        this.FinalBlowEffHeight = temp.FinalBlowEffHeight;
+        this.HasContinuousDMG = temp.HasContinuousDMG;
+        this.isContinuousDmgZoneCircular = temp.isContinuousDmgZoneCircular;
+        this.ContinuousDMG = temp.ContinuousDMG;
+        this.ContinuousDmgRange = temp.ContinuousDmgRange;
+        this.ContinuousDmgTick = temp.ContinuousDmgTick;
+        this.ContinuousDMGHitEffNamespace = temp.ContinuousDMGHitEffNamespace;
+        this.ContinuousDMGHitEffFilename = temp.ContinuousDMGHitEffFilename;
+        this.ContinuousDMGHitEffHeight = temp.ContinuousDMGHitEffHeight;
+        this.ContinuousDMGHitEffBindToEntity = temp.ContinuousDMGHitEffBindToEntity;
+        this.ContinuousDMGCenterEffNamespace = temp.ContinuousDMGCenterEffNamespace;
+        this.ContinuousDMGCenterEffFilename = temp.ContinuousDMGCenterEffFilename;
+        this.ContinuousDMGCenterEffHeight = temp.ContinuousDMGCenterEffHeight;
+        this.HasAbilityToDragEntities = temp.HasAbilityToDragEntities;
+        this.DragDelta = temp.DragDelta;
+        this.DragRange = temp.DragRange;
+        this.HasLimitedTarget = temp.HasLimitedTarget;
+        this.LimitedTarget = temp.LimitedTarget;
+        this.HasMaxHitCountForEveryEntity = temp.HasMaxHitCountForEveryEntity;
+        this.MaxHitCountForEveryEntity = temp.MaxHitCountForEveryEntity;
+        this.CanSplit = temp.CanSplit;
+        this.isSplitAncestor = temp.isSplitAncestor;
+        this.SplitParent = temp.SplitParent;
+        this.SplitRemainingTime = temp.SplitRemainingTime;
+        this.SplitNumber = temp.SplitNumber;
+        this.SplitLifetime = temp.SplitLifetime;
+        this.SplitFacingAngle = temp.SplitFacingAngle;
+        this.HasSplitMovementAnimation = temp.HasSplitMovementAnimation;
+        this.SplitAnimationSpeed = temp.SplitAnimationSpeed;
+        this.SplitMovementAnimationTicks = temp.SplitMovementAnimationTicks;
+        this.HasSplitHeightAnimation = temp.HasSplitHeightAnimation;
+        this.SplitAnimationMaxHeight = temp.SplitAnimationMaxHeight + ExtraMathMethods.randomFloat() * 5 + 0.5F;
+        this.SplitAnimationMinHeight = temp.SplitAnimationMinHeight;
+        this.WaitSplitMovementAnimationCompletion = temp.WaitSplitMovementAnimationCompletion;
+        this.EffectMap = temp.EffectMap;
+        this.DeathRattleEffectMap = temp.DeathRattleEffectMap;
+        this.isHealing = temp.isHealing;
+        this.ShootFromCurrentRotation = temp.ShootFromCurrentRotation;
+
+        this.setOwner(temp.getOwner());
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+        return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override
+    public void shoot(double x, double y, double z, float velocity, float inaccuracy) {
+        setEntityDeltaMovement(this, 0, 0, 0);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        double d0 = this.getBoundingBox().getSize() * 10.0D;
+        if (Double.isNaN(d0)) {
+            d0 = 1.0D;
+        }
+
+        d0 = d0 * 64.0D * getViewScale();
+        return distance < d0 * d0;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void lerpTo(double pX, double pY, double pZ, float pYRot, float pXRot, int pLerpSteps, boolean pTeleport) {
+        this.setPos(pX, pY, pZ);
+        this.setRot(pYRot, pXRot);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void lerpMotion(double x, double y, double z) {
+        setEntityDeltaMovement(this, 0, 0, 0);
+    }
+
+    public SoundEvent getSound() {
+        return this.sound;
+    }
+    public void setSound(SoundEvent a) {
+        this.sound = a;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        //TODO separate client and server level action
+        if (isLevelClientSide(this.level())) {
+            return;
+        }
+
+        if (!this.isSplitAncestor && this.HasSplitMovementAnimation) {
+            if (this.WaitSplitMovementAnimationCompletion && tickCount <= this.SplitMovementAnimationTicks) {
+
+                Vector3f tempV3_01;
+                if (this.ShootFromCurrentRotation) {
+                    tempV3_01 = PolarProjectionFromRotation(getEntityPos(this), this.SplitAnimationSpeed, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this));
+//                    tempV3_01 = PolarProjectionFromRotation2(getEntityPos(this), this.SplitAnimationSpeed, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this));
+                }
+                else {
+                    tempV3_01 = PolarProjectionFromVecHorizon(getEntityPos(this), this.SplitAnimationSpeed, getEntityHorizontalFacingDeg(this));
+                }
+
+                if (this.HasSplitHeightAnimation) {
+                    if (tickCount <= this.SplitMovementAnimationTicks / 2) {
+                        tempV3_01 = new Vector3f(tempV3_01.x(), this.SplitAnimationMinHeight + ((this.SplitAnimationMaxHeight - this.SplitAnimationMinHeight) * (tickCount * 1.0F / this.SplitMovementAnimationTicks)), tempV3_01.z());
+                    } else {
+                        tempV3_01 = new Vector3f(tempV3_01.x(), this.SplitAnimationMinHeight + ((this.SplitAnimationMaxHeight - this.SplitAnimationMinHeight) * ((this.SplitMovementAnimationTicks - tickCount) * 1.0F / this.SplitMovementAnimationTicks)), tempV3_01.z());
+                    }
+                }
+                moveEntityToPos(this, tempV3_01);
+                return;
+            }
+        }
+        List<Entity> tempDragEntityGroup = null;
+
+        //play sound
+        if (tickCount == 3) { this.playSound(this.getSound(), 0.8F, 1.0F); }
+
+        if (tickCount % this.updateDistPeriodTick == 0) {
+            if (this.speed > 0) {
+                Vector3f tempV3_01;
+                if (this.ShootFromCurrentRotation) {
+                    if (this.isBeam && this.getOwner() != null) {
+                        tempV3_01 = PolarProjectionFromRotation(getEntityPos(this.getOwner()), this.totalDist, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this));
+                    }
+                    else {
+                        tempV3_01 = PolarProjectionFromRotation(getEntityPos(this), this.speed, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this));
+                    }
+                }
+                else {
+                    if (this.isBeam && this.getOwner() != null) {
+                        tempV3_01 = PolarProjectionFromVecHorizon(getEntityPos(this.getOwner()), this.totalDist, getEntityHorizontalFacingDeg(this));
+                    }
+                    else {
+                        tempV3_01 = PolarProjectionFromVecHorizon(getEntityPos(this), this.speed, getEntityHorizontalFacingDeg(this));
+                    }
+                }
+
+//                printInGameMsg("speed?: "+this.speed+", UUID: "+getEntityUUID(this));
+                moveEntityToPos(this, tempV3_01);
+
+                if (!this.isBeam) {
+                    if (this.totalDist > 0) {
+                        if (this.expiredWhenReachTotalDist && this.distTravel >= this.totalDist) {
+                            this.setLifetime(0);
+                        }
+                        this.distTravel += this.speed;
+                    }
+                }
+                if (this.HasAbilityToDragEntities) {
+                    Predicate<Entity> tempPredicate01 = null;
+                    if (this.isContinuousDmgZoneCircular) {
+                        tempPredicate01 = entity -> DistanceBetweenEntitiesHorizontal(entity, this) <= this.DragRange;
+                        tempDragEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.ContinuousDmgRange, tempPredicate01.and(this.pFilter));
+                    } else {
+                        tempDragEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.ContinuousDmgRange, this.pFilter);
+                    }
+//                        MoveAllEntitiesInEntityGroup(tempDragEntityGroup, tempV3_01, this.DragDelta);
+                    if (this.ShootFromCurrentRotation) {
+                        MoveAllEntitiesInEntityGroupFromRotation(tempDragEntityGroup, this.speed, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this), this.DragDelta);
+                    }
+                    else {
+                        MoveAllEntitiesInEntityGroupHorizon(tempDragEntityGroup, this.speed, getEntityHorizontalFacingDeg(this), this.DragDelta);
+                    }
+                }
+            }
+        }
+
+        if (tickCount % this.ContinuousDmgTick == 0) {
+            int EntityGroupSize = -1;
+            List<Entity> tempEntityGroup = null;
+            Predicate<Entity> tempPredicate01 = null;
+            if (this.HasContinuousDMG) {
+                if (tempDragEntityGroup == null) {
+                    if (this.isContinuousDmgZoneCircular) {
+                        tempPredicate01 = entity -> DistanceBetweenEntitiesHorizontal(entity, this) <= this.ContinuousDmgRange;
+                        tempEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.ContinuousDmgRange, tempPredicate01.and(this.pFilter));
+                    } else {
+                        tempEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.ContinuousDmgRange, this.pFilter);
+                    }
+                }
+                else {
+                    tempEntityGroup = tempDragEntityGroup;
+                }
+
+                EntityGroupSize = tempEntityGroup.size();
+                if (EntityGroupSize > 0) {
+                    if (this.getOwner() != null) {
+                        if (this.HasMaxHitCountForEveryEntity) {
+                            if (this.isHealing) {
+                                HealEntityGroup(tempEntityGroup, this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.MaxHitCountForEveryEntity, this.EffectMap);
+                            }
+                            else {
+                                DamageEntityGroup(tempEntityGroup, (LivingEntity) this.getOwner(), this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.MaxHitCountForEveryEntity, this.EffectMap, this.isMagicDMG);
+                            }
+                        } else {
+                            if (this.isHealing) {
+                                HealEntityGroup(tempEntityGroup, this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.EffectMap);
+                            }
+                            else {
+                                DamageEntityGroup(tempEntityGroup, (LivingEntity) this.getOwner(), this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.EffectMap, this.isMagicDMG);
+                            }
+                        }
+                    }
+                }
+                if (this.ContinuousDMGCenterEffNamespace != null && this.ContinuousDMGCenterEffFilename != null) {
+                    ProjectileDummyEffOnly tempEffEntity = SetupEffOnlyEntity(getEntityPos(this), getEntityHorizontalFacingDeg(this));
+                    tempEffEntity.increaseEntityHeightBy(this.ContinuousDMGCenterEffHeight);
+                    SpawnEntity(tempEffEntity);
+                    BindEffectToEntity(tempEffEntity, this.ContinuousDMGCenterEffNamespace, this.ContinuousDMGCenterEffFilename);
+                }
+            }
+
+            if (this.isBeam) {
+                ProjectileDummyEffOnly tempEffEntity = null;
+                tempPredicate01 = entity -> DistanceBetweenEntitiesHorizontal(entity, this) <= this.ContinuousDmgRange;
+                for (float tempFloat1 = 0.25F; tempFloat1 < totalDist; tempFloat1 = tempFloat1 + 0.25F) {
+                    if (this.ShootFromCurrentRotation) {
+                        tempEffEntity = SetupEffOnlyEntity(PolarProjectionFromRotation(getEntityPos(this), tempFloat1, getEntityVerticalFacingDeg(this), getEntityHorizontalFacingDeg(this)), getEntityHorizontalFacingDeg(this));
+                    }
+                    else {
+                        tempEffEntity = SetupEffOnlyEntity(PolarProjectionFromVecHorizon(getEntityPos(this), tempFloat1, getEntityHorizontalFacingDeg(this)), getEntityHorizontalFacingDeg(this));
+                    }
+                    BindEffectToEntity(tempEffEntity, this.FXnamespace, this.FXeffNameOnly);
+                    if (this.isContinuousDmgZoneCircular) {
+                        tempEntityGroup = GroupEnumEntitiesInRangeFilter(tempEffEntity, this.ContinuousDmgRange, tempPredicate01.and(this.pFilter));
+                    } else {
+                        tempEntityGroup = GroupEnumEntitiesInRangeFilter(tempEffEntity, this.ContinuousDmgRange, this.pFilter);
+                    }
+
+                    EntityGroupSize = tempEntityGroup.size();
+                    if (EntityGroupSize > 0) {
+                        if (this.getOwner() != null) {
+                            if (this.HasMaxHitCountForEveryEntity) {
+                                if (this.isHealing) {
+                                    HealEntityGroup(tempEntityGroup, this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.MaxHitCountForEveryEntity, this.EffectMap);
+                                }
+                                else {
+                                    DamageEntityGroup(tempEntityGroup, (LivingEntity) this.getOwner(), this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.MaxHitCountForEveryEntity, this.EffectMap, this.isMagicDMG);
+                                }
+                            } else {
+                                if (this.isHealing) {
+                                    HealEntityGroup(tempEntityGroup, this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.EffectMap);
+                                }
+                                else {
+                                    DamageEntityGroup(tempEntityGroup, (LivingEntity) this.getOwner(), this.ContinuousDMG, this.ContinuousDMGHitEffNamespace, this.ContinuousDMGHitEffFilename, this.ContinuousDMGHitEffHeight, this.ContinuousDMGHitEffBindToEntity, this.DamagedEntityGroup, this.EffectMap, this.isMagicDMG);
+                                }
+                            }
+                        }
+                    }
+                    if (this.HasCollision) {
+                        if ( (this.CollideWithBlock && isCollisionWithBlock(tempEffEntity)) || (this.CollideWithLivingEntity && isCollisionWithLivingEntities(this.collisionBoundingBoxRange, tempEffEntity, this.pFilter)) ) {
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                if (this.HasCollision) {
+                    if ((this.CollideWithBlock && this.checkCollisionWithBlock()) || (this.CollideWithLivingEntity && this.checkCollisionWithLivingEntities(this.collisionBoundingBoxRange))) {
+                        this.setLifetime(0);
+                    }
+                }
+            }
+        }
+
+        if (this.HasLimitedTarget) {
+            if (this.reachLimitedTarget()) {
+                this.setLifetime(0);
+            }
+        }
+        this.RemoveEntityByTimedLife();
+    }
+
+    public void RemoveEntityByTimedLife() {
+        if (!isLevelClientSide(this.level())) {
+            if (getLifetime() < this.tickCount) {
+                EntityMethods.RemoveEntity(this);
+                this.TriggerDeathrattle();
+            }
+        }
+    }
+
+    public void TriggerDeathrattle() {
+        if (this.HasFinalBlow) {
+            List<Entity> tempEntityGroup = null;
+            Predicate<Entity> tempPredicate01 = null;
+            if (this.isFinalBlowZoneCircular) {
+                tempPredicate01 = entity -> (DistanceBetweenEntitiesHorizontal(entity, this) <= this.FinalBlowRange);
+                tempEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.FinalBlowRange, tempPredicate01.and(this.pFilter));
+            }
+            else {
+                tempEntityGroup = GroupEnumEntitiesInRangeFilter(this, this.FinalBlowRange, this.pFilter);
+            }
+
+            if (this.getOwner() != null) {
+                if (this.isHealing) {
+                    HealEntityGroup(tempEntityGroup, this.finalDamage, this.DamagedEntityGroup, this.DeathRattleEffectMap);
+                }
+                else {
+                    DamageEntityGroup(tempEntityGroup, (LivingEntity) this.getOwner(), this.finalDamage, this.DamagedEntityGroup, this.DeathRattleEffectMap, this.isMagicDMG);
+                }
+            }
+
+            Vector3f currentEntityPos = getEntityPos(this);
+            Entity tempE01 = SetupEffOnlyEntity(new Vector3f(currentEntityPos.x(), currentEntityPos.y()+this.FinalBlowEffHeight, currentEntityPos.z()), getEntityHorizontalFacingDeg(this));
+            SpawnEntity(tempE01);
+            BindEffectToEntity(tempE01, this.FinalBlowEffNamespace, this.FinalBlowEffFilename);
+        }
+        if (this.CanSplit && this.SplitRemainingTime > 0 && this.SplitNumber > 0) {
+            ProjectileDummy tempProjectileDummy01;
+            Vector3f tempV3_origin = getEntityPos(this);
+            int splitRemainingDecrement = this.SplitRemainingTime - 1, newSplitNumber = this.SplitNumber/2;
+            boolean isSplitNumOdd = (this.SplitNumber % 2 == 1);
+//            boolean isSplitNumOdd = ( (this.SplitNumber % 2 == 1) ? true : false);
+            for (int i = 0; i <= newSplitNumber; i++) {
+                if (isSplitNumOdd) {
+                    if (i == 0) {
+                        tempProjectileDummy01 = SetupEffEntity(tempV3_origin, getEntityHorizontalFacingDeg(this), getEntityVerticalFacingDeg(this));
+                        tempProjectileDummy01.ProjectileDummyDuplicateSetting(this);
+                        tempProjectileDummy01.setSplit(this.CanSplit, splitRemainingDecrement, this.SplitNumber, false, this, this.SplitFacingAngle, this.SplitLifetime);
+                        tempProjectileDummy01.setLifetime(this.SplitLifetime);
+                        setEntityHorizontalFacingDeg(tempProjectileDummy01, getEntityHorizontalFacingDeg(this));
+                        SpawnEntity(tempProjectileDummy01);
+                        BindEffectToEntity(tempProjectileDummy01, this.FXnamespace, this.FXeffNameOnly);
+                    }
+                    else {
+                        tempProjectileDummy01 = SetupEffEntity(tempV3_origin, getEntityHorizontalFacingDeg(this), getEntityVerticalFacingDeg(this));
+                        tempProjectileDummy01.ProjectileDummyDuplicateSetting(this);
+                        setEntityHorizontalFacingDeg(tempProjectileDummy01, getEntityHorizontalFacingDeg(this)+(this.SplitFacingAngle*i/newSplitNumber));
+                        tempProjectileDummy01.setSplit(this.CanSplit, splitRemainingDecrement, this.SplitNumber, false, this, this.SplitFacingAngle, this.SplitLifetime);
+                        tempProjectileDummy01.setLifetime(this.SplitLifetime);
+                        SpawnEntity(tempProjectileDummy01);
+                        BindEffectToEntity(tempProjectileDummy01, this.FXnamespace, this.FXeffNameOnly);
+                        tempProjectileDummy01 = SetupEffEntity(tempV3_origin, getEntityHorizontalFacingDeg(this), getEntityVerticalFacingDeg(this));
+                        tempProjectileDummy01.ProjectileDummyDuplicateSetting(this);
+                        setEntityHorizontalFacingDeg(tempProjectileDummy01, getEntityHorizontalFacingDeg(this)-(this.SplitFacingAngle*i/newSplitNumber));
+                        tempProjectileDummy01.setSplit(this.CanSplit, splitRemainingDecrement, this.SplitNumber, false, this, this.SplitFacingAngle, this.SplitLifetime);
+                        SpawnEntity(tempProjectileDummy01);
+                        tempProjectileDummy01.setLifetime(this.SplitLifetime);
+                        BindEffectToEntity(tempProjectileDummy01, this.FXnamespace, this.FXeffNameOnly);
+                    }
+                }
+                else {
+                    if (i == 0) { continue; }
+                    tempProjectileDummy01 = SetupEffEntity(tempV3_origin, getEntityHorizontalFacingDeg(this), getEntityVerticalFacingDeg(this));
+                    tempProjectileDummy01.ProjectileDummyDuplicateSetting(this);
+                    setEntityHorizontalFacingDeg(tempProjectileDummy01, getEntityHorizontalFacingDeg(this)+(this.SplitFacingAngle*i/(2*newSplitNumber))-(this.SplitFacingAngle/(2*this.SplitNumber)));
+                    tempProjectileDummy01.setSplit(this.CanSplit, splitRemainingDecrement, this.SplitNumber, false, this, this.SplitFacingAngle, this.SplitLifetime);
+                    SpawnEntity(tempProjectileDummy01);
+                    tempProjectileDummy01.setLifetime(this.SplitLifetime);
+                    BindEffectToEntity(tempProjectileDummy01, this.FXnamespace, this.FXeffNameOnly);
+                    tempProjectileDummy01 = SetupEffEntity(tempV3_origin, getEntityHorizontalFacingDeg(this), getEntityVerticalFacingDeg(this));
+                    tempProjectileDummy01.ProjectileDummyDuplicateSetting(this);
+                    setEntityHorizontalFacingDeg(tempProjectileDummy01, getEntityHorizontalFacingDeg(this)-(this.SplitFacingAngle*i/(2*newSplitNumber))+(this.SplitFacingAngle/(2*this.SplitNumber)));
+                    tempProjectileDummy01.setSplit(this.CanSplit, splitRemainingDecrement, this.SplitNumber, false, this, this.SplitFacingAngle, this.SplitLifetime);
+                    SpawnEntity(tempProjectileDummy01);
+                    tempProjectileDummy01.setLifetime(this.SplitLifetime);
+                    BindEffectToEntity(tempProjectileDummy01, this.FXnamespace, this.FXeffNameOnly);
+//                    BindEffectToEntity(tempE01, this.FinalBlowEffNamespace, this.FinalBlowEffFilename);
+                }
+            }
+        }
+    }
+
+    public boolean checkCollisionWithBlock() {
+//        int x = Math.floor(getEntityX(this));
+//        int y = Math.floor(getEntityY(this));
+//        int z = Math.floor(getEntityZ(this));
+        if (!CollideWithBlock) { return false; }
+        int x = MathMethods.floor(getEntityX(this));
+        int y = MathMethods.floor(getEntityY(this));
+        int z = MathMethods.floor(getEntityZ(this));
+        BlockState state = this.level().getBlockState(new BlockPos(x, y, z));
+
+//        if (!state.isAir()) {
+//            printInGameMsg(state.getBlock().toString());
+//        }
+
+        return !state.isAir();
+    }
+
+    public boolean checkCollisionWithLivingEntities(double range) {
+        if (!this.CollideWithLivingEntity) {
+            return false;
+        }
+//        return GroupEnumEntitiesInRangeFilter(this, 1.0, 1.0, 1.0, this.pFilter).size() > 0;
+        return !GroupEnumEntitiesInRangeFilter(this, range, range, range, this.pFilter).isEmpty();
+    }
+
+    public int getLifetime() {
+        return Math.min(this.lifetime, 3000);
+    }
+
+    public void setLifetime(int value) {
+        this.lifetime = value;
+    }
+
+    public double getEntityHeight() { return getEntityY(this);}
+    public void setEntityHeight(double a) { moveEntityToXYZRotation(this, getEntityX(this), a, getEntityZ(this)); }
+    public void increaseEntityHeightBy(double a) { moveEntityToXYZRotation(this, getEntityX(this), getEntityY(this)+a, getEntityZ(this)); }
+
+    public float getSpeed() {
+        return this.speed;
+    }
+
+    public void setSpeed(float a) {
+        this.speed = a;
+    }
+
+    public double getDistTravel() { return this.distTravel; }
+    public void setDistTravel(float a) { this.distTravel = a; }
+    public double getTotalDist() { return this.totalDist; }
+    public void setTotalDist(boolean a, float TotalDist) {
+        this.expiredWhenReachTotalDist = a;
+        this.totalDist = TotalDist;
+    }
+    public boolean getExpiredWhenReachTotalDist() { return this.expiredWhenReachTotalDist; }
+//    public void setExpiredWhenReachTotalDist(boolean a) { this.expiredWhenReachTotalDist = a; }
+    public int getUpdateDistPeriodTick() { return this.updateDistPeriodTick; }
+    public void setUpdateDistPeriodTick(int a) { this.updateDistPeriodTick = Math.max(a, 1); }
+
+    public HashMap<Entity, Integer> getDamagedEntityGroup() {
+        return this.DamagedEntityGroup;
+    }
+
+    public void setDamagedEntityGroup(HashMap<Entity, Integer> damagedEntityGroup) {
+        this.DamagedEntityGroup = damagedEntityGroup;
+    }
+
+    //boolean options
+    public void setCollision(boolean a) {
+        this.HasCollision = a;
+    }
+
+    public void setCollision(boolean WouldCollideWithEntity, boolean collideWithBlock, boolean collideWithLivingEntity) {
+        this.HasCollision = WouldCollideWithEntity;
+        this.CollideWithBlock = collideWithBlock;
+        this.CollideWithLivingEntity = collideWithLivingEntity;
+    }
+
+    public boolean hasCollision() {
+        return this.HasCollision;
+    }
+
+//    public void setHasCollision(boolean a) { this.HasCollision = a; }
+//    public boolean getHasCollision() { return this.HasCollision; }
+    public void setCollideWithBlock(boolean a) { this.CollideWithBlock = a; }
+    public boolean getCollideWithBlock() { return this.CollideWithBlock; }
+    public void setCollideWithLivingEntity(boolean a) { this.CollideWithLivingEntity = a; }
+    public boolean getCollideWithLivingEntity() { return this.CollideWithLivingEntity; }
+    public void setCollisionBoundingBoxRange(float a) { this.collisionBoundingBoxRange = a; }
+    public double getCollisionBoundingBoxRange() { return this.collisionBoundingBoxRange; }
+
+    public boolean isMagicDMG() { return this.isMagicDMG; }
+    public void setMagicDMG(boolean magicDMG) { this.isMagicDMG = magicDMG; }
+
+    public boolean isBeam() { return this.isBeam; }
+    public void setBeam(boolean beam) { this.isBeam = beam; }
+
+    public void setFinalBlow(boolean a, float damage, float range) {
+        this.HasFinalBlow = a;
+        this.finalDamage = damage;
+        this.FinalBlowRange = range;
+    }
+
+    public void setFinalBlow(boolean a, float damage, float range, String FXNamespace, String FXFilename, float finalBlowEffHeight) {
+        this.HasFinalBlow = a;
+        this.finalDamage = damage;
+        this.FinalBlowRange = range;
+        this.FinalBlowEffNamespace = FXNamespace;
+        this.FinalBlowEffFilename = FXFilename;
+        this.FinalBlowEffHeight = finalBlowEffHeight;
+    }
+
+    public boolean hasFinalBlow() {
+        return this.HasFinalBlow;
+    }
+
+//    public void setHasFinalBlow(boolean a) { this.HasFinalBlow = a; }
+//    public boolean getHasFinalBlow() { return this.HasFinalBlow; }
+//    public void setFinalDamage(double a) { this.finalDamage = a; }
+//    public double getFinalDamage() { return this.finalDamage; }
+    public void setFinalBlowZoneCircular(boolean a) { this.isFinalBlowZoneCircular = a; }
+    public boolean getFinalBlowZoneCircular() { return this.isFinalBlowZoneCircular; }
+    public void setFinalBlowRange(float a) { this.FinalBlowRange = a; }
+    public double getFinalBlowRange() { return this.FinalBlowRange; }
+    public void setFinalBlowEffHeight(float finalBlowEffHeight) { this.FinalBlowEffHeight = finalBlowEffHeight; }
+    public double getFinalBlowEffHeight() { return this.FinalBlowEffHeight; }
+
+    public void setContinuousDMG(boolean a, float damage, float range, int tick) {
+        this.HasContinuousDMG = a;
+        this.ContinuousDMG = damage;
+        this.ContinuousDmgRange = range;
+        this.ContinuousDmgTick = tick;
+    }
+
+    public void setContinuousDMGFXBeingHit(String FXNamespace, String FXFilename, float continuousDMGHitEffHeight, boolean bindToEntity) {
+        this.ContinuousDMGHitEffNamespace = FXNamespace;
+        this.ContinuousDMGHitEffFilename = FXFilename;
+        this.ContinuousDMGHitEffHeight = continuousDMGHitEffHeight;
+        this.ContinuousDMGHitEffBindToEntity = bindToEntity;
+    }
+
+    public void setContinuousDMGcenterFX(String FXNamespace, String FXFilename, float continuousDMGCenterEffHeight) {
+        this.ContinuousDMGCenterEffNamespace = FXNamespace;
+        this.ContinuousDMGCenterEffFilename = FXFilename;
+        this.ContinuousDMGCenterEffHeight = continuousDMGCenterEffHeight;
+    }
+
+    public boolean hasContinuousDMG() {
+        return this.HasContinuousDMG;
+    }
+
+    public void setContinuousDmgZoneCircular(boolean a) { this.isContinuousDmgZoneCircular = a; }
+    public boolean getContinuousDmgZoneCircular() { return this.isContinuousDmgZoneCircular; }
+//    public void setContinuousDMG(double a) { this.ContinuousDMG = a; }
+//    public double getContinuousDMG() { return this.ContinuousDMG; }
+    public void setContinuousDmgRange(float a) { this.ContinuousDmgRange = a; }
+    public double getContinuousDmgRange() { return this.ContinuousDmgRange; }
+    public void setContinuousDmgTick(int a) { this.ContinuousDmgTick = a; }
+    public int getContinuousDmgTick() { return ContinuousDmgTick; }
+    public void setContinuousDMGHitEffHeight(float continuousDMGHitEffHeight) { this.ContinuousDMGHitEffHeight = continuousDMGHitEffHeight; }
+    public double getContinuousDMGHitEffHeight() { return this.ContinuousDMGHitEffHeight; }
+
+    public void setAbilityToDragEntitiesAround(boolean a, float dragRange) {
+        this.HasAbilityToDragEntities = a;
+        this.DragRange = dragRange;
+    }
+    public boolean hasAbilityToDragEntitiesAround() { return this.HasAbilityToDragEntities; }
+    public void setDragRange(float a) { this.DragRange = a; }
+    public float getDragRange() { return this.DragRange; }
+    public void setDragDelta(boolean a) { this.DragDelta = a; }
+    public boolean getDragDelta() { return this.DragDelta; }
+
+    public void setMaxHitCountForEveryEntity(boolean a, int totalHitCount) {
+        this.HasMaxHitCountForEveryEntity = a;
+        this.MaxHitCountForEveryEntity = totalHitCount;
+    }
+    public boolean hasMaxHitCountForEveryEntity() { return this.HasMaxHitCountForEveryEntity; }
+    public int getMaxHitCountForEveryEntity() { return this.MaxHitCountForEveryEntity; }
+//    public void setMaxHitCountForEveryEntity(int a) { this.MaxHitCountForEveryEntity = a; }
+
+//    public void setLimitedTarget(int a) { this.LimitedTarget = a; }
+    public boolean reachLimitedTarget() { return DamagedEntityGroup.size() >= this.LimitedTarget; }
+    public void setLimitedTarget(boolean a, int total) {
+        this.HasLimitedTarget = a;
+        this.LimitedTarget = total;
+    }
+    public boolean hasLimitedTarget() { return this.HasLimitedTarget; }
+
+    public void setSplit(boolean a, int splitRemainingTime, int splitNumber, boolean isAncestor, ProjectileDummy parent, float splitFacingAngle, int splitLifeTime) {
+        this.CanSplit = a;
+        this.SplitRemainingTime = splitRemainingTime;
+        this.SplitNumber = splitNumber;
+        this.isSplitAncestor = isAncestor;
+        this.SplitParent = parent;
+        this.SplitFacingAngle = splitFacingAngle;
+        this.SplitLifetime = splitLifeTime;
+    }
+    public void setSplit(boolean isSplit, int splitRemainingTime, int splitNumber, boolean isAncestor, ProjectileDummy parent, float splitFacingAngle, int splitTime, boolean isAnimated, int animationTicks, boolean waitAnimation, float splitAnimationSpeed, boolean hasSplitHeightAnimation) {
+        this.CanSplit = isSplit;
+        this.SplitRemainingTime = splitRemainingTime;
+        this.SplitNumber = splitNumber;
+        this.isSplitAncestor = isAncestor;
+        this.SplitParent = parent;
+        this.SplitFacingAngle = splitFacingAngle;
+        this.SplitLifetime = splitTime;
+        this.setSplitMovementAnimation(isAnimated, animationTicks, waitAnimation, splitAnimationSpeed, hasSplitHeightAnimation);
+    }
+    public boolean canSplit() { return this.CanSplit; }
+
+    public boolean isSplitAncestor() { return this.isSplitAncestor; }
+    public void setSplitAncestor(boolean a) { this.isSplitAncestor = a; }
+    public ProjectileDummy getSplitParent() { return this.SplitParent; }
+    public ProjectileDummy getSplitAncestor(ProjectileDummy a) {
+        if (a == null) { return null; }
+        if (this.isSplitAncestor) { return this; }
+        else {
+            return this.getSplitAncestor(this.SplitParent);
+        }
+    }
+    public void setSplitParent(ProjectileDummy a) { this.SplitParent = a; }
+
+    public void setSplitRemainingTime(int a) { this.SplitRemainingTime = a; }
+    public int getSplitRemainingTime(int a) { return this.SplitRemainingTime; }
+    public void setSplitNumber(int a) { this.SplitNumber = a; }
+    public int getSplitNumber(int a) { return this.SplitNumber; }
+    public void setSplitLifetime(int a) { this.SplitLifetime = a; }
+    public int getSplitLifetime() { return this.SplitLifetime; }
+    public void setSplitFacingAngle(float a) { this.SplitFacingAngle = a; }
+    public double getSplitFacingAngle() { return this.SplitFacingAngle; }
+    public void setSplitMovementAnimation(boolean isAnimated, int animationTicks, boolean waitAnimation, float splitAnimationSpeed, boolean hasSplitHeightAnimation) {
+        this.HasSplitMovementAnimation = isAnimated;
+        this.SplitMovementAnimationTicks = animationTicks;
+        this.WaitSplitMovementAnimationCompletion = waitAnimation;
+        this.SplitAnimationSpeed = splitAnimationSpeed;
+        this.HasSplitHeightAnimation = hasSplitHeightAnimation;
+        this.SplitAnimationMinHeight = getEntityPos(this).y();
+        this.SplitAnimationMaxHeight = this.SplitAnimationMinHeight+ExtraMathMethods.randomFloat() * 5 + 0.5F;
+    }
+    public boolean hasSplitMovementAnimation() { return this.HasSplitMovementAnimation; }
+    public void setSplitMovementAnimationTicks(int a) { this.SplitMovementAnimationTicks = a; }
+    public int getSplitMovementAnimationTicks(int a) { return this.SplitMovementAnimationTicks; }
+    public void setWaitSplitMovementAnimationCompletion(boolean a) { this.WaitSplitMovementAnimationCompletion = a; }
+    public boolean getWaitSplitMovementAnimationCompletion(boolean a) { return this.WaitSplitMovementAnimationCompletion; }
+    public double getSplitAnimationSpeed() { return this.SplitAnimationSpeed; }
+    public void setSplitAnimationSpeed(float a) { this.SplitAnimationSpeed = a; }
+
+    public void setFX(String namespace, String effNameOnly) {
+        this.FXnamespace = namespace;
+        this.FXeffNameOnly = effNameOnly;
+    }
+    public String getFXnamespace() { return this.FXnamespace; }
+    public String getFXeffNameOnly() { return this.FXeffNameOnly; }
+
+    public void setFilterCond(Predicate<? super Entity> a) {
+        this.pFilter = a;
+    }
+
+    public Predicate<? super Entity> getFilterCond() {
+        return this.pFilter;
+    }
+
+    public HashMap<MobEffectInstance, Integer> getEffectNCounter() { return this.EffectMap; }
+    public void setEffectNCounter(HashMap<MobEffectInstance, Integer> effectNCounter) { this.EffectMap = effectNCounter; }
+    public HashMap<MobEffectInstance, Integer> getDeathRattleEffectMap() { return this.DeathRattleEffectMap; }
+    public void setDeathRattleEffectMap(HashMap<MobEffectInstance, Integer> deathRattleEffectMap) { this.DeathRattleEffectMap = deathRattleEffectMap; }
+
+    public boolean isHealing() { return this.isHealing; }
+    public void setHealing(boolean healing) { this.isHealing = healing; }
+
+    public boolean isShootFromCurrentRotation() { return this.ShootFromCurrentRotation; }
+    public void setShootFromCurrentRotation(boolean shootFromCurrentRotation) { this.ShootFromCurrentRotation = shootFromCurrentRotation; }
+}

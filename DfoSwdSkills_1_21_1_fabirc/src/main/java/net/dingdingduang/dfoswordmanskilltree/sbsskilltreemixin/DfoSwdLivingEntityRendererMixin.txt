@@ -1,0 +1,64 @@
+package net.dingdingduang.dfoswordmanskilltree.sbsskilltreemixin;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.entity.LivingEntity;
+import modified.org.joml.Quaternionf;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static net.dingdingduang.dfoswordmanskilltree.util.QuaternionHelper.QuatRotationByAxis;
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.printInGameMsg;
+
+@Mixin(LivingEntityRenderer.class)
+public abstract class DfoSwdLivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M> {
+	protected DfoSwdLivingEntityRendererMixin(EntityRendererProvider.Context context) {
+		super(context);
+	}
+
+	@Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+			at = {@At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V")}
+	)
+//	@Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+//			at = {@At(value = "HEAD")},
+//			remap = true
+//	)
+	public void DfoLivingEntityRendererPushPose(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
+//		pMatrixStack.pushPose();
+//		pMatrixStack.pushPose();
+//
+//		Quaternionf rotatorZ = new Quaternionf();
+//		QuatRotationByAxis(rotatorZ, MathMethods.AngleToRadians(ExtraMathMethods.randomFloat() * 360), 0f, 0f, 1.0f);
+//
+//		Quaternionf rotatorX = new Quaternionf();
+//		QuatRotationByAxis(rotatorX, MathMethods.AngleToRadians(ExtraMathMethods.randomFloat() * 360), 1.0f, 0f, 0f);
+//		rotatorZ.mul(rotatorX);
+//		printInGameMsg("random: "+(ExtraMathMethods.randomFloat() * 360));
+//
+//		pMatrixStack.mulPose(rotatorZ);
+//
+//		pMatrixStack.pushPose();
+	}
+
+	@Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+			at = {@At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V")}
+	)
+//	@Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+//			at = {@At(value = "TAIL")},
+//			remap = true
+//	)
+	public void DfoLivingEntityRendererPopPose(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
+//		pMatrixStack.popPose();
+//		pMatrixStack.popPose();
+//		pMatrixStack.popPose();
+	}
+}

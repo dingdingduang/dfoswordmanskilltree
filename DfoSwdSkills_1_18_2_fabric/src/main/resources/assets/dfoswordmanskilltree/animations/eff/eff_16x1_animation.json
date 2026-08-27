@@ -1,0 +1,38 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"noaction": {
+			"animation_length": 0.5,
+			"bones": {
+				"eff_seven": {
+					"scale": {
+						"vector": [1, 1, 1]
+					}
+				}
+			}
+		},
+		"stab": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"eff_seven": {
+					"rotation": {
+						"vector": [0, 0, "math.random(0,360)"]
+					}
+				}
+			}
+		},
+		"groundquake": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"eff_seven": {
+					"rotation": {
+						"vector": [0, "math.random(0,3)", 0]
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

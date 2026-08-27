@@ -1,0 +1,48 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer;
+
+import net.dingdingduang.dfoswordmanskilltree.entity.ProjectileHelper;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelAnimationController;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+
+public class NullEntity extends ProjectileHelper implements GeoEntity {
+    private AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    private GeoModelAnimationController<NullEntity> GeoAnimationController = new GeoModelAnimationController<>(this, "controller", 0, this::predicate, 0);
+
+    public GeoModelAnimationController<NullEntity> getAnimationController() { return this.GeoAnimationController; }
+
+    public NullEntity(EntityType<? extends ProjectileHelper> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
+        this.noPhysics = true;
+        this.blocksBuilding = false;
+    }
+
+    public void tick() {
+        if (!getEntityLevelIsClient(this)) {
+            if (this.tickCount > 10) {
+                RemoveEntity(this);
+            }
+        }
+    }
+
+    protected <E extends GeoEntity> PlayState predicate(AnimationState<E> event) {
+        return PlayState.CONTINUE;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(GeoAnimationController);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return this.cache; }
+}

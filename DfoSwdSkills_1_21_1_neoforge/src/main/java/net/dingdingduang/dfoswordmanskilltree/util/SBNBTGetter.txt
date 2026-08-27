@@ -1,0 +1,44 @@
+package temp.sbasiclibs.util;
+
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.commands.data.EntityDataAccessor;
+import net.minecraft.world.entity.Entity;
+
+public class SBNBTGetter {
+//    public static void modifyEntityNBTExample(CompoundTag nbt) {
+//        CompoundTag nbtEntityTag2 = new CompoundTag();
+//        nbtEntityTag2.putDouble("Base",100.0);
+//        nbtEntityTag2.putString("Name","minecraft:generic.max_health");
+//        ListTag LT1 = new ListTag();
+//        LT1.add(nbtEntityTag2);
+//        nbt.put("Attributes", LT1);
+//        nbt.putInt("Health",100);
+//    }
+
+    //U cannot modify player data
+    public static void setLivingEntityMaxHP(Entity a, int b) {
+        CompoundTag ct = getEntityCompoundNBT(a);
+        CompoundTag nbtEntityTag2 = new CompoundTag();
+        nbtEntityTag2.putDouble("Base", b);
+        nbtEntityTag2.putString("Name","minecraft:generic.max_health");
+        ListTag LT1 = new ListTag();
+        LT1.add(nbtEntityTag2);
+        ct.put("Attributes", LT1);
+        ct.putInt("Health",b);
+        try {
+            getEntityDataAccessor(a).setData(ct);
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static CompoundTag getEntityCompoundNBT(Entity a) {
+        return getEntityDataAccessor(a).getData();
+    }
+
+    public static EntityDataAccessor getEntityDataAccessor(Entity a) {
+        return new EntityDataAccessor(a);
+    }
+}

@@ -1,0 +1,834 @@
+{
+    "mytestsound.ground_stomp": {
+        "category": "master",
+        "sounds": [ { "name": "dfoswordmanskilltree:mytestsound/ground_stomp" } ]
+    },
+    "common.boodong_ball": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/boodong_ball" } ]
+    },
+    "common.boodong_circle_loop": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/boodong_circle_loop" } ]
+    },
+    "common.boodong_explosion": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/boodong_explosion" } ]
+    },
+    "common.boodong_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/boodong_hit_01" } ]
+    },
+    "common.boodong_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/boodong_hit_02" } ]
+    },
+    "common.brick_break": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/brick_break" } ]
+    },
+    "common.brick_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/brick_hit" } ]
+    },
+    "common.c_berserk": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/c_berserk" } ]
+    },
+    "common.cancel_effect": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/cancel_effect" } ]
+    },
+    "common.channeling.channeling_finished": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/channeling/channeling_finished" } ]
+    },
+    "common.channeling.channeling_sound": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/channeling/channeling_sound" } ]
+    },
+    "common.clay_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/clay_hit" } ]
+    },
+    "common.clay_shoot": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/clay_shoot" } ]
+    },
+    "common.earthfire": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/earthfire" } ]
+    },
+    "common.electric_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/electric_hit" } ]
+    },
+    "common.electric_launch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/electric_launch" } ]
+    },
+    "common.fire_explosion": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/fire_explosion" } ]
+    },
+    "common.fire_loop": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/fire_loop" } ]
+    },
+    "common.fire_pillar": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/fire_pillar" } ]
+    },
+    "common.fire_pillarhit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/fire_pillarhit" } ]
+    },
+    "common.flame_sound": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/flame_sound" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_01" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_02" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_03" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_04": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_04" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_05": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_05" } ]
+    },
+    "common.groundquake.sd_mon_ground_hit_06": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_hit_06" } ]
+    },
+    "common.groundquake.sd_mon_ground_smash_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_smash_01" } ]
+    },
+    "common.groundquake.sd_mon_ground_smash_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_smash_02" } ]
+    },
+    "common.groundquake.sd_mon_ground_smash_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_smash_03" } ]
+    },
+    "common.groundquake.sd_mon_ground_smash_04": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/sd_mon_ground_smash_04" } ]
+    },
+    "common.groundquake.shockwave_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/shockwave_hit_01" } ]
+    },
+    "common.groundquake.shockwave_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/groundquake/shockwave_hit_02" } ]
+    },
+    "common.icicle_fire": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/icicle_fire" } ]
+    },
+    "common.icicle_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/icicle_hit" } ]
+    },
+    "common.laser_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/laser_hit" } ]
+    },
+    "common.laser_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/laser_hit_02" } ]
+    },
+    "common.spell_charging.energy_charge": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/spell_charging/energy_charge" } ]
+    },
+    "common.spell_charging.energy_charge_end": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/spell_charging/energy_charge_end" } ]
+    },
+    "common.superarmour_break": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/superarmour_break" } ]
+    },
+    "common.throw_bomb": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/throw_bomb" } ]
+    },
+    "common.throw_firestone": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/throw_firestone" } ]
+    },
+    "common.throw_stone": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:common/throw_stone" } ]
+    },
+    "weapon.beamswd_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswd_touch" } ]
+    },
+    "weapon.beamswda_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswda_01" } ]
+    },
+    "weapon.beamswda_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswda_02" } ]
+    },
+    "weapon.beamswda_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswda_03" } ]
+    },
+    "weapon.beamswda_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswda_hit_01" } ]
+    },
+    "weapon.beamswda_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswda_hit_02" } ]
+    },
+    "weapon.beamswdb": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswdb" } ]
+    },
+    "weapon.beamswdb_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswdb_hit" } ]
+    },
+    "weapon.beamswdc_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswdc_01" } ]
+    },
+    "weapon.beamswdc_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswdc_hit_01" } ]
+    },
+    "weapon.beamswdc_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/beamswdc_hit_02" } ]
+    },
+    "weapon.kata_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/kata_01" } ]
+    },
+    "weapon.kata_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/kata_02" } ]
+    },
+    "weapon.kata_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/kata_03" } ]
+    },
+    "weapon.kata_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/kata_hit_01" } ]
+    },
+    "weapon.kata_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/kata_hit_02" } ]
+    },
+    "weapon.katb": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/katb" } ]
+    },
+    "weapon.katb_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/katb_hit" } ]
+    },
+    "weapon.katc_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/katc_01" } ]
+    },
+    "weapon.katc_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/katc_02" } ]
+    },
+    "weapon.katc_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/katc_hit_01" } ]
+    },
+    "weapon.minswd_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswd_touch" } ]
+    },
+    "weapon.minswda_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_01" } ]
+    },
+    "weapon.minswda_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_02" } ]
+    },
+    "weapon.minswda_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_03" } ]
+    },
+    "weapon.minswda_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_hit_01" } ]
+    },
+    "weapon.minswda_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_hit_02" } ]
+    },
+    "weapon.minswda_hit_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswda_hit_03" } ]
+    },
+    "weapon.minswdb": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswdb" } ]
+    },
+    "weapon.minswdb_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswdb_hit" } ]
+    },
+    "weapon.minswdc_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswdc_01" } ]
+    },
+    "weapon.minswdc_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswdc_02" } ]
+    },
+    "weapon.minswdc_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/minswdc_03" } ]
+    },
+    "weapon.slessswd_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/slessswd_01" } ]
+    },
+    "weapon.slessswd_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/slessswd_02" } ]
+    },
+    "weapon.slessswd_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/slessswd_hit_01" } ]
+    },
+    "weapon.slessswd_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/slessswd_hit_02" } ]
+    },
+    "weapon.slessswd_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/slessswd_touch" } ]
+    },
+    "weapon.sqrswd_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswd_touch" } ]
+    },
+    "weapon.sqrswda_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswda_01" } ]
+    },
+    "weapon.sqrswda_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswda_02" } ]
+    },
+    "weapon.sqrswda_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswda_hit_01" } ]
+    },
+    "weapon.sqrswda_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswda_hit_02" } ]
+    },
+    "weapon.sqrswdb": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswdb" } ]
+    },
+    "weapon.sqrswdb_hit": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswdb_hit" } ]
+    },
+    "weapon.sqrswdc_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswdc_01" } ]
+    },
+    "weapon.sqrswdc_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswdc_hit_01" } ]
+    },
+    "weapon.sqrswdc_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sqrswdc_hit_02" } ]
+    },
+    "weapon.stick_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stick_touch" } ]
+    },
+    "weapon.sticka_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sticka_01" } ]
+    },
+    "weapon.sticka_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sticka_02" } ]
+    },
+    "weapon.sticka_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sticka_hit_01" } ]
+    },
+    "weapon.sticka_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/sticka_hit_02" } ]
+    },
+    "weapon.stickb_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stickb_01" } ]
+    },
+    "weapon.stickb_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stickb_hit_01" } ]
+    },
+    "weapon.stickc_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stickc_01" } ]
+    },
+    "weapon.stickc_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stickc_hit_01" } ]
+    },
+    "weapon.stickc_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:weapon/stickc_hit_02" } ]
+    },
+    "blademaster.auto_guard": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/auto_guard" } ]
+    },
+    "blademaster.charge.sm_chargecrash": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/charge/sm_chargecrash" } ]
+    },
+    "blademaster.charge.sm_chargecrash_down": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/charge/sm_chargecrash_down" } ]
+    },
+    "blademaster.charge.sm_chargecrash_up": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/charge/sm_chargecrash_up" } ]
+    },
+    "blademaster.dragonslash.sm_mengryong_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/dragonslash/sm_mengryong_01" } ]
+    },
+    "blademaster.dragonslash.sm_mengryong_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/dragonslash/sm_mengryong_02" } ]
+    },
+    "blademaster.dragonslash.sm_mengryong_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/dragonslash/sm_mengryong_03" } ]
+    },
+    "blademaster.dragonslash.sm_mengryong_fin": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/dragonslash/sm_mengryong_fin" } ]
+    },
+    "blademaster.dragonslash.sm_mengryong_start": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/dragonslash/sm_mengryong_start" } ]
+    },
+    "blademaster.drawsword.drawing_sword": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/drawsword/drawing_sword" } ]
+    },
+    "blademaster.drawsword.drawing_sword_cast": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/drawsword/drawing_sword_cast" } ]
+    },
+    "blademaster.drawsword.drawing_sword_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/drawsword/drawing_sword_hit_01" } ]
+    },
+    "blademaster.drawsword.drawing_sword_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/drawsword/drawing_sword_hit_02" } ]
+    },
+    "blademaster.fast_change_weapon": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/fast_change_weapon" } ]
+    },
+    "blademaster.guard.charsound.sm_guard": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/charsound/sm_guard" } ]
+    },
+    "blademaster.guard.kat_touch": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/kat_touch" } ]
+    },
+    "blademaster.guard.reflection.guard_atk": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/reflection/guard_atk" } ]
+    },
+    "blademaster.guard.stuck_blade": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/stuck_blade" } ]
+    },
+    "blademaster.guard.stuck_blunt": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/stuck_blunt" } ]
+    },
+    "blademaster.guard.swd_bal_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/swd_bal_03" } ]
+    },
+    "blademaster.guard.swd_eff_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/swd_eff_01" } ]
+    },
+    "blademaster.guard.swd_eff_05": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/swd_eff_05" } ]
+    },
+    "blademaster.guard.swd_eff_06": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/guard/swd_eff_06" } ]
+    },
+    "blademaster.new_sworddance.sworddance_bs_atk_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_sworddance/sworddance_bs_atk_01" } ]
+    },
+    "blademaster.new_sworddance.sworddance_bs_atk_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_sworddance/sworddance_bs_atk_02" } ]
+    },
+    "blademaster.new_sworddance.sworddance_bs_atk_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_sworddance/sworddance_bs_atk_03" } ]
+    },
+    "blademaster.new_sworddance.sworddance_bs_fin": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_sworddance/sworddance_bs_fin" } ]
+    },
+    "blademaster.new_sworddance.sworddance_bs_ready": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_sworddance/sworddance_bs_ready" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_01_1": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_01_1" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_01_2": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_01_2" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_02_1": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_02_1" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_02_2": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_02_2" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_03_1": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_03_1" } ]
+    },
+    "blademaster.new_tripleslash.charsound.sm_tripleslash_bs_03_2": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/charsound/sm_tripleslash_bs_03_2" } ]
+    },
+    "blademaster.new_tripleslash.tripleslash_bs_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/tripleslash_bs_01" } ]
+    },
+    "blademaster.new_tripleslash.tripleslash_bs_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/tripleslash_bs_02" } ]
+    },
+    "blademaster.new_tripleslash.tripleslash_bs_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/new_tripleslash/tripleslash_bs_03" } ]
+    },
+    "blademaster.overdrive.sm_overdrive": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/overdrive/sm_overdrive" } ]
+    },
+    "blademaster.p_drawing_sword": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/p_drawing_sword" } ]
+    },
+    "blademaster.p_drawing_sword_loop": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/p_drawing_sword_loop" } ]
+    },
+    "blademaster.ryusim_3": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ryusim_3" } ]
+    },
+    "blademaster.ryusim_down": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ryusim_down" } ]
+    },
+    "blademaster.ryusim_kang": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ryusim_kang" } ]
+    },
+    "blademaster.ryusim_ready": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ryusim_ready" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_01" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_02" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_03" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_04": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_04" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_fin": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_fin" } ]
+    },
+    "blademaster.sworddance.charsound.sm_hoanyoung_start": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/sworddance/charsound/sm_hoanyoung_start" } ]
+    },
+    "blademaster.telesword.charsound.sm_controlblade_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/charsound/sm_controlblade_01" } ]
+    },
+    "blademaster.telesword.charsound.sm_controlblade_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/charsound/sm_controlblade_02" } ]
+    },
+    "blademaster.telesword.controlblade_atk": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_atk" } ]
+    },
+    "blademaster.telesword.controlblade_cast_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_cast_01" } ]
+    },
+    "blademaster.telesword.controlblade_cast_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_cast_02" } ]
+    },
+    "blademaster.telesword.controlblade_cut": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_cut" } ]
+    },
+    "blademaster.telesword.controlblade_exp": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_exp" } ]
+    },
+    "blademaster.telesword.controlblade_load": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_load" } ]
+    },
+    "blademaster.telesword.controlblade_spot": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_spot" } ]
+    },
+    "blademaster.telesword.controlblade_throw": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/telesword/controlblade_throw" } ]
+    },
+    "blademaster.tempest.w_atk_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_atk_01" } ]
+    },
+    "blademaster.tempest.w_atk_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_atk_02" } ]
+    },
+    "blademaster.tempest.w_atk_fin": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_atk_fin" } ]
+    },
+    "blademaster.tempest.w_spirits_flash": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_spirits_flash" } ]
+    },
+    "blademaster.tempest.w_weapon_drive": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_weapon_drive" } ]
+    },
+    "blademaster.tempest.w_weapon_moving": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tempest/w_weapon_moving" } ]
+    },
+    "blademaster.tripleslash.tslash_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tripleslash/tslash_01" } ]
+    },
+    "blademaster.tripleslash.tslash_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tripleslash/tslash_02" } ]
+    },
+    "blademaster.tripleslash.tslash_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/tripleslash/tslash_03" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_01" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_02" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_03" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_upper_atk": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_upper_atk" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_upper_ready": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_upper_ready" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_vs_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_vs_01" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_vs_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_vs_02" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_vs_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_vs_03" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_vs_04": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_vs_04" } ]
+    },
+    "blademaster.ultimatebladedance.speedslash_vs_05": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladedance/speedslash_vs_05" } ]
+    },
+    "blademaster.ultimatebladeslash.charsound.sm_flashcut": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/charsound/sm_flashcut" } ]
+    },
+    "blademaster.ultimatebladeslash.charsound.sm_invisible_swordcut_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/charsound/sm_invisible_swordcut_01" } ]
+    },
+    "blademaster.ultimatebladeslash.charsound.sm_invisible_swordcut_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/charsound/sm_invisible_swordcut_02" } ]
+    },
+    "blademaster.ultimatebladeslash.charsound.sm_invisible_swordcut_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/charsound/sm_invisible_swordcut_03" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut_end": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut_end" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut_hit_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut_hit_01" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut_hit_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut_hit_02" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut_hit_03": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut_hit_03" } ]
+    },
+    "blademaster.ultimatebladeslash.flashcut_ready": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/flashcut_ready" } ]
+    },
+    "blademaster.ultimatebladeslash.invisible_swordcut": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisible_swordcut" } ]
+    },
+    "blademaster.ultimatebladeslash.invisible_swordcut_exp": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisible_swordcut_exp" } ]
+    },
+    "blademaster.ultimatebladeslash.invisible_swordcut_ready": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisible_swordcut_ready" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblebrunt": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblebrunt" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblebrunt_smash": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblebrunt_smash" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblesword_01_1": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblesword_01_1" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblesword_01_2": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblesword_01_2" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblesword_02_1": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblesword_02_1" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblesword_02_2": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblesword_02_2" } ]
+    },
+    "blademaster.ultimatebladeslash.invisiblesword_02_swirl": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/ultimatebladeslash/invisiblesword_02_swirl" } ]
+    },
+    "blademaster.unclassified_charsound.sm_yeolpa_down": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/unclassified_charsound/sm_yeolpa_down" } ]
+    },
+    "blademaster.unclassified_charsound.sm_yeolpa_up": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/unclassified_charsound/sm_yeolpa_up" } ]
+    },
+    "blademaster.unsheathe_sword.unsheathe_sword_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/unsheathe_sword/unsheathe_sword_01" } ]
+    },
+    "blademaster.unsheathe_sword.unsheathe_sword_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/unsheathe_sword/unsheathe_sword_02" } ]
+    },
+    "blademaster.upperslash.charsound.sm_upslash": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/upperslash/charsound/sm_upslash" } ]
+    },
+    "blademaster.upperslash.upper_slash_01": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/upperslash/upper_slash_01" } ]
+    },
+    "blademaster.upperslash.upper_slash_02": {
+        "category": "neutral",
+        "sounds": [ { "name": "dfoswordmanskilltree:blademaster/upperslash/upper_slash_02" } ]
+    }
+}

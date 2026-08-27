@@ -1,0 +1,27 @@
+package temp.sbasiclibs.util;
+
+import com.google.common.collect.Maps;
+import net.minecraft.entity.Entity;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class SBGlobalVarStorage {
+    public static Map<Entity, Integer> Entity2IntegerMap = Maps.newHashMap();
+    public static Map<Entity, String> Entity2StringMap = Maps.newHashMap();
+    public static Map<Entity, Double> Entity2DoubleMap = Maps.newHashMap();
+    public static Map<Entity, Boolean> Entity2BooleanMap = Maps.newHashMap();
+
+    public static Integer getEntityStoredInteger(Entity a) {
+        a.getUUID();
+        return Entity2IntegerMap.get(a);
+    }
+
+    public static void saveEntityInteger(Entity a, int i) {
+        Entity2IntegerMap.put(a, i);
+    }
+
+    public static void removeEntityInteger(Entity a, int i) {
+        Entity2IntegerMap.remove(a);
+    }
+}

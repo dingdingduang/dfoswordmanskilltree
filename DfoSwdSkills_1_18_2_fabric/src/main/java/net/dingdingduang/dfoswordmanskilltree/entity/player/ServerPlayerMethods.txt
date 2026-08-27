@@ -1,0 +1,24 @@
+package net.dingdingduang.dfoswordmanskilltree.entity.player;
+
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.entity.player.PlayerEntity;
+
+import java.util.UUID;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getMinecraftServerInstance;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.getEntityUUID;
+
+public class ServerPlayerMethods {
+    public static UUID getPlayerUUID(PlayerEntity a) {
+        return a.getUUID();
+    }
+
+    public static ServerPlayerEntity ConvertClientPlayerToServerPlayer(PlayerEntity a) {
+        return getMinecraftServerInstance().getPlayerList().getPlayer(getEntityUUID(a));
+    }
+
+//    public static int getSPCurrentSelectedItemHotBarIndex(ServerPlayerEntity sp1) { return sp1.getInventory().selected; }
+//    public static int getSPCurrentWeaponTypeID(ServerPlayerEntity sp1) {
+//
+//    }
+}

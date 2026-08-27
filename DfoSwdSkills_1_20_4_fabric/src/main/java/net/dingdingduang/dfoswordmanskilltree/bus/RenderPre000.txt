@@ -1,0 +1,50 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Witch;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import modified.org.joml.Quaternionf;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+import static net.dingdingduang.dfoswordmanskilltree.util.QuaternionHelper.QuatRotationByAxis;
+
+//@OnlyIn(Dist.CLIENT)
+//@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, value = Dist.CLIENT)
+public class DfoSwdLivingEntityRenderPreEvent {
+    public static int test1 = 0;
+    public static int test2 = 0;
+    @SubscribeEvent
+    public static void DfoSwdRendererPre(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity> > event) {
+        LivingEntity entity = event.getEntity();
+        if (entity instanceof Witch) {
+            float tempInt = 1.0f * (test1 % 360);
+            printInGameMsg("tempint: "+tempInt);
+            float percent = Math.abs(MathMethods.sin(MathMethods.AngleToRadians(tempInt)));
+            printInGameMsg("percent: "+percent);
+            float actualtranslationY = entity.getBbHeight() * percent;
+
+            event.getPoseStack().translate(0, actualtranslationY, 0);
+
+            Quaternionf rotatorZ = new Quaternionf();
+            QuatRotationByAxis(rotatorZ, MathMethods.AngleToRadians(test1++ % 360), 0f, 0f, 1.0f);
+
+            Quaternionf rotatorX = new Quaternionf();
+            QuatRotationByAxis(rotatorX, MathMethods.AngleToRadians(test2++ % 360), 1.0f, 0f, 0f);
+            rotatorZ.mul(rotatorX);
+
+            event.getPoseStack().mulPose(rotatorZ);
+        }
+    }
+}

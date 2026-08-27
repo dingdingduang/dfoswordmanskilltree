@@ -1,0 +1,347 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.swdfadingclone;
+
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.VertexConsumer;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.QuaternionHelper;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.ItemModelShaper;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
+
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HalfTransparentBlock;
+import net.minecraft.world.level.block.StainedGlassPaneBlock;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.core.object.Color;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+
+import java.util.Optional;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+
+public class SwdFadingCloneCustomRenderer extends GeoEntityRenderer<SwdFadingCloneCustomEntity> {
+    private final float ItemLeftHandOffsetX = 20f;
+    private final float ItemLeftHandOffsetY = -10f;
+    private final float ItemLeftHandOffsetZ = -5f;
+
+    private final float ItemRightHandOffsetX = 4.0F;
+    private final float ItemRightHandOffsetY = -4.5F;
+    private final float ItemRightHandOffsetZ = 0F;
+
+    private final float RightHandPivotX = -12F;
+    private final float RightHandPivotY = 0F;
+    private final float RightHandPivotZ = 0F;
+
+    public SwdFadingCloneCustomRenderer(EntityRendererFactory.Context renderManager) {
+        super(renderManager, new SwdFadingCloneCustomModel());
+
+        this.shadowOpacity = 0.0f;
+    }
+
+    @Override
+    public Identifier getTextureLocation(SwdFadingCloneCustomEntity instance) {
+        int targetFrame;
+        //start frame tex path
+        if (instance.getLifetime() > instance.getMaxLifetime() - instance.getStartTotalFrame()) {
+            targetFrame = instance.getMaxLifetime() - instance.getLifetime();
+        } //end frame tex path
+        else if (instance.getLifetime() <= instance.getEndTotalFrame()) {
+            targetFrame = instance.getStartTotalFrame() + instance.getLoopTotalFrame() + instance.getEndTotalFrame() - instance.getLifetime();
+        }
+        else {
+            int clientLoopFrameCounter = instance.getClientLoopFrameCounter();
+            targetFrame = instance.getStartTotalFrame() + clientLoopFrameCounter;
+            instance.setClientLoopFrameCounter( (clientLoopFrameCounter + 1) % instance.getLoopTotalFrame());
+        }
+
+        return new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, instance.getTextureName() + targetFrame + ".png");
+    }
+
+    @Override
+    public RenderLayer getRenderType(SwdFadingCloneCustomEntity animatable, Identifier texture, @Nullable VertexConsumerProvider bufferSource, float partialTick) {
+        return super.getRenderType(animatable, texture, bufferSource, partialTick);
+    }
+
+    @Override
+    public void render(SwdFadingCloneCustomEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+        this.animatable = entity;
+        //client move
+        if (entity.hasTargetLocXYZ()) {
+            float distPercent = (entity.getMaxLifetime() - entity.getLifetime() + partialTick) / entity.getMaxLifetime();
+            float newX = entity.getStartPosX() + (entity.getTargetPosX() - entity.getStartPosX()) * distPercent;
+            float newY = entity.getStartPosY() + (entity.getTargetPosY() - entity.getStartPosY()) * distPercent;
+            float newZ = entity.getStartPosZ() + (entity.getTargetPosZ() - entity.getStartPosZ()) * distPercent;
+            moveEntityToXYZ(entity, newX, newY, newZ);
+        }
+        else if (entity.isBoundToEntity()) {
+            if (entity.getOwner() != null) {
+                Vector3f lerpVec = getEntityClientPosWithPartialTicks(entity.getOwner(), partialTick).add(entity.getTargetPosX(), entity.getTargetPosY(), entity.getTargetPosZ());
+                moveEntityToPos(entity, lerpVec);
+            }
+        }
+        poseStack.push();
+
+        Quaternionf rotatorX = new Quaternionf();
+        QuaternionHelper.QuatRotationByAxis(rotatorX, MathMethods.AngleToRadians(entity.getRotationX()), 1.0f, 0f, 0f);
+
+        Quaternionf rotatorY = new Quaternionf();
+        QuaternionHelper.QuatRotationByAxis(rotatorY, MathMethods.AngleToRadians(getEntityHorizontalFacingDeg(entity)), 0f, -1.0f, 0f);
+        rotatorY.mul(rotatorX);
+
+                    if (entity.getEntityScale() != 1) {
+                        rotatorY.scale(entity.getEntityScale());
+                    }
+
+        poseStack.multiply(rotatorY);
+
+        Optional<GeoBone> tempRightArmBone = this.model.getBone("right_arm");
+        if (tempRightArmBone.isPresent()) {
+            GeoBone bone = tempRightArmBone.get();
+
+            renderHoldingItemTranslate(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+        }
+
+        this.defaultRender(poseStack, entity, bufferSource, RenderLayer.getEntityTranslucent(getTextureLocation(entity)), (VertexConsumer)null, entityYaw, partialTick, packedLight);
+
+//        this.defaultRender(poseStack, entity, bufferSource, RenderLayer.getEntityTranslucent(getTextureLocation(entity)), (VertexConsumer) null, entityYaw, partialTick, packedLight);
+
+//        if (entity.getLifetime() > entity.getMaxLifetime() - entity.getStartTotalFrame()) {
+//            this.defaultRender(poseStack, entity, bufferSource, RenderLayer.getEntityTranslucent(getTextureLocation(entity)), (VertexConsumer) null, entityYaw, partialTick, packedLight);
+//        }
+//        else {
+//            this.defaultRender(poseStack, entity, bufferSource, RenderLayer.entityTranslucentEmissive(getTextureLocation(entity)), (VertexConsumer) null, entityYaw, partialTick, packedLight);
+//        }
+
+        poseStack.pop();
+    }
+
+    public void renderHoldingItemTranslate(SwdFadingCloneCustomEntity entity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, GeoBone bone) {
+        poseStack.push();
+
+
+    //        poseStack.translate( (bone.getPivotX() + testPressKeyTranslateRot.tempFloatNewX) / 16F, (bone.getPivotY() + testPressKeyTranslateRot.tempFloatNewY) / 16F, (bone.getPivotZ() + testPressKeyTranslateRot.tempFloatNewZ) / 16F );
+    //        poseStack.translate( (bone.getPivotX() + ItemRightHandOffsetX) / 16F, (bone.getPivotY()) / 16F, (bone.getPivotZ() + ItemRightHandOffsetZ) / 16F );
+        poseStack.translate( (bone.getPivotX()) / 16F, (bone.getPivotY()) / 16F, (bone.getPivotZ()) / 16F );
+
+
+        //new
+        renderHoldingItemApplyGeoTranslationAndRotation(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+    //        finalRenderItemOnHand(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+
+        poseStack.pop();
+    }
+
+    public void renderHoldingItemApplyGeoTranslationAndRotation(SwdFadingCloneCustomEntity entity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, GeoBone bone) {
+        poseStack.push();
+
+        poseStack.translate(bone.getPosX() / 16F, bone.getPosY() / 16F, -bone.getPosZ() / 16F);
+
+        renderHoldingItemApplyGeoTranslationAndRotation2(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+
+        poseStack.pop();
+    }
+
+    public void renderHoldingItemApplyGeoTranslationAndRotation2(SwdFadingCloneCustomEntity entity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, GeoBone bone) {
+        poseStack.push();
+        //holding item
+
+//        poseStack.translate(bone.getPosX() / 16F, bone.getPosY() / 16F, bone.getPosZ() / 16F);
+
+//        printInGameMsg(String.format("newXRot: %.3f, newYRot: %.3f, newZRot: %.3f", bone.getRotX(), bone.getRotY(), bone.getRotZ()));
+        if (bone.getRotZ() != 0) {
+//            poseStack.multiply(Axis.ZP.rotation(MathMethods.AngleToDegrees(bone.getRotZ())));
+
+            Quaternionf rotator = new Quaternionf();
+            Vector3f AxisZN = new Vector3f(0, 0, -1);
+            rotator.rotationAxis(bone.getRotZ(), AxisZN);
+//            poseStack.multiply(rotator);
+//            poseStack.rotateAround(rotator, testPressKeyTranslateRot.tempFloatNewX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+//            poseStack.rotateAround(rotator, RightHandPivotX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+            poseStack.rotateAround(rotator, RightHandPivotX / 16F, 0, 0);
+        }
+
+        if (bone.getRotY() != 0) {
+//            poseStack.multiply(Axis.YP.rotation(MathMethods.AngleToDegrees(bone.getRotY())));
+
+            Quaternionf rotator = new Quaternionf();
+            Vector3f AxisYP = new Vector3f(0, 1, 0);
+            rotator.rotationAxis(bone.getRotY(), AxisYP);
+//            poseStack.multiply(rotator);
+//            poseStack.rotateAround(rotator, RightHandPivotX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+            poseStack.rotateAround(rotator, RightHandPivotX / 16F, 0, 0);
+        }
+
+        if (bone.getRotX() != 0) {
+//            poseStack.multiply(Axis.XP.rotation(MathMethods.AngleToDegrees(bone.getRotX())));
+
+            Quaternionf rotator = new Quaternionf();
+            Vector3f AxisXN = new Vector3f(-1, 0, 0);
+            rotator.rotationAxis(bone.getRotX(), AxisXN);
+//            poseStack.multiply(rotator);
+//            poseStack.rotateAround(rotator, RightHandPivotX / 16F, testPressKeyTranslateRot.tempFloatNewY / 16F, testPressKeyTranslateRot.tempFloatNewZ / 16F);
+            poseStack.rotateAround(rotator, RightHandPivotX / 16F, 0, 0);
+        }
+
+//        renderHoldingItemTranslate(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+        finalRenderItemOnHand(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+
+
+        poseStack.pop();
+    }
+
+    public void finalRenderItemOnHand(SwdFadingCloneCustomEntity entity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, GeoBone bone) {
+        poseStack.push();
+
+
+
+        finalRenderItemOnHand2(entity, partialTick, poseStack, bufferSource, packedLight, bone);
+
+        poseStack.pop();
+    }
+
+//    public static final String[] tempIDArr = {"wooden_sword", "stone_sword", "golden_sword","diamond_sword","netherite_sword"};
+//public static int tempIncInt = 0;
+
+    //0.0625
+    public void finalRenderItemOnHand2(SwdFadingCloneCustomEntity entity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, GeoBone bone) {
+        poseStack.push();
+//        poseStack.translate( (testPressKeyTranslateRot.tempFloatNewX) / 16F, (testPressKeyTranslateRot.tempFloatNewY) / 16F, (testPressKeyTranslateRot.tempFloatNewZ) / 16F );
+        poseStack.translate(ItemRightHandOffsetX / 16F, ItemRightHandOffsetY / 16F, ItemRightHandOffsetZ / 16F);
+//        poseStack.translate(0, ItemRightHandOffsetY / 16F, 0);
+
+        ItemRenderer tempItemRenderer = getMinecraftInstance().getItemRenderer();
+        ItemModelShaper itemModelShaper = tempItemRenderer.getItemModelShaper();
+        //holding item
+        NbtCompound nbtEntityTag = new NbtCompound();
+        nbtEntityTag.putString("id","diamond_sword");
+//        nbtEntityTag.putString("id", tempIDArr[tempIncInt++ % 5]);
+        ItemStack itemHolding = ItemStack.of(nbtEntityTag);
+        itemHolding.setCount(1);
+        BakedModel itemModel = itemModelShaper.getItemModel(itemHolding);
+
+//        BakedModel itemModel = getDupModel(itemModelShaper, itemHolding, (int) this.getInstanceId(entity));
+
+
+
+//        tempItemRenderer.render(sword, ItemDisplayContext.THIRD_PERSON_LEFT_HAND, true, poseStack, bufferSource, packedLight, OverlayTexture.DEFAULT_UV, itemModel);
+
+        var pDisplayContext = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+        var NO_OVERLAY = OverlayTexture.DEFAULT_UV;
+
+
+        if (!itemHolding.isEmpty()) {
+            poseStack.push();
+
+            Quaternionf rotator;
+
+            rotator = new Quaternionf();
+            Vector3f AxisZN = new Vector3f(0, 0, -1);
+            rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(90), AxisZN);
+            poseStack.multiply(rotator);
+
+            rotator = new Quaternionf();
+            Vector3f AxisYP = new Vector3f(0, 1, 0);
+            rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(-45), AxisYP);
+            poseStack.multiply(rotator);
+
+            rotator = new Quaternionf();
+            Vector3f AxisXN = new Vector3f(-1, 0, 0);
+            rotator.rotationAxis(MathMethods.AngleToRadiansNoRound(-90), AxisXN);
+            poseStack.multiply(rotator);
+
+            poseStack.translate(0, -0.5F, 0.5F);
+            if (!itemModel.isCustomRenderer() && (!itemHolding.is(Items.TRIDENT))) {
+                boolean isFabulous;
+                if (!pDisplayContext.firstPerson() && itemHolding.getItem() instanceof BlockItem) {
+                    Block block = ((BlockItem) itemHolding.getItem()).getBlock();
+                    isFabulous = !(block instanceof HalfTransparentBlock) && !(block instanceof StainedGlassPaneBlock);
+                } else {
+                    isFabulous = true;
+                }
+
+                for(BakedModel model : itemModel.getRenderPasses(itemHolding, isFabulous)) {
+                    for(RenderType rendertype : model.getRenderTypes(itemHolding, isFabulous)) {
+                        VertexConsumer vertexconsumer;
+                        if (isFabulous) {
+                            vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource, rendertype, true, itemHolding.hasFoil());
+                        } else {
+                            vertexconsumer = ItemRenderer.getFoilBuffer(bufferSource, rendertype, true, itemHolding.hasFoil());
+                        }
+
+                        tempItemRenderer.renderModelLists(model, itemHolding, packedLight, NO_OVERLAY, poseStack, vertexconsumer);
+//                        tempRenderModelLists(tempItemRenderer, model, itemHolding, packedLight, NO_OVERLAY, poseStack, vertexconsumer);
+                    }
+                }
+            }
+            else {
+                IClientItemExtensions.of(itemHolding).getCustomRenderer().renderByItem(itemHolding, pDisplayContext, poseStack, bufferSource, packedLight, NO_OVERLAY);
+            }
+
+            poseStack.pop();
+        }
+
+        poseStack.pop();
+    }
+
+
+//    public void tempRenderModelLists(ItemRenderer tempItemRenderer, BakedModel pModel, ItemStack pStack, int pCombinedLight, int pCombinedOverlay, MatrixStack pMatrixStack, VertexConsumer pBuffer) {
+//        RandomSource randomsource = RandomSource.create();
+//
+//        for(Direction direction : Direction.values()) {
+//            randomsource.setSeed(ExtraMathMethods.randomInt());
+//            tempItemRenderer.renderQuadList(pMatrixStack, pBuffer, pModel.getQuads((BlockState)null, direction, randomsource), pStack, pCombinedLight, pCombinedOverlay);
+//        }
+//
+//        randomsource.setSeed(ExtraMathMethods.randomInt());
+//        tempItemRenderer.renderQuadList(pMatrixStack, pBuffer, pModel.getQuads((BlockState)null, (Direction)null, randomsource), pStack, pCombinedLight, pCombinedOverlay);
+//    }
+
+//    public BakedModel getDupModel(ItemModelShaper itemModelShaper, ItemStack pStack, int pSeed) {
+//        BakedModel bakedmodel;
+//        if (pStack.is(Items.TRIDENT)) {
+//            bakedmodel = itemModelShaper.getModelManager().getModel(ItemRenderer.TRIDENT_IN_HAND_MODEL);
+//        } else if (pStack.is(Items.SPYGLASS)) {
+//            bakedmodel = itemModelShaper.getModelManager().getModel(ItemRenderer.SPYGLASS_IN_HAND_MODEL);
+//        } else {
+//            bakedmodel = itemModelShaper.getItemModel(pStack);
+//        }
+//
+//        BakedModel bakedmodel1 = bakedmodel.getOverrides().resolve(bakedmodel, pStack, getClientLevel(), null, pSeed);
+//        return bakedmodel1 == null ? itemModelShaper.getModelManager().getMissingModel() : bakedmodel1;
+//    }
+
+    @Override
+    public Color getRenderColor(SwdFadingCloneCustomEntity animatable, float partialTick, int packedLight) {
+        if (animatable.isStartFrameFading() && animatable.getLifetime() > animatable.getMaxLifetime() - animatable.getStartTotalFrame()) {
+            return Color.ofRGBA(animatable.getColorRed(), animatable.getColorGreen(), animatable.getColorBlue(), (int) ( (animatable.getMaxLifetime() - animatable.getLifetime()) * (Math.max(0, animatable.getColorAlpha()) / animatable.getStartTotalFrame()) ) + 15);
+        }
+        else {
+            if (animatable.isEndFrameFading() && animatable.getLifetime() <= animatable.getEndTotalFrame()) {
+                return Color.ofRGBA(animatable.getColorRed(), animatable.getColorGreen(), animatable.getColorBlue(), (int) (animatable.getLifetime() * (Math.max(0, animatable.getColorAlpha()) / animatable.getEndTotalFrame())) + 15);
+            }
+            else {
+                return Color.ofRGBA(animatable.getColorRed(), animatable.getColorGreen(), animatable.getColorBlue(), animatable.getColorAlpha());
+            }
+        }
+    }
+}

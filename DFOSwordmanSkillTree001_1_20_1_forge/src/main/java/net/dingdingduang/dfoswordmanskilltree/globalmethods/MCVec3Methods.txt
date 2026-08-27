@@ -1,0 +1,74 @@
+
+
+
+    //vec center?
+//    public static double AngleFromEntityToLocationHorizontal(Entity a, Vec3 b) {
+////        return RADTODEG * Math.atan2(getVec3Z(b)-getEntityZ(a), getVec3X(b)-getEntityX(a));
+//        return RADTODEG * Math.atan2(getVec3Z(b)-getEntityZ(a), getVec3X(b)-getEntityX(a))-90;
+//    }
+
+    //vec center?
+//    public static double AngleFromLocationToLocationHorizontal(Vec3 a, Vec3 b) {
+////        return RADTODEG * Math.atan2(getVec3Z(b)-getVec3Z(a), getVec3X(b)-getVec3X(a));
+//        return RADTODEG * Math.atan2(getVec3Z(b)-getVec3Z(a), getVec3X(b)-getVec3X(a))-90;
+//    }
+//
+//    //return verticalDegree
+//    public static double AngleFromLocationToLocationVertical(Vec3 a, Vec3 b) {
+//        double adjacent = DistanceBetweenVecPointsHorizontal(a, b);
+//        double hypotenuse = DistanceBetweenVecPoints(a, b);
+//        return Math.acos(adjacent/hypotenuse);
+//    }
+//
+//    public static double DistanceBetweenVecPointsHorizontal(Vec3 a, Vec3 b) {
+//        double dx = getVec3X(b)-getVec3X(a);
+//        double dz = getVec3Z(b)-getVec3Z(a);
+//        return Mth.sqrt((float) (dx*dx+dz*dz));
+//    }
+//
+//    public static double DistanceBetweenVecPoints(Vec3 a, Vec3 b) {
+//        return a.distanceTo(b);
+//    }
+
+//    public static Vec3 PolarProjectionFromVecHorizon(Vec3 origin, double dist, double directionDeg) {
+////        double newX = getVec3X(origin) + dist*Math.cos(directionDeg*DEGTORAD);
+////        double newZ = getVec3Z(origin) + dist*Math.sin(directionDeg*DEGTORAD);
+////        double newX = getVec3X(origin) + dist*Math.cos(-directionDeg*DEGTORAD-Math.PI);
+////        double newZ = getVec3Z(origin) + dist*Math.sin(-directionDeg*DEGTORAD-Math.PI);
+//        double newX = getVec3X(origin) + dist*Math.sin(-directionDeg*DEGTORAD);
+//        double newZ = getVec3Z(origin) + dist*Math.cos(-directionDeg*DEGTORAD);
+//
+////        printInGameMsg("newX: "+newX+", calculated: "+dist*Math.cos(directionDeg));
+////        printInGameMsg("newZ: "+newZ+", calculated: "+dist*Math.sin(directionDeg)+", total: "+(dist*Math.cos(directionDeg)+dist*Math.sin(directionDeg)));
+////        printInGameMsg("deg: "+directionDeg);
+//        return new Vec3(newX, getVec3Y(origin), newZ);
+//    }
+//
+////    public static Vec3 PolarProjectionFromRotation2(Vec3 origin, double dist, double verticalRotationDeg, double horizontalRotationDeg) {
+////        double newX = getVec3X(origin) + dist*Math.sin(-horizontalRotationDeg*DEGTORAD);
+////        double newZ = getVec3Z(origin) + dist*Math.cos(-horizontalRotationDeg*DEGTORAD);
+////
+////        double newY = getVec3Y(origin) + dist*Math.cos(-verticalRotationDeg*DEGTORAD);
+////
+////        return new Vec3(newX, newY, newZ);
+////    }
+//
+//    public static Vec3 PolarProjectionFromRotation(Vec3 origin, double dist, double verticalRotationDeg, double horizontalRotationDeg) {
+//        double hr1 = Math.cos(-horizontalRotationDeg * DEGTORAD - Math.PI);
+//        double hr2 = Math.sin(-horizontalRotationDeg * DEGTORAD - Math.PI);
+//        double vr1 = -Math.cos(-verticalRotationDeg * DEGTORAD);
+//        double vr2 = Math.sin(-verticalRotationDeg * DEGTORAD);
+//        return new Vec3(getVec3X(origin)+dist*(hr2 * vr1), getVec3Y(origin)+dist*vr2, origin.z+dist*(hr1 * vr1));
+//    }
+//
+//    public static Vec3 directionFromRotation(double verticalRotationDeg, double horizontalRotationDeg) {
+//        double hr1 = Math.cos(-horizontalRotationDeg * DEGTORAD - Math.PI);
+//        double hr2 = Math.sin(-horizontalRotationDeg * DEGTORAD - Math.PI);
+//        double vr1 = -Math.cos(-verticalRotationDeg * DEGTORAD);
+//        double vr2 = Math.sin(-verticalRotationDeg * DEGTORAD);
+//        return new Vec3((hr2 * vr1), vr2, (hr1 * vr1));
+//    }
+//
+//    public static double getVec3X(Vec3 a) { return a.x(); }
+//    public static double getVec3Y(Vec3 a) { return a.y(); }
+//    public static double getVec3Z(Vec3 a) { return a.z(); }

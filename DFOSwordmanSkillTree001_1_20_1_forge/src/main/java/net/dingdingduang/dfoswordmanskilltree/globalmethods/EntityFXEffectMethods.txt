@@ -1,0 +1,132 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+
+import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.entity.ProjectileDummy;
+import net.dingdingduang.dfoswordmanskilltree.entity.ProjectileDummyEffOnly;
+
+import java.util.function.Function;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.getEntityX;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+
+public class EntityFXEffectMethods {
+    public static Entity MCLoadEntityRecursive(CompoundTag pCompound, Level pLevel, Function<Entity, Entity> pEntityFunction) {
+        return EntityType.loadEntityRecursive(pCompound, pLevel, pEntityFunction);
+    }
+
+    public static void BindEffectToEntity(Entity a, String namespace, String effNameOnly) {
+//        Optional<FX> FXResource = Optional.ofNullable(FXHelper.getFX(new ResourceLocation(namespace, effNameOnly)));
+//        if (FXResource.isPresent()) {
+//            EntityEffect entityEff = new EntityEffect(FXResource.get(), getClientLevel(), a);
+//            entityEff.setAllowMulti(false);
+//            entityEff.start();
+//        }
+    }
+
+    public static void BindEffectToEntity(ProjectileDummy a, String namespace, String effNameOnly) {
+//        Optional<FX> FXResource = Optional.ofNullable(FXHelper.getFX(new ResourceLocation(namespace, effNameOnly)));
+//        if (FXResource.isPresent()) {
+//            EntityEffect entityEff = new EntityEffect(FXResource.get(), getClientLevel(), a);
+//            entityEff.setAllowMulti(false);
+//            entityEff.start();
+//            a.setFX(namespace, effNameOnly);
+//        }
+    }
+
+    public static void BindEffectToEntity(ProjectileDummyEffOnly a, String namespace, String effNameOnly) {
+//        Optional<FX> FXResource = Optional.ofNullable(FXHelper.getFX(new ResourceLocation(namespace, effNameOnly)));
+//        if (FXResource.isPresent()) {
+//            EntityEffect entityEff = new EntityEffect(FXResource.get(), getClientLevel(), a);
+//            entityEff.setAllowMulti(false);
+//            entityEff.start();
+//            a.setFX(namespace, effNameOnly);
+//        }
+    }
+
+    public static void AddEffToBlockpos(Vector3f a, String namespace, String effNameOnly) {
+//        Optional<FX> FXResource = Optional.ofNullable(FXHelper.getFX(new ResourceLocation(namespace, effNameOnly)));
+//        if (FXResource.isPresent()) {
+//            BlockEffect blockEff = new BlockEffect(FXResource.get(), getClientLevel(), new BlockPos(MathMethods.floor(a.x()), MathMethods.floor(a.y()), MathMethods.floor(a.z())));
+//            blockEff.setAllowMulti(false);
+//            blockEff.start();
+//        }
+    }
+
+//    public static Entity SetupEntity(String mobNBT, double x1, double y1, double z1, float horizontalFacingDeg) {
+//        CompoundTag nbtEntityTag = new CompoundTag();
+//        nbtEntityTag.putString("id", mobNBT);
+//
+//        Entity Entity000 = MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+//            tempEntity.moveTo(x1, y1, z1, horizontalFacingDeg, getEntityVerticalFacingDeg(tempEntity));
+//            return tempEntity;
+//        });
+//        return Entity000;
+//    }
+
+    public static ProjectileDummy SetupEffEntity(Entity owner, double x1, double y1, double z1, float horizontalFacingDeg) {
+        return SetupEffEntity(owner, x1, y1, z1, horizontalFacingDeg, getEntityVerticalFacingDeg(owner));
+    }
+
+    public static ProjectileDummy SetupEffEntity(Entity owner, Vector3f a, float horizontalFacingDeg) {
+        return SetupEffEntity(owner, a, horizontalFacingDeg, getEntityVerticalFacingDeg(owner));
+    }
+
+    public static ProjectileDummy SetupEffEntity(Entity owner, Vector3f a, float horizontalFacingDeg, float verticalFacingDeg) {
+        return SetupEffEntity(owner, a.x(), a.y(), a.z(), horizontalFacingDeg, verticalFacingDeg);
+    }
+
+    public static ProjectileDummy SetupEffEntity(Entity owner, double x1, double y1, double z1, float horizontalFacingDeg, float verticalFacingDeg) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":sbdummy");
+
+        ProjectileDummy Entity000 = (ProjectileDummy) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, x1, y1, z1, horizontalFacingDeg, verticalFacingDeg);
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static ProjectileDummyEffOnly SetupEffOnlyEntity(Entity owner, double x1, double y1, double z1, float horizontalFacingDeg) {
+        return SetupEffOnlyEntity(owner, x1, y1, z1, horizontalFacingDeg, getEntityVerticalFacingDeg(owner));
+    }
+
+    public static ProjectileDummyEffOnly SetupEffOnlyEntity(Entity owner, Vector3f a, float horizontalFacingDeg) {
+        return SetupEffOnlyEntity(owner, a, horizontalFacingDeg, getEntityVerticalFacingDeg(owner));
+    }
+
+    public static ProjectileDummyEffOnly SetupEffOnlyEntity(Entity owner, Vector3f a, float horizontalFacingDeg, float verticalFacingDeg) {
+        return SetupEffOnlyEntity(owner, a.x(), a.y(), a.z(), horizontalFacingDeg, verticalFacingDeg);
+    }
+
+    public static ProjectileDummyEffOnly SetupEffOnlyEntity(Entity owner, double x1, double y1, double z1, float horizontalFacingDeg, float verticalFacingDeg) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":sbdummyeffonly");
+
+        ProjectileDummyEffOnly Entity000 = (ProjectileDummyEffOnly) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, x1, y1, z1, horizontalFacingDeg, verticalFacingDeg);
+            return tempEntity;
+        });
+        return Entity000;
+    }
+
+    public static ProjectileDummy createEffectEntityDefault(Entity owner, String namespace, String EffNameOnly) {
+        CompoundTag nbtEntityTag = new CompoundTag();
+        nbtEntityTag.putString("id", DfoSwordmanSkillTreeConstants.MOD_ID+":sbdummy");
+        ProjectileDummy Entity000 = (ProjectileDummy) MCLoadEntityRecursive(nbtEntityTag, getEntityLevel(owner), (tempEntity) -> {
+            moveEntityToXYZRotation(tempEntity, getEntityX(owner), getEntityY(owner)+0.25, getEntityZ(owner), getEntityHorizontalFacingDeg(owner), getEntityVerticalFacingDeg(owner));
+            return tempEntity;
+        });
+        if (Entity000 == null) return null;
+//        BindEffectToEntity(Entity000, "photon", "8gatestest");
+        BindEffectToEntity(Entity000, namespace, EffNameOnly);
+        Entity000.setLifetime(500);
+        return Entity000;
+    }
+}

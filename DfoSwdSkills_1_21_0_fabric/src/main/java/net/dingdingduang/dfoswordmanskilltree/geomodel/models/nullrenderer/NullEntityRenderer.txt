@@ -1,0 +1,39 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer;
+
+import net.minecraft.client.util.math.MatrixStack;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.DfoSwdGeneralGeoEntityResources;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
+
+public class NullEntityRenderer extends GeoEntityRenderer<NullEntity> {
+    public NullEntityRenderer(EntityRendererFactory.Context renderManager) {
+        super(renderManager, new NullEntityModel());
+        this.shadowOpacity = 0.0f;
+    }
+
+    @Override
+    public Identifier getTextureLocation(NullEntity instance) {
+        return DfoSwdGeneralGeoEntityResources.ONE_EFF_BUFF_TEXTURE_PNG_RESOURCE;
+    }
+
+    @Override
+    public boolean shouldRender(NullEntity nullEntity, Frustum pCamera, double pCamX, double pCamY, double pCamZ) {
+        return false;
+    }
+
+    @Override
+    public RenderLayer getRenderType(NullEntity animatable, Identifier texture, @Nullable VertexConsumerProvider bufferSource, float partialTick) {
+        return super.getRenderType(animatable, texture, bufferSource, partialTick);
+    }
+
+    @Override
+    public void render(EntityRenderState entityRenderState, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+
+    }
+}

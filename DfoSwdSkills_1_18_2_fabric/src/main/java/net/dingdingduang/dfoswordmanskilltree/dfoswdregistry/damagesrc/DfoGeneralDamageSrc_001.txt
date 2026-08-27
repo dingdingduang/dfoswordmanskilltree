@@ -1,0 +1,186 @@
+package net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+
+import java.util.HashSet;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+
+public class DfoGeneralDamageSrc {
+    public static final String SHOCK_DAMAGE_TYPE_STR_ID = "dfo_light_shock";
+    public static Holder<DamageType> SHOCK_DAMAGE_TYPE_HOLDER = null;
+    private static boolean IS_SHOCK_SERVERSIDE_INITIALIZED = false;
+
+    public static final String BLEEDING_DAMAGE_TYPE_STR_ID = "dfo_neutral_abnormal_bleeding";
+    public static Holder<DamageType> BLEEDING_DAMAGE_TYPE_HOLDER = null;
+    private static boolean IS_BLEEDING_SERVERSIDE_INITIALIZED = false;
+
+    public static Holder<DamageType> PHYSICAL_DAMAGE_TYPE_HOLDER = null;
+    private static boolean IS_PHYSICAL_DMG_SERVERSIDE_INITIALIZED = false;
+    public static Holder<DamageType> MAGIC_DAMAGE_TYPE_HOLDER = null;
+    private static boolean IS_MAGIC_DMG_SERVERSIDE_INITIALIZED = false;
+
+    public static void initializeClientDamageType1201(LivingEntity clientPlayer) {
+        if (SHOCK_DAMAGE_TYPE_HOLDER == null) {
+            SHOCK_DAMAGE_TYPE_HOLDER = getEntityLevel(clientPlayer).registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DfoGeneralDamageTypes.SHOCK_DAMAGE_TYPE);
+
+            HashSet<TagKey<DamageType>> bindTags = new HashSet<>();
+            bindTags.add(DamageTypeTags.BYPASSES_ARMOR);
+            bindTags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+            bindTags.add(DamageTypeTags.BYPASSES_SHIELD);
+            bindTags.add(DamageTypeTags.BYPASSES_COOLDOWN);
+            bindTags.add(DamageTypeTags.BYPASSES_EFFECTS);
+            ((Holder.Reference<DamageType>) SHOCK_DAMAGE_TYPE_HOLDER).bindTags(bindTags);
+        }
+        if (BLEEDING_DAMAGE_TYPE_HOLDER == null) {
+            BLEEDING_DAMAGE_TYPE_HOLDER = getEntityLevel(clientPlayer).registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DfoGeneralDamageTypes.BLEEDING_DAMAGE_TYPE);
+
+            HashSet<TagKey<DamageType>> bindTags = new HashSet<>();
+            bindTags.add(DamageTypeTags.BYPASSES_SHIELD);
+            bindTags.add(DamageTypeTags.BYPASSES_COOLDOWN);
+            ((Holder.Reference<DamageType>) BLEEDING_DAMAGE_TYPE_HOLDER).bindTags(bindTags);
+        }
+        if (PHYSICAL_DAMAGE_TYPE_HOLDER == null) { PHYSICAL_DAMAGE_TYPE_HOLDER = clientPlayer.damageSources().mobAttack(clientPlayer).typeHolder(); }
+        if (MAGIC_DAMAGE_TYPE_HOLDER == null) { MAGIC_DAMAGE_TYPE_HOLDER = clientPlayer.damageSources().indirectMagic(clientPlayer, clientPlayer).typeHolder(); }
+    }
+
+    public static DamageSource lightDmgShockStatus(LivingEntity owner, Entity pCausingEntity, Entity pDirectEntity) {
+//        if (SHOCK_DAMAGE_TYPE_HOLDER == null) {
+        if (!IS_SHOCK_SERVERSIDE_INITIALIZED) {
+            IS_SHOCK_SERVERSIDE_INITIALIZED = true;
+            SHOCK_DAMAGE_TYPE_HOLDER = getEntityLevel(owner).registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DfoGeneralDamageTypes.SHOCK_DAMAGE_TYPE);
+
+            HashSet<TagKey<DamageType>> bindTags = new HashSet<>();
+            bindTags.add(DamageTypeTags.BYPASSES_ARMOR);
+            bindTags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+            bindTags.add(DamageTypeTags.BYPASSES_SHIELD);
+            bindTags.add(DamageTypeTags.BYPASSES_COOLDOWN);
+            bindTags.add(DamageTypeTags.BYPASSES_EFFECTS); // EFFECTS like resistance
+            ((Holder.Reference<DamageType>) SHOCK_DAMAGE_TYPE_HOLDER).bindTags(bindTags);
+        }
+        IgnoreDamageCalcEventDamageSource ignoreDamageCalcEventDamageSource = new IgnoreDamageCalcEventDamageSource(SHOCK_DAMAGE_TYPE_HOLDER, pCausingEntity, pDirectEntity);
+        ignoreDamageCalcEventDamageSource.setElementDmgType(DfoSwordmanSkillTreeConstants.ELEMENT_DAMAGE_TYPE_LIGHT);
+        return ignoreDamageCalcEventDamageSource;
+    }
+
+    public static void LivingEntityDamageTargetWithShock(LivingEntity dealer, LivingEntity target, float amount) {
+        EntityMethods.addKnockbackResist(target);
+//        int iframeTime = GetEntityInvulnerableTime(target);
+//        EntityMethods.SetEntityInvulnerableTime(target, 0);
+
+        EntityMethods.DealerDamageTarget(lightDmgShockStatus(dealer, dealer, dealer), target, amount);
+        EntityMethods.removeKnockbackResist(target);
+
+//        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+//        target.hurt(lightDmgShockStatus(dealer, dealer, dealer), amount);
+    }
+
+    public static DamageSource bleedingDmgShockStatus(LivingEntity owner, Entity pCausingEntity, Entity pDirectEntity) {
+//        if (BLEEDING_DAMAGE_TYPE_HOLDER == null) {
+        if (!IS_BLEEDING_SERVERSIDE_INITIALIZED) {
+            IS_BLEEDING_SERVERSIDE_INITIALIZED = true;
+            BLEEDING_DAMAGE_TYPE_HOLDER = getEntityLevel(owner).registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DfoGeneralDamageTypes.BLEEDING_DAMAGE_TYPE);
+
+            HashSet<TagKey<DamageType>> bindTags = new HashSet<>();
+//            bindTags.add(DamageTypeTags.BYPASSES_ARMOR);
+//            bindTags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+            bindTags.add(DamageTypeTags.BYPASSES_SHIELD);
+            bindTags.add(DamageTypeTags.BYPASSES_COOLDOWN);
+//            bindTags.add(DamageTypeTags.BYPASSES_EFFECTS); // EFFECTS like resistance
+            ((Holder.Reference<DamageType>) BLEEDING_DAMAGE_TYPE_HOLDER).bindTags(bindTags);
+        }
+        IgnoreDamageCalcEventDamageSource ignoreDamageCalcEventDamageSource = new IgnoreDamageCalcEventDamageSource(BLEEDING_DAMAGE_TYPE_HOLDER, pCausingEntity, pDirectEntity);
+        ignoreDamageCalcEventDamageSource.setElementDmgType(DfoSwordmanSkillTreeConstants.ELEMENT_DAMAGE_TYPE_NO_ELEMENT);
+        return ignoreDamageCalcEventDamageSource;
+    }
+
+    public static void LivingEntityDamageTargetWithBleeding(LivingEntity dealer, LivingEntity target, float amount) {
+//        int iframeTime = GetEntityInvulnerableTime(target);
+//        EntityMethods.SetEntityInvulnerableTime(target, 0);
+        EntityMethods.addKnockbackResist(target);
+        EntityMethods.DealerDamageTarget(bleedingDmgShockStatus(dealer, dealer, dealer), target, amount);
+        EntityMethods.removeKnockbackResist(target);
+//        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+    }
+
+    public static DamageSource getPhysicalDamageSource(LivingEntity dealer, Entity indirectEntity, int DfoDamageType) {
+//        if (PHYSICAL_DAMAGE_TYPE_HOLDER == null) { PHYSICAL_DAMAGE_TYPE_HOLDER = dealer.damageSources().mobAttack(dealer).typeHolder(); }
+        if (!IS_PHYSICAL_DMG_SERVERSIDE_INITIALIZED) {
+            IS_PHYSICAL_DMG_SERVERSIDE_INITIALIZED = true;
+            PHYSICAL_DAMAGE_TYPE_HOLDER = dealer.damageSources().mobAttack(dealer).typeHolder();
+        }
+//        return new PhysicalDamageSource(dealer.damageSources().mobAttack(dealer).typeHolder(), dealer, indirectEntity);
+        return new PhysicalDamageSource(PHYSICAL_DAMAGE_TYPE_HOLDER, dealer, indirectEntity, DfoDamageType);
+    }
+
+    public static DamageSource getMagicalDamageSource(LivingEntity dealer, Entity indirectEntity, int DfoDamageType) {
+//        if (MAGIC_DAMAGE_TYPE_HOLDER == null) { MAGIC_DAMAGE_TYPE_HOLDER = dealer.damageSources().indirectMagic(indirectEntity, dealer).typeHolder(); }
+        if (!IS_MAGIC_DMG_SERVERSIDE_INITIALIZED) {
+            IS_MAGIC_DMG_SERVERSIDE_INITIALIZED = true;
+            MAGIC_DAMAGE_TYPE_HOLDER = dealer.damageSources().indirectMagic(indirectEntity, dealer).typeHolder();
+        }
+//        return new MagicDamageSource(dealer.damageSources().mobAttack(dealer).typeHolder(), dealer, indirectEntity);
+        return new MagicDamageSource(MAGIC_DAMAGE_TYPE_HOLDER, dealer, indirectEntity, DfoDamageType);
+    }
+
+    //TODO: CriteriaTriggers.ITEM_DURABILITY_CHANGED.trigger(serverplayer, itemstack, itemstack.getDamageValue() + amount);, getDamageValue -> nbttag "Damage"
+    //or call itemstack hurt method
+    public static void LivingEntityDamageTargetWithPhysicDMG(LivingEntity dealer, LivingEntity target, float amount, boolean ignoreIframe) {
+        EntityMethods.addKnockbackResist(target);
+        int iframeTime = GetEntityInvulnerableTime(target);
+//        if (iframeTime > 0 && !ignoreIframe) { return; }
+        EntityMethods.SetEntityInvulnerableTime(target, 0);
+
+        //TODO: query current element or others
+        target.hurt(getPhysicalDamageSource(dealer, dealer, DfoSwordmanSkillTreeConstants.ELEMENT_DAMAGE_TYPE_NO_ELEMENT), amount);
+
+        removeKnockbackResist(target);
+        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+    }
+
+    public static void LivingEntityDamageTargetWithPhysicDMG(LivingEntity dealer, LivingEntity target, float amount, int damageType, boolean ignoreIframe) {
+        EntityMethods.addKnockbackResist(target);
+        int iframeTime = GetEntityInvulnerableTime(target);
+//        if (iframeTime > 0 && !ignoreIframe) { return; }
+        EntityMethods.SetEntityInvulnerableTime(target, 0);
+
+        target.hurt(getPhysicalDamageSource(dealer, dealer, damageType), amount);
+
+        removeKnockbackResist(target);
+        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+    }
+
+    public static void LivingEntityDamageTargetWithMagicDMG(LivingEntity dealer, LivingEntity target, float amount, boolean ignoreIframe) {
+        EntityMethods.addKnockbackResist(target);
+        int iframeTime = GetEntityInvulnerableTime(target);
+//        if (iframeTime > 0 && !ignoreIframe) { return; }
+        EntityMethods.SetEntityInvulnerableTime(target, 0);
+
+        target.hurt(getMagicalDamageSource(dealer, dealer, DfoSwordmanSkillTreeConstants.ELEMENT_DAMAGE_TYPE_NO_ELEMENT), amount);
+
+        removeKnockbackResist(target);
+        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+    }
+
+    public static void LivingEntityDamageTargetWithMagicDMG(LivingEntity dealer, LivingEntity target, float amount, int damageType, boolean ignoreIframe) {
+        EntityMethods.addKnockbackResist(target);
+        int iframeTime = GetEntityInvulnerableTime(target);
+//        if (iframeTime > 0 && !ignoreIframe) { return; }
+        EntityMethods.SetEntityInvulnerableTime(target, 0);
+
+        target.hurt(getMagicalDamageSource(dealer, dealer, damageType), amount);
+
+        removeKnockbackResist(target);
+        EntityMethods.SetEntityInvulnerableTime(target, iframeTime);
+    }
+}

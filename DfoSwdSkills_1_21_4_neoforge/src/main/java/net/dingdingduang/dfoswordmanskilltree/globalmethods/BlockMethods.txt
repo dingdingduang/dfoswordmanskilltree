@@ -1,0 +1,20 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import org.joml.Vector3f;
+
+public class BlockMethods {
+//    public static BlockState GetBlockState(Level level, BlockPos bPos) {
+//        return level.getBlockState(bPos);
+//    }
+
+    public static BlockPos getBlockPosByVec3f(Vector3f vector3f) {
+        return new BlockPos((int) vector3f.x(), (int) vector3f.y(), (int) vector3f.z());
+    }
+
+    public static BlockState getBlockStateByVec3f(Level level, Vector3f vector3f) {
+        return level.getBlockState(getBlockPosByVec3f(vector3f));
+    }
+}

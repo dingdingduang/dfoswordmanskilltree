@@ -1,0 +1,10 @@
+1. new effect -> nojump -> 0 delta per tick
+2. collision by checking entities' position, y+0.1?
+3. Beam
+4. Model
+5. Particle
+6. animation
+
+
+//new
+1. abstract player class packet, animationstack for gameprofile, different factory

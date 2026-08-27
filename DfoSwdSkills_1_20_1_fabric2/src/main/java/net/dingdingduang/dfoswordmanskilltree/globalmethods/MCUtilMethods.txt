@@ -1,0 +1,11 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+
+public class MCUtilMethods {
+//    public static void getRandomResource() {
+////        return Mth.
+//        new RandomSource();
+//    }
+}

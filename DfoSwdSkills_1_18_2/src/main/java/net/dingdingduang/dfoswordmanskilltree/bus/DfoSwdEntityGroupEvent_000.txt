@@ -1,0 +1,34 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods;
+
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityLeaveWorldEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID)
+public class DfoSwdEntityGroupEvent {
+    @SubscribeEvent
+    public static void DfoSwdAddEntityIfJoinLevel(EntityJoinWorldEvent event) {
+        if (!event.getWorld().isClientSide()) {
+            EntityGroupMethods.getCurrentEntitiesInLevel().put(event.getEntity(), DfoSwordmanSkillTreeConstants.CONSTANT_BYTE_0);
+            if (event.getEntity() instanceof ServerPlayer sp1) {
+                DfoGeneralMethods.getCurrentServerPlayerMap().put(sp1, DfoSwordmanSkillTreeConstants.CONSTANT_BYTE_0);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void DfoSwdRemoveEntityIfLeaveLevel(EntityLeaveWorldEvent event) {
+        if (!event.getWorld().isClientSide()) {
+            EntityGroupMethods.getCurrentEntitiesInLevel().remove(event.getEntity());
+            if (event.getEntity() instanceof ServerPlayer sp1) {
+                DfoGeneralMethods.getCurrentServerPlayerMap().remove(sp1);
+            }
+        }
+    }
+}

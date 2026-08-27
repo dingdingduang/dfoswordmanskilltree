@@ -1,0 +1,241 @@
+package net.dingdingduang.dfoswordmanskilltree.particle;
+
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.handeff.HandEffEntity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+
+import net.minecraft.Util;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.*;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.opengl.GL12;
+
+import java.util.function.Function;
+
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.*;
+
+public class GeoTrailPlaneParticle extends TextureSheetParticle {
+//    public static int GEO_TRAIL_PLANE_PARTICLE_INDEX = 0;
+
+    private static final ResourceLocation PARTICLE_RS = getMCResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, "textures/particle/dfo_geo_trail_plane_particle.png");
+    private static final TextureManager MC_TEX_MGR = getMinecraftInstance().getTextureManager();
+
+    private int index;
+
+    private Matrix4f previousRotationMatrix4f;
+    private Matrix4f currentRotationMatrix4f;
+
+    protected GeoTrailPlaneParticle(ClientLevel pLevel, double pX, double pY, double pZ, Matrix4f PreviousRotMatrix, Matrix4f CurrentRotMatrix, SpriteSet spriteSet) {
+        super(pLevel, pX, pY, pZ, 0, 0, 0);
+
+        this.previousRotationMatrix4f = PreviousRotMatrix;
+        this.currentRotationMatrix4f = CurrentRotMatrix;
+
+        this.setSize(1, 1);
+        this.setSpriteFromAge(spriteSet);
+
+        this.hasPhysics = false;
+
+        RenderSystem.bindTexture(MC_TEX_MGR.getTexture(PARTICLE_RS).getId());
+
+        RenderSystem.texParameter(GL12.GL_TEXTURE_2D, GL12.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        RenderSystem.texParameter(GL12.GL_TEXTURE_2D, GL12.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+
+        this.index = handEffEntity.getGeoParticleIndex();
+        handEffEntity.setGeoParticleIndex(this.index + 1);
+
+        handEffEntity.getGeoTrailPlaneParticleHashMap().put(this.index, this);
+    }
+
+    public double getX() { return this.x; }
+    public double getY() { return this.y; }
+    public double getZ() { return this.z; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        GeoTrailPlaneParticle that = (GeoTrailPlaneParticle) o;
+        return this.index == that.index;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.index;
+    }
+
+    @Override
+    public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        var CameraPos = pRenderInfo.getPosition();
+
+//        float currentX = (float) (Mth.lerp(pPartialTicks, this.xo, this.x) - CameraPos.x());
+//        float currentY = (float) (Mth.lerp(pPartialTicks, this.yo, this.y) - CameraPos.y());
+//        float currentZ = (float) (Mth.lerp(pPartialTicks, this.zo, this.z) - CameraPos.z());
+
+//        float currentX = Vector3fMethods.lerp1D(pPartialTicks, (float) this.xo, (float) this.x) - (float) CameraPos.x();
+//        float currentY = Vector3fMethods.lerp1D(pPartialTicks, (float) this.yo, (float) this.y) - (float) CameraPos.y();
+//        float currentZ = Vector3fMethods.lerp1D(pPartialTicks, (float) this.zo, (float) this.z) - (float) CameraPos.z();
+
+        float currentX = (float) (this.x - CameraPos.x());
+        float currentY = (float) (this.y - CameraPos.y());
+        float currentZ = (float) (this.z - CameraPos.z());
+
+        Vector3f[] Vertices = new Vector3f[]{
+                new Vector3f(0, 0, 0),
+                new Vector3f(0, 0, -2),
+                new Vector3f(0, 0, -2),
+                new Vector3f(0, 0, 0)
+        };
+
+//        float QuadSize = this.getQuadSize(pPartialTicks);
+
+        Vector3f vertex;
+
+//        GeoTrailPlaneParticle previousParticle = this.handEffEntity.getGeoTrailPlaneParticleHashMap().remove(this.index - 1);
+//        if (previousParticle != null) {
+//            float previousParticleX = (float) (previousParticle.getX() - CameraPos.x());
+//            float previousParticleY = (float) (previousParticle.getY() - CameraPos.y());
+//            float previousParticleZ = (float) (previousParticle.getZ() - CameraPos.z());
+//
+//            vertex = this.previousRotationMatrix4f.transformPosition(Vertices[0]);
+//            vertex.add(previousParticleX, previousParticleY, previousParticleZ);
+//            Vertices[0] = vertex;
+//
+//            vertex = this.previousRotationMatrix4f.transformPosition(Vertices[1]);
+//            vertex.add(previousParticleX, previousParticleY, previousParticleZ);
+//            Vertices[1] = vertex;
+//        }
+//        else {
+//            vertex = this.previousRotationMatrix4f.transformPosition(Vertices[0]);
+//            vertex.add(currentX, currentY, currentZ);
+//            Vertices[0] = vertex;
+//
+//            vertex = this.previousRotationMatrix4f.transformPosition(Vertices[1]);
+//            vertex.add(currentX, currentY, currentZ);
+//            Vertices[1] = vertex;
+//        }
+        vertex = this.previousRotationMatrix4f.transformPosition(Vertices[0]);
+        vertex.add(currentX, currentY, currentZ);
+        Vertices[0] = vertex;
+
+        vertex = this.previousRotationMatrix4f.transformPosition(Vertices[1]);
+        vertex.add(currentX, currentY, currentZ);
+        Vertices[1] = vertex;
+
+        vertex = this.currentRotationMatrix4f.transformPosition(Vertices[2]);
+        vertex.add(currentX, currentY, currentZ);
+        Vertices[2] = vertex;
+
+        vertex = this.currentRotationMatrix4f.transformPosition(Vertices[3]);
+        vertex.add(currentX, currentY, currentZ);
+        Vertices[3] = vertex;
+
+//        float U0 = this.getU0();
+//        float U1 = this.getU1();
+//        float V0 = this.getV0();
+//        float V1 = this.getV1();
+
+        int lightColor = this.getLightColor(pPartialTicks);
+
+//        pBuffer.vertex(Vertices[0].x(), Vertices[0].y(), Vertices[0].z()).uv(U1, V1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[1].x(), Vertices[1].y(), Vertices[1].z()).uv(U1, V0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[2].x(), Vertices[2].y(), Vertices[2].z()).uv(U0, V0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[3].x(), Vertices[3].y(), Vertices[3].z()).uv(U0, V1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+
+        this.alpha = 0.5f;
+        pBuffer.vertex(Vertices[0].x(), Vertices[0].y(), Vertices[0].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+        pBuffer.vertex(Vertices[1].x(), Vertices[1].y(), Vertices[1].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+        pBuffer.vertex(Vertices[2].x(), Vertices[2].y(), Vertices[2].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+        pBuffer.vertex(Vertices[3].x(), Vertices[3].y(), Vertices[3].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[2].x(), Vertices[2].y(), Vertices[2].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[1].x(), Vertices[1].y(), Vertices[1].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+//        pBuffer.vertex(Vertices[0].x(), Vertices[0].y(), Vertices[0].z()).uv(0, 1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(lightColor).endVertex();
+    }
+
+    public void tick() {
+//        super.tick();
+//        this.xo = this.x;
+//        this.yo = this.y;
+//        this.zo = this.z;
+
+        if (this.age++ >= this.lifetime) {
+            this.remove();
+        }
+    }
+
+    @Override
+    public boolean shouldCull() {
+        return false;
+    }
+
+    @Override
+    public ParticleRenderType getRenderType() {
+        return PARTICLE_RENDER_TYPE_PROVIDER.apply(PARTICLE_RS);
+    }
+
+    public static class GeoTrailPlaneParticleSprite implements ParticleProvider<SimpleParticleType> {
+        private final SpriteSet sprites;
+
+        public GeoTrailPlaneParticleSprite(SpriteSet pSprites) {
+            this.sprites = pSprites;
+        }
+
+        @Override
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double posX, double posY, double posZ, double unknown0, double unknown1, double DoubleEntityID) {
+            int entityID = (int) DoubleEntityID;
+            Entity tempEntity = EntityMethods.getEntityByIntID(pLevel, entityID);
+            if (tempEntity instanceof HandEffEntity handEffEntity) {
+                if (handEffEntity.getPreviousParticleP0() == null) { return null; }
+                return new GeoTrailPlaneParticle(pLevel, posX, posY, posZ, handEffEntity, this.sprites);
+            }
+            return null;
+        }
+    }
+
+    //[!] From Epicfight's Source Code
+    public static final Function<ResourceLocation, ParticleRenderType> PARTICLE_RENDER_TYPE_PROVIDER = Util.memoize((texturePath) -> new ParticleRenderType() {
+        public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
+            RenderSystem.enableBlend();
+            RenderSystem.disableCull();
+
+            getMinecraftInstance().gameRenderer.lightTexture().turnOnLightLayer();
+            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+//            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(true);
+            RenderSystem.setShader(GameRenderer::getParticleShader);
+            RenderSystem.setShaderTexture(0, texturePath);
+
+            getMinecraftInstance().gameRenderer.lightTexture().turnOnLightLayer();
+
+            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+        }
+
+        public void end(Tesselator tesselator) {
+            tesselator.getBuilder().setQuadSorting(VertexSorting.DISTANCE_TO_ORIGIN);
+            tesselator.end();
+
+            RenderSystem.disableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.enableCull();
+
+            getMinecraftInstance().gameRenderer.lightTexture().turnOffLightLayer();
+        }
+
+        @Override
+        public String toString() {
+            return "DFOSWORDMANSKILLTREE:TRAIL";
+        }
+    });
+}

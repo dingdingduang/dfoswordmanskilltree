@@ -1,0 +1,39 @@
+package net.dingdingduang.dfoswordmanskilltree.networking.packet.toclientpacket;
+
+import net.dingdingduang.dfoswordmanskilltree.util.keybindingctrl.KeyboardMethods;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getClientPlayer;
+
+public class FetchPlayerDataAfterRespawnFromServer {
+
+    public FetchPlayerDataAfterRespawnFromServer() {
+
+    }
+
+    public FetchPlayerDataAfterRespawnFromServer(FriendlyByteBuf buf) {
+
+    }
+
+    public void toBytes(FriendlyByteBuf buf) {
+
+    }
+
+    public boolean handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            //do shiet on client side
+            if (getClientPlayer() == null) { return; }
+
+            //free key
+//            if (KeyboardMethods.isPreviousKeybindingsMapEmpty()) {
+//                KeyboardMethods.ClientKeybindingsStorageFileReadFrom();
+//            }
+            KeyboardMethods.ResetClientPlayerKeyboardKeyBinds();
+        });
+
+        return true;
+    }
+}

@@ -1,0 +1,9 @@
+package net.dingdingduang.dfoswordmanskilltree.test;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getMinecraftInstance;
+
+public class testPrintTime {
+    public static long PrintTime() {
+        return getMinecraftInstance().level.getDayTime();
+    }
+}

@@ -1,0 +1,135 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.newcommon.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.anexampleskilltree.commonskilltree.CommonSkillInitialization;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.HashMap;
+
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.isEntityChannellingInterrupted;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerLivingEntityValues.getSLivingEntityState;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor.applyTimedUninterruptibleChanceToEntity;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class NEWCOMMON007 {
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        Double duration = skillData.getDuration().get(correctSkillLevel);
+        int UnInterruptibleChance = (int) (skillData.getValueUsage_01().get(correctSkillLevel) * 100);
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%ss", duration),
+                String.format("%d%%", UnInterruptibleChance)
+        );
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+        tempSkillData.setTranslatableTooltipGetter(NEWCOMMON007::getSkillDescription);
+
+        //condition: check to see if qualify before activate skill
+        tempSkillData.setClientConditionRequirement(DfoSwordmanSkillMethods::defaultSkillClientCondition);
+
+        //action while channeling on server side
+        MethodAction tempChannelingAction = (entity1) -> {
+            int actionPeriod = 5;
+            //play buff on sound
+            DfoSwdSoundMethods.PlayChannelingStartSound(EntityMethods.getEntityLevel(entity1), EntityMethods.getEntityX(entity1), EntityMethods.getEntityY(entity1), EntityMethods.getEntityZ(entity1), 0.6f, 1.0f);
+
+            int playerSkillLVL = 0;
+            SkillDataJson skill1 = getID2SkillData().get(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+            if (entity1 instanceof ServerPlayerEntity sp1) {
+                if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT)) {
+                    playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+                    if (playerSkillLVL <= 0) {
+                        return;
+                    }
+                    playerSkillLVL = playerSkillLVL - 1;
+                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_START);
+                }
+            }
+            float channelingTime = skill1.getChannelingTime().get(playerSkillLVL).floatValue();
+            if (channelingTime != 0) {
+                float channelingBarAnimationTime = 1 / channelingTime;
+                int lifetime = (int) (channelingTime * 20);
+                GeoModelSpawnMethods.GenerateRegularChannelingBarEntity(entity1, 1f, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_HEIGHT, 0, lifetime, channelingBarAnimationTime, true);
+            }
+
+            IntegerValueHolder tempIntegerTicker = new IntegerValueHolder(0);
+            MethodAction action = (entity2) -> {
+                int currentPassedTicks = tempIntegerTicker.getIntCounter();
+                tempIntegerTicker.setIntCounter(currentPassedTicks + actionPeriod);
+                boolean contActioning = false;
+                HashMap<String, Integer> ServerLivingEntityState = getSLivingEntityState().get(entity2);
+                if (ServerLivingEntityState != null) {
+                    contActioning = ServerLivingEntityState.get(Constants.IS_CHANNELING) == 1;
+                }
+                if (!contActioning) {
+                    SBSTickEventMethods.setSkillActionDone(entity2, CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+                    //[!] remove entity here?
+                }
+
+                if ( (currentPassedTicks - 5) % 500 == 0 && entity2 instanceof ServerPlayerEntity sp1) {
+                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_LOOPING);
+                }
+            };
+
+            //start loop action
+            SBSTickEventMethods.setMethodActionTimer(entity1, CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT, actionPeriod, action);
+        };
+
+
+
+        MethodAction tempChannelingFinalAction =
+                (entity1) -> {
+                    //condition, if skill is interrupted, do not execute final action
+                    if (!isEntityChannellingInterrupted(entity1)) {
+                        int duration;
+                        double amount;
+                        int playerSkillLVL = 0;
+                        SkillDataJson skill1 = getID2SkillData().get(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+                        if (entity1 instanceof ServerPlayerEntity sp1) {
+                            if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT)) {
+                                playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT);
+                                if (playerSkillLVL <= 0) {
+                                    return;
+                                }
+                                playerSkillLVL = playerSkillLVL - 1;
+                                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, DfoSwordmanSkillTreeConstants.RAISE_UP_LEFT_HAND_180_DEG_ANIMATION_END);
+                            }
+                        }
+                        duration = (int) (skill1.getDuration().get(playerSkillLVL).floatValue() * 20);
+                        amount = skill1.getValueUsage_01().get(playerSkillLVL);
+                        applyTimedUninterruptibleChanceToEntity(entity1, duration, amount, Constants.OP_ADDITION, false, CommonSkillInitialization.COMMON_007_INDOMITABLE_SPIRIT, null, null);
+
+                        //play buff on sound
+                        DfoSwdSoundMethods.PlayChannelingEndSound(EntityMethods.getEntityLevel(entity1), EntityMethods.getEntityX(entity1), EntityMethods.getEntityY(entity1), EntityMethods.getEntityZ(entity1), 0.6f, 1.0f);
+                        GeoModelSpawnMethods.GenerateCustomChannelingIconEntity(entity1, 1f, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_HEIGHT, 0, DfoSwordmanSkillTreeConstants.REGULAR_CHANNELING_ICON_LIFETIME, skill1.getResLocBtn(), true, true);
+                    }
+                    else {
+                        DfoSwdSoundMethods.PlayerSBSCastingFailedSound(entity1);
+                    }
+                };
+
+
+        //while channeling
+        tempSkillData.setChannelingSkillAction1(tempChannelingAction);
+        //final action
+        tempSkillData.setActiveSkillAction1(tempChannelingFinalAction);
+    }
+}

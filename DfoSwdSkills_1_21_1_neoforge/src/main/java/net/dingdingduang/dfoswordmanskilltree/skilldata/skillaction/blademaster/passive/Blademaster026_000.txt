@@ -1,0 +1,164 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive;
+
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.BlademasterSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+
+import java.util.HashMap;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.isClientSide;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.printInGameMsg;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Blademaster026 {
+    public static final String SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_ULTIMATE_SWORD_ART_IRON_STRIKE;
+
+    public static final String BLADEMASTER026_BUFF_ATTACK_STR_ID = SkillID + "_BUFF_ATTACK";
+    public static final String BLADEMASTER026_BUFF_SKILL_DAMAGE_STR_ID = SkillID + "_BUFF_SKILL_DAMAGE";
+    public static final String BLADEMASTER026_DE_BUFF_STR_ID = SkillID + "_DE_BUFF";
+
+    public static HashMap<LivingEntity, Integer> BLADEMASTER026_HashMapBuffTriggeredTimes;
+    public static HashMap<LivingEntity, Integer> BLADEMASTER026_HashMapDeBuffTriggeredTimes;
+    public static HashMap<LivingEntity, Float> BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived;
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        int TriggerChance = (int) (skillData.getValueUsage_02().get(correctSkillLevel) * 100);
+        Double duration = skillData.getDuration().get(correctSkillLevel);
+        int MaxStacks = skillData.getValueUsage_01().get(correctSkillLevel).intValue();
+        int AttackDamageMultiplier = (int) (skillData.getDamageMultiplierList_01().get(correctSkillLevel) * 100);
+        int SkillDamageMultiplier = (int) (skillData.getDamageMultiplierList_02().get(correctSkillLevel) * 100);
+        int PhysicalCriticalDamageMultiplier = (int) (skillData.getDamageList_01().get(correctSkillLevel) * 100);
+        int ArmorReductionMultiplier = (int) (skillData.getDamageMultiplierList_03().get(correctSkillLevel) * 100);
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%d%%", TriggerChance),
+                String.format("%ss", duration),
+                String.format("%d", MaxStacks),
+                String.format("%d%%", AttackDamageMultiplier),
+                String.format("%d%%", SkillDamageMultiplier),
+                String.format("%d%%", PhysicalCriticalDamageMultiplier),
+                String.format("-%d%%", ArmorReductionMultiplier)
+        );
+    }
+
+    public static float Blademaster026_getExtraPhysicalCriticalDamage(LivingEntity target) {
+        Float CurrentTargetExtraPhysicalCriticalDamageReceivedMultiplier = BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived.get(target);
+        if (CurrentTargetExtraPhysicalCriticalDamageReceivedMultiplier == null) {
+            return 0f;
+        }
+        return CurrentTargetExtraPhysicalCriticalDamageReceivedMultiplier;
+    }
+
+    public static void Blademaster026_ApplyBuffAndDeBuff(LivingEntity dealer, LivingEntity target) {
+        int playerSkillLVL = 0;
+        SkillDataJson skillData = getID2SkillData().get(SkillID);
+        if (dealer instanceof ServerPlayer sp1) {
+            if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                if (playerSkillLVL <= 0) {
+                    return;
+                }
+                playerSkillLVL = playerSkillLVL - 1;
+            }
+        }
+
+        float TriggerChance = skillData.getValueUsage_02().get(playerSkillLVL).floatValue();
+        if (TriggerChance >= ExtraMathMethods.randomFloat()) {
+            printInGameMsg("triggered!");
+            int duration2Ticks = (int) (skillData.getDuration().get(playerSkillLVL).floatValue() * 20);
+            int MaxStacks = skillData.getValueUsage_01().get(playerSkillLVL).intValue();
+            float AttackDamageMultiplier = skillData.getDamageMultiplierList_01().get(playerSkillLVL).floatValue();
+            float SkillDamageMultiplier = skillData.getDamageMultiplierList_02().get(playerSkillLVL).floatValue();
+            //apply buff
+            Integer TriggeredTimes;
+            int PrimitiveIntTriggeredTimes;
+
+            TriggeredTimes = BLADEMASTER026_HashMapBuffTriggeredTimes.get(dealer);
+            if (TriggeredTimes == null) {
+                PrimitiveIntTriggeredTimes = 1;
+                BLADEMASTER026_HashMapBuffTriggeredTimes.put(dealer, TriggeredTimes);
+            } else {
+                PrimitiveIntTriggeredTimes = BLADEMASTER026_HashMapBuffTriggeredTimes.get(dealer);
+                BLADEMASTER026_HashMapBuffTriggeredTimes.put(dealer, Math.max(MaxStacks, PrimitiveIntTriggeredTimes + 1));
+            }
+
+            TimedAttributesDistributor.applyTimedAttackDMGToEntity(dealer, duration2Ticks, AttackDamageMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_BUFF_ATTACK_STR_ID, null, null);
+            TimedAttributesDistributor.applyTimedSkillDmgToEntity(dealer, duration2Ticks, SkillDamageMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_BUFF_SKILL_DAMAGE_STR_ID, null, Blademaster026::Blademaster026_CleanBuffAction);
+
+            if (PrimitiveIntTriggeredTimes > 1) {
+                for (int i = PrimitiveIntTriggeredTimes; i < MaxStacks; i++) {
+                    printInGameMsg("loop!");
+                    TimedAttributesDistributor.applyTimedAttackDMGToEntity(dealer, duration2Ticks, AttackDamageMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_BUFF_ATTACK_STR_ID + i + "2222", null, null);
+                    TimedAttributesDistributor.applyTimedSkillDmgToEntity(dealer, duration2Ticks, SkillDamageMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_BUFF_SKILL_DAMAGE_STR_ID + i, null, null);
+                }
+            }
+
+
+            DfoStatusGeneralMethods.GenerateEffBuffEntity(dealer, duration2Ticks, DfoStatusGeneralMethods.ATTACK_BUFF_TEXTURE, DfoStatusGeneralMethods.EFF_ENTITY_MOVING_UP, DfoStatusGeneralMethods.ATTACK_BUFF_TEXTURE);
+
+            //apply debuff
+            TriggeredTimes = BLADEMASTER026_HashMapDeBuffTriggeredTimes.get(dealer);
+            if (TriggeredTimes == null) {
+                PrimitiveIntTriggeredTimes = 1;
+                BLADEMASTER026_HashMapDeBuffTriggeredTimes.put(dealer, TriggeredTimes);
+            }
+            else {
+                PrimitiveIntTriggeredTimes = BLADEMASTER026_HashMapDeBuffTriggeredTimes.get(dealer);
+                BLADEMASTER026_HashMapDeBuffTriggeredTimes.put(dealer, Math.max(MaxStacks, PrimitiveIntTriggeredTimes + 1));
+            }
+            float ArmorReductionMultiplier = skillData.getDamageMultiplierList_03().get(playerSkillLVL).floatValue();
+            float PhysicalCriticalDamageMultiplier = skillData.getDamageList_01().get(playerSkillLVL).floatValue();
+            Float currentCriticalDamage = BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived.get(target);
+            if (currentCriticalDamage == null) {
+                currentCriticalDamage = PrimitiveIntTriggeredTimes * PhysicalCriticalDamageMultiplier;
+            }
+            else {
+                currentCriticalDamage = MathMethods.max(PrimitiveIntTriggeredTimes * PhysicalCriticalDamageMultiplier, currentCriticalDamage);
+            }
+            BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived.put(target, currentCriticalDamage);
+
+            TimedAttributesDistributor.applyTimedArmorToEntity(target, duration2Ticks, -ArmorReductionMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_DE_BUFF_STR_ID, null, Blademaster026::Blademaster026_CleanDeBuffAction);
+            if (PrimitiveIntTriggeredTimes > 1) {
+                for (int i = PrimitiveIntTriggeredTimes; i < MaxStacks; i++) {
+                    TimedAttributesDistributor.applyTimedArmorToEntity(target, duration2Ticks, -ArmorReductionMultiplier, Constants.OP_MULTIPLY_BASE, false, BLADEMASTER026_DE_BUFF_STR_ID + i, null, null);
+                }
+            }
+            DfoStatusGeneralMethods.GenerateEffBuffEntity(target, duration2Ticks, DfoStatusGeneralMethods.ARMOR_DEBUFF_TEXTURE, DfoStatusGeneralMethods.EFF_ENTITY_MOVING_DOWN, DfoStatusGeneralMethods.ARMOR_DEBUFF_TEXTURE);
+        }
+    }
+
+    public static void Blademaster026_CleanBuffAction(LivingEntity owner) {
+        BLADEMASTER026_HashMapBuffTriggeredTimes.remove(owner);
+    }
+
+    public static void Blademaster026_CleanDeBuffAction(LivingEntity target) {
+        BLADEMASTER026_HashMapDeBuffTriggeredTimes.remove(target);
+        BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived.remove(target);
+    }
+
+    public static void init() {
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Blademaster026::getSkillDescription);
+
+        if (isClientSide()) { return; }
+
+        //server init
+        if (BLADEMASTER026_HashMapBuffTriggeredTimes == null) {
+            BLADEMASTER026_HashMapBuffTriggeredTimes = new HashMap<>();
+            BLADEMASTER026_HashMapDeBuffTriggeredTimes = new HashMap<>();
+            BLADEMASTER026_HashMapDeBuffExtraCriticalDamageReceived = new HashMap<>();
+        }
+    }
+}

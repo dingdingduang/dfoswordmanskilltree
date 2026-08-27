@@ -1,0 +1,19 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.test;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.test.car.TestCarEntity;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.test.car.TestCarGeoRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+
+@Mod.EventBusSubscriber(modid = DfoSwordmanSkillTreeConstants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public class TestGeoClientListener {
+	@SubscribeEvent
+	public static void SBGeoModelRendererInit(FMLClientSetupEvent event) {
+		EntityRenderers.register(TestEntityRegistry.TEST_BIKE_ENTITY.get(), TestBikeGeoRenderer::new);
+		EntityRenderers.register(TestEntityRegistry.TEST_CAR_ENTITY.get(), TestCarGeoRenderer::new);
+	}
+}

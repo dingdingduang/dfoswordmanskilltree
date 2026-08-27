@@ -1,0 +1,20 @@
+package net.dingdingduang.dfoswordmanskilltree.bus;
+
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+
+public class DfoSwdServerPlayerEvent {
+    public static void registerServerEvent() {
+        ServerPlayConnectionEvents.JOIN.register(DfoSwdServerPlayerEvent::DfoSwdInitWhenServerPlayerLogin);
+    }
+
+    private static void DfoSwdInitWhenServerPlayerLogin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
+        ServerPlayerEntity sp1 = serverPlayNetworkHandler.player;
+
+        if (!DfoSwdGlobalServerValue.isDfoSwdGlobalValInit()) {
+//                ParticleRegistry.ParticleRegistryInit();
+            DfoSwdGlobalServerValue.setDfoSwdGlobalValInit(true);
+        }
+
+        DfoSwdNetworkingFetchMsgMethods.FetchDfoSwordmanClientPlayerInitDataFromServer(sp1);
+    }
+}

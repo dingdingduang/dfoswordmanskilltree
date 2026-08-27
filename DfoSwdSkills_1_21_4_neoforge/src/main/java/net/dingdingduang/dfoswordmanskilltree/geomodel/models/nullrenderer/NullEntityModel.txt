@@ -1,0 +1,23 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.models.nullrenderer;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.DfoSwdGeneralGeoEntityResources;
+import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.GeoRenderer;
+
+public class NullEntityModel extends GeoModel<NullEntity> {
+    @Override
+    public ResourceLocation getModelResource(NullEntity object, GeoRenderer<NullEntity> geoRenderer) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_MODEL_RESOURCE;
+    }
+
+    @Override
+    public ResourceLocation getTextureResource(NullEntity object, GeoRenderer<NullEntity> geoRenderer) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_TEXTURE_RESOURCE;
+    }
+
+    @Override
+    public ResourceLocation getAnimationResource(NullEntity animatable) {
+        return DfoSwdGeneralGeoEntityResources.NULL_ENTITY_ANIMATION_RESOURCE;
+    }
+}

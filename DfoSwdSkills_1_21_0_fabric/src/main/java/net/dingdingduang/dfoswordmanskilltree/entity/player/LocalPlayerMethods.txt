@@ -1,0 +1,20 @@
+package net.dingdingduang.dfoswordmanskilltree.entity.player;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getMinecraftInstance;
+
+public class LocalPlayerMethods {
+    //local
+//		if (!event.getEntity().level().isClientSide()) {
+//        if (event.getEntity() instanceof ServerPlayerEntity player) {
+//entity.setLivingEntityFlag(4, true/false);
+
+    //TODO: Last thing to consider if player moving around after an action being performed, keep releasing mouse while ticking?
+    //deprecated_TODO: make an invisible panel to stop player moving around while an action being performed
+    public static void LocalClientGrabMouse() {
+        getMinecraftInstance().mouseHandler.grabMouse();
+    }
+
+    public static void LocalClientReleaseMouse() {
+        getMinecraftInstance().mouseHandler.releaseMouse();
+    }
+}

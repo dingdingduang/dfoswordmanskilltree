@@ -1,0 +1,7 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction;
+
+public class TestClassTemplate {
+    public static void init() {
+
+    }
+}

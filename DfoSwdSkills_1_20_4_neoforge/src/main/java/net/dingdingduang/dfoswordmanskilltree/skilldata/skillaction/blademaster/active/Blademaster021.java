@@ -1,0 +1,1296 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.active;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfostatus.DfoStatusGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.damagesrc.DfoGeneralDamageSrc;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoAnimationAndTextureName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSkillTreeItemMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoSwdSoundMethods;
+import net.dingdingduang.dfoswordmanskilltree.networking.DfoSwdNetworkingFetchMsgMethods;
+import net.dingdingduang.dfoswordmanskilltree.sbanimation.SBPlayerAnimatorMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.DfoSwordmanSkillMethods;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.BlademasterSkillTreeInitialization;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster003;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster008;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster010;
+import net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.passive.Blademaster011;
+import net.dingdingduang.dfoswordmanskilltree.util.ExtraMathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.BooleanValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.typevalueholders.IntegerValueHolder;
+import net.dingdingduang.dfoswordmanskilltree.util.Vector3fMethods;
+import net.dingdingduang.somebasicskills.Constants;
+import net.dingdingduang.somebasicskills.event.SBSTickEventMethods;
+import net.dingdingduang.somebasicskills.globalmethods.LocaleLanguageMethods;
+import net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods;
+import net.dingdingduang.somebasicskills.sbsattributes.TimedAttributesDistributor;
+import net.dingdingduang.somebasicskills.skilldata.SkillDataJson;
+import net.dingdingduang.somebasicskills.util.MethodAction;
+
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+
+import org.joml.Vector3f;
+
+import java.util.*;
+import java.util.function.Predicate;
+
+import static net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelSpawnMethods.GenerateEffStabEntity;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityGroupMethods.GroupEnumEntitiesInRangeFilter;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.condition.SBConditions.defaultSkillTargetCondition;
+import static net.dingdingduang.dfoswordmanskilltree.util.tiltblock.TiltBlockMethods.SetupCircleTiltBlocksZone;
+import static net.dingdingduang.somebasicskills.globalmethods.ClientPlayerMethods.getCPlayerSkillDamage;
+import static net.dingdingduang.somebasicskills.globalmethods.ServerSkillMethods.*;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerLivingEntityValues.getSLivingEntityState;
+import static net.dingdingduang.somebasicskills.globalvalues.GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap;
+import static net.dingdingduang.somebasicskills.skilldata.SkillDataInitialization.getID2SkillData;
+
+public class Blademaster021 {
+    //Server
+    public static HashMap<LivingEntity, Integer> BLADEMASTER021_HashMapTriggeredTimes;
+    public static HashMap<LivingEntity, Boolean> BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready;
+
+    public final static String[] BLADEMASTER021_SecretSwordArtFastestSwordAnim = {"sword_act3to1_slash", "sword_act1to2_slash", "sword_act2to3_slash", "sword_act1"};
+//    public final static String[] BLADEMASTER021_SecretSwordArtFastestSwordAnim = {"sword_act1", "sword_act1to2_slash", "sword_act2to3_slash"};
+
+    public final static String[] BLADEMASTER021_SecretSwordArtFastKatanaSwordAnim = {"sword_act_katana_slash4to1", "sword_act_katana_slash1to2", "sword_act_katana_slash2to3", "sword_act_katana_slash3to4", "sword_act_katana_1"};
+    public final static String[] BLADEMASTER021_SecretSwordArtAverageShortSwordAnim = {"sword_act_shortsword_slash3to1", "sword_act_shortsword_slash1to2", "sword_act_shortsword_slash2to3", "sword_act_shortsword_1"};
+    public final static String[] BLADEMASTER021_SecretSwordArtAverageShortSwordInstantAnim = {"sword_act_shortsword_slash1", "sword_act_shortsword_slash2", "sword_act_shortsword_slash3"};
+    public final static String[] BLADEMASTER021_SecretSwordArtSlowBludgeonSwordAnim = {"sword_act_bludgeon_slash4to1", "sword_act_bludgeon_slash1to2", "sword_act_bludgeon_slash2to3", "sword_act_bludgeon_slash3to4", "sword_act_bludgeon_slash1"};
+    public final static String[] BLADEMASTER021_SecretSwordArtSlowestZanbatoSwordAnim = {"sword_act_zanbato_slash2to1", "sword_act_zanbato_slash1to2_start", "sword_act_zanbato_slash1to2_channeling", "sword_act_zanbato_slash1to2_end", "sword_act_zanbato_1"};
+
+//    public final static String ZANBATO_CHARGING_ACTION = "ZANBATO_CHARGING_ACTION";
+    public final static String ZANBATO_CHARGING_SLASH_ACTION = "ZANBATO_CHARGING_SLASH_ACTION";
+    //    public final static String ZANBATO_CLEAN_ACTION = "ZANBATO_CLEAN_ACTION";
+    public final static String SHORT_SWORD_SWORD_QI_ACTION = "SHORT_SWORD_SWORD_QI_ACTION";
+    public final static String[][] BLADEMASTER021_SecretSwordArtWeaponTypeAnimArray = {BLADEMASTER021_SecretSwordArtSlowestZanbatoSwordAnim, BLADEMASTER021_SecretSwordArtSlowBludgeonSwordAnim, BLADEMASTER021_SecretSwordArtAverageShortSwordAnim,
+            BLADEMASTER021_SecretSwordArtFastKatanaSwordAnim, BLADEMASTER021_SecretSwordArtFastestSwordAnim};
+
+    //dmg multiplier
+    public final static float LIGHTSABRE_DAMAGE_MULTIPLIER = 1f;
+    public final static float KATANA_DAMAGE_MULTIPLIER = 0.6f;
+    public final static float SHORT_SWORD_DAMAGE_MULTIPLIER = 1.1f;
+    public final static float BLUDGEON_DAMAGE_MULTIPLIER = 1.2f;
+    public final static float ZANBATO_DAMAGE_MULTIPLIER = 1.4f;
+
+    public static void clearAction(LivingEntity entity) {
+        BLADEMASTER021_HashMapTriggeredTimes.remove(entity);
+        BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.remove(entity);
+    }
+
+    private static String getSkillDescription(SkillDataJson skillData, int currentSkillLevel) {
+        int correctSkillLevel = 0;
+        if (currentSkillLevel > 0) {
+            correctSkillLevel = currentSkillLevel - 1;
+        }
+        Double DamageMultiplier = skillData.getDamageMultiplierList_01().get(correctSkillLevel);
+        Double ConstantDamage = skillData.getDamageList_01().get(correctSkillLevel);
+        double skillDamageMultiplier = getCPlayerSkillDamage();
+        Float finalDmg = (float) ( (DamageMultiplier * getEntityAttackDamage(getClientPlayer()) + ConstantDamage) * skillDamageMultiplier);
+        //Weapon type multiplier
+//        Float WeaponTypeLightSabreMultiplier = LIGHTSABRE_DAMAGE_MULTIPLIER;
+//        Float WeaponTypeKatanaMultiplier = KATANA_DAMAGE_MULTIPLIER;
+//        Float WeaponTypeShortSwordMultiplier = SHORT_SWORD_DAMAGE_MULTIPLIER;
+//        Float WeaponTypeBludgeonMultiplier = BLUDGEON_DAMAGE_MULTIPLIER;
+//        Float WeaponTypeZanbabtoMultiplier = ZANBATO_DAMAGE_MULTIPLIER;
+
+
+
+        return LocaleLanguageMethods.getTranslatableDescriptionWithArgs(skillData.getTranslatableTextDescription(),
+                String.format("%d%%", (int) (DamageMultiplier.floatValue() * 100)),
+                String.format("%s", ConstantDamage),
+                String.format("%s", finalDmg),
+                String.format("%d%%", (int) (LIGHTSABRE_DAMAGE_MULTIPLIER * 100)),
+                String.format("%d%%", (int) (KATANA_DAMAGE_MULTIPLIER * 100)),
+                String.format("%d%%", (int) (SHORT_SWORD_DAMAGE_MULTIPLIER * 100)),
+                String.format("%d%%", (int) (BLUDGEON_DAMAGE_MULTIPLIER * 100)),
+                String.format("%d%%", (int) (ZANBATO_DAMAGE_MULTIPLIER * 100))
+        );
+    }
+
+    public static void init() {
+        String SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_SECRET_SWORD_ART;
+        SkillDataJson tempSkillData = getID2SkillData().get(SkillID);
+        tempSkillData.setTranslatableTooltipGetter(Blademaster021::getSkillDescription);
+
+        //Condition
+        tempSkillData.setClientConditionRequirement(DfoSwordmanSkillMethods::defaultSkillClientCondition);
+
+        if (isClientSide()) {
+            return;
+        }
+
+        //server init
+        if (BLADEMASTER021_HashMapTriggeredTimes == null) {
+            BLADEMASTER021_HashMapTriggeredTimes = new HashMap<>();
+            BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready = new HashMap<>();
+        }
+
+        //====================================
+        //setup skill action
+        MethodAction tempSkillAction =
+                (entity1) -> {
+                    //identify weapon type
+                    int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity1);
+                    if (weaponType == DfoSkillTreeItemMethods.IS_HOLDING_NOTHING) {
+                        return;
+                    }
+
+//                    if (weaponType == DfoSkillTreeItemMethods.IS_FAST_KATANA) {
+//                        NetworkingFetchMsgMethods.FetchPlayerStateToClientSide(sp1, Constants.IS_CHANNELING, 0);
+//                    }
+
+//                    int weaponType = net.dingdingduang.dfoswordmanskilltree.test.testPressKey.tempinti1;
+                    String[] weaponAnimArr = BLADEMASTER021_SecretSwordArtWeaponTypeAnimArray[weaponType];
+                    int actualAnimationShouldPlayIndex = weaponAnimArr.length - 1;
+                    boolean isZanbato = weaponType == DfoSkillTreeItemMethods.IS_VERY_SLOW_ZANBATO;
+
+                    int playerSkillLVL = 0;
+                    float aoeRange;
+                    float damageBase;
+                    float damageMultiplier;
+
+                    //ASSUME BLADEMASTER021_HashMapTriggeredTimes never be null
+                    if (!BLADEMASTER021_HashMapTriggeredTimes.containsKey(entity1)) {
+                        BLADEMASTER021_HashMapTriggeredTimes.put(entity1, 0);
+                    }
+                    BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.put(entity1, false);
+
+                    SkillDataJson skill1 = getID2SkillData().get(SkillID);
+                    if (entity1 instanceof ServerPlayer sp1) {
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            playerSkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID) - 1;
+                        }
+                    }
+
+                    aoeRange = skill1.getEffectArea().get(playerSkillLVL).floatValue();
+                    damageBase = skill1.getDamageList_01().get(playerSkillLVL).floatValue();
+                    damageMultiplier = skill1.getDamageMultiplierList_01().get(playerSkillLVL).floatValue();
+
+                    //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+                    //start Actioning
+
+                    Predicate<Entity> condition;
+                    float[] entityAnimationArr = DfoSwordmanSkillMethods.getEntityAnimationSpeedMultiplierArr(entity1);
+                    float finalAspd = entityAnimationArr[0];
+                    float finalAnimationSpeed = entityAnimationArr[1];
+//                    float finalAspd = ExtraMathMethods.clamp((float) EntityMethods.getEntityAttackSpeed(entity1) * 0.5f, 0.5f, 5f);
+//                    float finalAnimationSpeed;
+//                    if (finalAspd >= 1) {
+//                        finalAnimationSpeed = 1f - (finalAspd - 1f) * 0.2f;
+//                        finalAspd = 1f + (finalAspd - 1f) * 0.2f;
+//                    }
+//                    else {
+//                        finalAnimationSpeed = 3f - 2f * finalAspd;
+//                    }
+
+                    boolean shouldApplyLightsabreShockStatus = false;
+                    boolean shouldApplyShortSwordSwordQi = false;
+                    boolean shouldApplyZanbatoSuperArmor = false;
+                    float lightsabreShockStatusChance = 1f;
+                    float stunChance = 0;
+                    int stunDurationTicks = 1;
+                    float zanbatoExtraMaxChargingDamageMultiplier = 0f;
+                    //play animation and update condition
+                    int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1);
+                    if (entity1 instanceof ServerPlayer sp1) {
+//                        if (weaponType > -1) {
+//                            KeyboardMethods.KidnapClientPlayerHotBarKeybindings();
+//                        }
+                        if (weaponType == DfoSkillTreeItemMethods.IS_SLOW_BLUDGEON) {
+                            int bludgeonMasterySkillLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_BLUDGEON_MASTERY);
+                            if (bludgeonMasterySkillLVL >= Blademaster011.BLADEMASTER011_BLUDGEON_MASTERY_BONUS_EFFECT_1_LVL) {
+                                SkillDataJson bludgeonMasterySkill = getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_BLUDGEON_MASTERY);
+                                stunChance = bludgeonMasterySkill.getValueUsage_02().get(bludgeonMasterySkillLVL - 1).floatValue();
+                                stunDurationTicks = (int) (bludgeonMasterySkill.getDuration().get(bludgeonMasterySkillLVL - 1) * DfoStatusGeneralMethods.oneSec2Tick);
+                            }
+                        }
+
+                        if (weaponType == DfoSkillTreeItemMethods.IS_VERY_SLOW_ZANBATO) {
+                            int ZanbatoMasterySkillLVL = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_ZANBATO_MASTERY);
+                            if (ZanbatoMasterySkillLVL >= Blademaster010.BLADEMASTER010_ZANBATO_MASTERY_BONUS_EFFECT_1_LVL) {
+                                SkillDataJson zanbatoMasterySkill = getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_ZANBATO_MASTERY);
+                                shouldApplyZanbatoSuperArmor = true;
+                                zanbatoExtraMaxChargingDamageMultiplier = zanbatoMasterySkill.getDamageMultiplierList_01().get(ZanbatoMasterySkillLVL - 1).floatValue();
+
+                                if (ZanbatoMasterySkillLVL >= Blademaster010.BLADEMASTER010_ZANBATO_MASTERY_BONUS_EFFECT_4_LVL) {
+                                    zanbatoExtraMaxChargingDamageMultiplier = zanbatoExtraMaxChargingDamageMultiplier + getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_ZANBATO_MASTERY).getDamageMultiplierList_03().get(ZanbatoMasterySkillLVL - 1).floatValue();
+                                }
+                            }
+                        }
+
+                        if (triggeredTimes != 0) {
+                            if (!isZanbato) {
+                                //reset trigger times
+                                if (triggeredTimes - actualAnimationShouldPlayIndex >= actualAnimationShouldPlayIndex) {
+                                    BLADEMASTER021_HashMapTriggeredTimes.put(entity1, actualAnimationShouldPlayIndex);
+                                }
+                                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, weaponAnimArr[BLADEMASTER021_HashMapTriggeredTimes.get(entity1) % actualAnimationShouldPlayIndex], finalAspd);
+                            }
+                            else {
+                                if (triggeredTimes % 2 == 0) {
+                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, "sword_act_zanbato_slash2to1", finalAspd);
+                                }
+                                else {
+                                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, "sword_act_zanbato_slash1to2_start", finalAspd);
+                                    getSLivingEntityState().get(entity1).put(DfoSwordmanSkillTreeConstants.IS_CHARGING, Constants.ACTION_ON);
+                                }
+                            }
+                        }
+                        else {
+                            //play first animation
+                            if (!isZanbato) {
+                                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, weaponAnimArr[actualAnimationShouldPlayIndex], finalAspd);
+                            }
+                            else {
+                                SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, "sword_act_zanbato_1", finalAspd);
+                            }
+                        }
+
+                        //check should lightsabre apply shock status
+                        int otherSkillLevel;
+                        if (weaponType == DfoSkillTreeItemMethods.IS_VERY_FAST_LIGHTSABRE && (otherSkillLevel = ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY)) >= Blademaster003.BLADEMASTER003_LIGHTSABRE_MASTERY_BONUS_EFFECT_1_LVL) {
+//                        if (weaponType == DfoSkillTreeItemMethods.IS_VERY_FAST_LIGHTSABRE && GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap().containsKey(sp1) && GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY) && GlobalServerPlayerValues.getGlobalPlayerSkillID2lvlMap().get(sp1).get(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY) >= Blademaster003.BLADEMASTER003_LIGHTSABRE_MASTERY_BONUS_EFFECT_1_LVL) {
+                            shouldApplyLightsabreShockStatus = true;
+                            lightsabreShockStatusChance = lightsabreShockStatusChance - ExtraMathMethods.clamp(getID2SkillData().get(BlademasterSkillTreeInitialization.BLADEMASTER_LIGHTSABRE_MASTERY).getValueUsage_02().get(otherSkillLevel- 1).floatValue(), 0f, 1f);
+                        }
+                        else if (weaponType == DfoSkillTreeItemMethods.IS_AVERAGE_SHORT_SWORD && ServerSkillMethods.querySPlayerCurrentSkillLevel(sp1, BlademasterSkillTreeInitialization.BLADEMASTER_SHORT_SWORD_MASTERY) >= Blademaster008.BLADEMASTER008_SHORT_SWORD_MASTERY_BONUS_EFFECT_2_LVL) {
+                            shouldApplyShortSwordSwordQi = true;
+                        }
+
+                        condition = defaultSkillTargetCondition(sp1);
+                    }
+                    else {
+                        condition = defaultSkillTargetCondition();
+                        stunChance = 10;
+                        stunDurationTicks = 60;
+                    }
+                    setEntityDeltaMovement(entity1, 0, 0, 0);
+
+                    int actionPeriod = 1;
+                    //default
+//                    MethodAction action = SwordActLightSabreAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition);
+
+
+//                    MethodAction tempSkillCleanAct = (entity2) -> {
+//                        BLADEMASTER021_HashMapDamagedEntityGroup.remove(entity2);
+//                        BLADEMASTER021_HashMapPassedTicks.remove(entity2);
+//                        BLADEMASTER021_HashMapTriggeredTimes.remove(entity2);
+//                        BLADEMASTER021_HashMapEffEntity.remove(entity2);
+//
+//                        if (BLADEMASTER021_HashMapPassedTicks.size() <= 0) {
+//                            BLADEMASTER021_HashMapDamagedEntityGroup = new HashMap<>();
+//                            BLADEMASTER021_HashMapPassedTicks = new HashMap<>();
+//                            BLADEMASTER021_HashMapTriggeredTimes = new HashMap<>();
+//                            BLADEMASTER021_HashMapEffEntity = new HashMap<>();
+//                        }
+//                    };
+
+                    MethodAction action;
+                    if (isZanbato) {
+                        if (triggeredTimes % 2 == 0) {
+                            action = SwordActZanbatoNormalAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange+1f, condition);
+
+//                            SBSTickEventMethods.setMethodActionTimer(true, entity1, SkillID, actionPeriod, action);
+                            SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity1, SkillID, actionPeriod, action, Blademaster021::clearAction, true);
+                        }
+                        else {
+                            boolean finalShouldApplyZanbatoSuperArmor = shouldApplyZanbatoSuperArmor;
+                            float finalZanbatoExtraMaxChargingDamageMultiplier = zanbatoExtraMaxChargingDamageMultiplier;
+
+//                            GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256BoundToEntity(entity1, 255, 255, 255, 1f, 0, 1.4f, 0, 900, GeoAnimationAndTextureName.EFF_COMMON_CHARGING_LOOPING, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+//                                    DfoSwordmanSkillTreeConstants.NO_ANIMATION,0, 0, 13, false, false, false, DfoSwordmanSkillMethods.RemoveChannelingEffEntity(entity1), 5, true);
+
+                            action = SwordActZanbatoChannelingChargingAction(SkillID, actionPeriod, finalAspd, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange+2f, condition, finalShouldApplyZanbatoSuperArmor, finalZanbatoExtraMaxChargingDamageMultiplier);
+
+//                            SBSTickEventMethods.setMethodActionTimer(true, entity1, SkillID+ZANBATO_CHARGING_ACTION, actionPeriod, action);
+                            SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity1, SkillID, actionPeriod, action, Blademaster021::clearAction, true);
+                        }
+                    }
+                    else {
+                        switch (weaponType) {
+                            case 1:
+                                action = SwordActBludgeonAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition, stunChance, stunDurationTicks);
+                                break;
+                            case 2:
+                                action = SwordActShortSwordAction(entity1, SkillID, actionPeriod, finalAspd, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition, shouldApplyShortSwordSwordQi);
+                                break;
+                            case 3:
+                                action = SwordActKatanaAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition);
+                                break;
+                            case 4:
+                                action = SwordActLightSabreAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition, shouldApplyLightsabreShockStatus, lightsabreShockStatusChance);
+                                break;
+                            default:
+                                action = SwordActShortSwordAction(entity1, SkillID, actionPeriod, finalAspd, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition, shouldApplyShortSwordSwordQi);
+                        }
+//                        action = SwordActLightSabreAction(entity1, SkillID, actionPeriod, finalAnimationSpeed, damageBase, damageMultiplier, aoeRange, condition);
+
+                        SBSTickEventMethods.setMethodActionTimerWithCleanAction(entity1, SkillID, actionPeriod, action, Blademaster021::clearAction, true);
+                    }
+
+
+
+                    //Actioning ends
+                    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+                    //start loop actioning with fixed period ticks
+//                    SBSTickEventMethods.setMethodActionTimer(true, entity1, SkillID, actionPeriod, action);
+                };
+
+        tempSkillData.setChannelingSkillAction1(tempSkillAction);
+
+        //no final action
+        //channeling final action
+//        MethodAction tempChannelingFinalAction = (entity1) -> {
+//            int weaponType = DfoSkillTreeItemMethods.getWeaponType(entity1);
+//            boolean isZanbato = weaponType == DfoSkillTreeItemMethods.IS_VERY_SLOW_ZANBATO;
+//            int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1);
+//            if (isZanbato && !MathMethods.isEven(triggeredTimes)) {
+//            if (isZanbato && triggeredTimes % 2 == 0) {
+//                //condition, if skill is interrupted, do not execute final action
+//                if (!isEntityChannellingInterrupted(entity1)) {
+//                    if (entity1 instanceof ServerPlayer sp1) {
+//                        float finalAspd = ExtraMathMethods.clamp((float) EntityMethods.getEntityAttackSpeed(entity1) * 0.5f, 0.5f, 5f);
+////                        float finalAnimationSpeed;
+//                        if (finalAspd >= 1) {
+////                            finalAnimationSpeed = 1f - (finalAspd - 1f) * 0.2f;
+//                            finalAspd = 1f + (finalAspd - 1f) * 0.2f;
+//                        }
+//                        else {
+////                            finalAnimationSpeed = 3f - 2f * finalAspd;
+//                        }
+//
+//                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, "sword_act_zanbato_slash1to2_start", finalAspd);
+//                    }
+//                }
+//            }
+//        };
+        tempSkillData.setActiveSkillAction1(DfoSwordmanSkillMethods::DoNothing);
+
+
+        //=============================================
+        //IMPORTANT: clear value from hashmap once an entity's action is complete
+//        MethodAction tempSkillCleanAction = (entity1) -> {
+//            BLADEMASTER021_HashMapDamagedEntityGroup.remove(entity1);
+//            BLADEMASTER021_HashMapPassedTicks.remove(entity1);
+//            BLADEMASTER021_HashMapTriggeredTimes.remove(entity1);
+//            BLADEMASTER021_HashMapEffEntity.remove(entity1);
+//
+//            if (BLADEMASTER021_HashMapPassedTicks.size() <= 0) {
+//                BLADEMASTER021_HashMapDamagedEntityGroup = new HashMap<>();
+//                BLADEMASTER021_HashMapPassedTicks = new HashMap<>();
+//                BLADEMASTER021_HashMapTriggeredTimes = new HashMap<>();
+//                BLADEMASTER021_HashMapEffEntity = new HashMap<>();
+//            }
+//        };
+    }
+
+    //============
+    //lightsabre
+    private static void SwordActLightSabreDamageAction(LivingEntity entity2, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition, boolean applyShockStatus, float chanceToApplyShockStatus) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity2);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+//                                    Vector3f effectedEntityPos = getEntityPos(entity);
+//                                    float AngleBtn = Vector3fMethods.AngleFromLocationToLocationHorizontal(effectedEntityPos, triggeredEntityPos);
+
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+
+//                                    float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), triggeredEntityPos));
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity2) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+//                                for (Entity tempEntity : GroupEnumEntitiesInPolarProjectionRangeFilter(entity2, aoeRange+2f, SectorDmgCond.and(condition), -2f, true)) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (!playHitSound) {
+                    playHitSound = true;
+                    DfoSwdSoundMethods.PlayLightSabreHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                }
+
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+                //stay in air
+                float additionalDeltaY = (isEntityFarFromGround(tempEntity, 0.5f)) ? 0f : 0.15f;
+                float pushXZStrength = 0f;
+
+                float pushYStrength = calculatePushEntityStrengthTargetOnly(MathMethods.max(getEntityDeltaY(tempLivingEntity), additionalDeltaY), tempLivingEntity);
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, pushYStrength, false);
+
+                if (applyShockStatus && ExtraMathMethods.randomFloat() >= chanceToApplyShockStatus) {
+                    DfoStatusGeneralMethods.ApplyShockStatusToTargetLivingEntity(entity2, tempLivingEntity, DfoStatusGeneralMethods.GENERAL_DURATION_TICKS_FOR_SHOCK_STATUS, finalDmg, DfoStatusGeneralMethods.GENERAL_MAX_INFLICT_TIMES_FOR_SHOCK_STATUS, true, BlademasterSkillTreeInitialization.BLADEMASTER_SECRET_SWORD_ART + DfoSkillTreeItemMethods.IS_VERY_FAST_LIGHTSABRE);
+                }
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActLightSabreAction(LivingEntity entity1, String SkillID, int actionPeriod, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition, boolean shouldApplyShockStatus, float chanceToApplyShockStatus) {
+        int animTicks = (int) (12 * finalAnimationSpeed);
+        int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+        int damage1tick = (int) (7 * finalAnimationSpeed);
+        int playWieldingSound = (int) (7 * finalAnimationSpeed);
+        int damage2tick = (int) (11 * finalAnimationSpeed);
+        float finalDmg = (damageMultiplier * (float) getEntityAttackDamage(entity1) + damageBase) * LIGHTSABRE_DAMAGE_MULTIPLIER;
+//                    Predicate<? super Entity> condition = entity -> isEnemyEntity(entity) && hasMoreThanZeroHealth(entity);
+        int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1) % 3;
+        int slashEntitySpawnTick1 = (int) (5 * finalAnimationSpeed);
+        int slashEntitySpawnTick2 = (int) (7 * finalAnimationSpeed);
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        //play wieldingSound
+                        if (currentTick == playWieldingSound) {
+                            DfoSwdSoundMethods.PlayLightSabreWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                        }
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //lightsabre
+                            //start damage
+                            if (currentTick == damage1tick) {
+                                SwordActLightSabreDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 1f, finalDmg, condition, shouldApplyShockStatus, chanceToApplyShockStatus);
+                                BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+                            }
+                            if (currentTick == damage2tick) {
+                                SwordActLightSabreDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 1f, finalDmg, condition, shouldApplyShockStatus, chanceToApplyShockStatus);
+                            }
+
+                            //spawn slash entity
+                            if (triggeredTimes == 0) {
+                                if (currentTick == slashEntitySpawnTick1) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 95f, 1f,175, 238, 238, 0, 1f, 0, true);
+                                }
+
+                                if (currentTick == slashEntitySpawnTick2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 30f, 1f,175, 238, 238, 0, 1f, 0, true);
+                                }
+                            }
+                            else if (triggeredTimes == 1) {
+                                if (currentTick == slashEntitySpawnTick1) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 235f,1f, 175, 238, 238, 0, 1f, 0, true);
+                                }
+
+                                if (currentTick == slashEntitySpawnTick2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 315f,1f, 175, 238, 238, 0, 1f, 0, true);
+                                }
+                            }
+                            else {
+                                if (currentTick == slashEntitySpawnTick1) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 60f, 1f,175, 238, 238, 0, 1f, 0, true);
+                                }
+
+                                if (currentTick == slashEntitySpawnTick2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 5f, 1f,175, 238, 238, 0, 1f, 0, true);
+                                }
+                            }
+                        }
+
+                        //start moving around
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+//                                    SendPacketIsInActionToClientSideFromServer(entity2, Constants.ACTION_OFF);
+                        SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                    }
+                };
+
+        return action;
+    }
+
+
+
+    //============================
+    //katana
+    private static void  SwordActKatanaDamageAction(LivingEntity entity2, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition, boolean isLastUpperSlashHit) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity2);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity2) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (!playHitSound) {
+                    playHitSound = true;
+                    DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                }
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+
+                //stay in air
+                float additionalDeltaY = (isEntityFarFromGround(tempEntity, 0.5f)) ? 0f : 0.15f;
+
+                float pushYStrength;
+                float pushXZStrength = 0f;
+                if (isLastUpperSlashHit) {
+                    pushYStrength = calculatePushEntityStrengthTargetOnly(MathMethods.max(getEntityDeltaY(tempLivingEntity), 0.65f), tempLivingEntity);
+                }
+                else {
+                    pushYStrength = calculatePushEntityStrengthTargetOnly(MathMethods.max(getEntityDeltaY(tempLivingEntity), additionalDeltaY), tempLivingEntity);
+                }
+
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, pushYStrength, isLastUpperSlashHit);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActKatanaAction(LivingEntity entity1, String SkillID, int actionPeriod, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition) {
+        int tempint = (int) (12 * finalAnimationSpeed);
+        int animTicks = tempint;
+        int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+        int damage1tick = (int) (1 * finalAnimationSpeed);
+        int damage2tick = (int) (3 * finalAnimationSpeed);
+        int damage3tick = (int) (5 * finalAnimationSpeed);
+        int damage4tick = (int) (7 * finalAnimationSpeed);
+        int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1) % 4;
+//        int[] wieldingSoundPreTicks = {(int) finalAnimationSpeed, (int) (2*finalAnimationSpeed), (int) (5*finalAnimationSpeed), (int) (7*finalAnimationSpeed)};
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        float finalDmg = (damageMultiplier * (float) getEntityAttackDamage(entity1) + damageBase) * KATANA_DAMAGE_MULTIPLIER;
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+
+                        //play wieldingSound
+//                        if (currentTick == wieldingSoundPreTicks[0] || currentTick == wieldingSoundPreTicks[1] || currentTick == wieldingSoundPreTicks[2] || currentTick == wieldingSoundPreTicks[3]) {
+//                            DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+//                        }
+
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //katana
+                            //start damage
+                            if (triggeredTimes == 3) {
+                                if (currentTick == damage1tick) {
+                                    SwordActKatanaDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 0.5f, finalDmg, condition, false);
+                                    BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.put(entity2, true);
+                                    BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+                                    DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 135f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                                if (currentTick == damage2tick) {
+                                    SwordActKatanaDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 0.5f, finalDmg, condition, false);
+                                    DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 45f, 1f,220, 20, 60, 0, 1f, 0, true);
+                                }
+                            }
+
+
+                            if (currentTick == damage3tick) {
+                                SwordActKatanaDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 0.5f, finalDmg, condition, triggeredTimes == 3);
+                                if (!BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.get(entity2)) {
+                                    BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+                                }
+                                DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                if (triggeredTimes == 0) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 315f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else if (triggeredTimes == 1) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 95f, 1f,220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else if (triggeredTimes == 2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 300f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 225f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                            }
+
+                            if (currentTick == damage4tick) {
+                                SwordActKatanaDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 0.5f, finalDmg, condition, false);
+                                DfoSwdSoundMethods.PlayKatanaWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                if (triggeredTimes == 0) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 285f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else if (triggeredTimes == 1) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 15f, 1f,220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else if (triggeredTimes == 2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 270f,1f, 220, 20, 60, 0, 1f, 0, true);
+                                }
+                                else {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 5f, 1f,220, 20, 60, 0, 1f, 0, true);
+                                }
+                            }
+                        }
+
+
+                        //start moving
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+                        SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                    }
+                };
+
+        return action;
+    }
+
+
+
+    //==================================
+    //short sword
+    private static void  SwordActShortSwordDamageAction(LivingEntity entity2, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition, boolean playWaveSound) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity2);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity2) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (!playHitSound) {
+                    playHitSound = true;
+                    if (playWaveSound) {
+                        DfoSwdSoundMethods.PlayWaveSwordHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, 1.0f);
+                    }
+                    else {
+                        DfoSwdSoundMethods.PlayShortSwordHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                    }
+                }
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+                //push
+                float pushXZStrength = calculatePushEntityStrength(0.12f, entity2, tempLivingEntity);
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, 0, playWaveSound);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActShortSwordAction(LivingEntity entity1, String SkillID, int actionPeriod, float finalAspd, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition, boolean shouldApplyShortSwordSwordQi) {
+        int tempint = (int) (12 * finalAnimationSpeed);
+        int animTicks = tempint;
+        int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+        int damage1tick = (int) (8 * finalAnimationSpeed), damageQi1Tick = (int) (11 * finalAnimationSpeed);
+        int playWieldingSound = (int) (7 * finalAnimationSpeed);
+//        int damage2tick = tempint;
+        float finalDmg = (damageMultiplier * (float) getEntityAttackDamage(entity1) + damageBase) * SHORT_SWORD_DAMAGE_MULTIPLIER;
+//                    Predicate<? super Entity> condition = entity -> isEnemyEntity(entity) && hasMoreThanZeroHealth(entity);
+        int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1) % 3;
+
+        int slashEntitySpawnTick1 = (int) (7 * finalAnimationSpeed), slashQiEntitySpawnTick1 = (int) (10 * finalAnimationSpeed);
+        int slashEntitySpawnTick2 = (int) (6 * finalAnimationSpeed), slashQiEntitySpawnTick2 = (int) (9 * finalAnimationSpeed);
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+                        //play wieldingSound
+                        if (currentTick == playWieldingSound) {
+                            DfoSwdSoundMethods.PlayShortSwordWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                        }
+
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //shortsword
+                            //start damage
+                            if (currentTick == damage1tick) {
+                                SwordActShortSwordDamageAction(entity2, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, false);
+                                BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+
+                                if (shouldApplyShortSwordSwordQi) {
+                                    IntegerValueHolder tempIntTicker = new IntegerValueHolder(currentTick);
+                                    Entity tempEntity = GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 224, 150, 0, 0, 0, 20,
+                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, BLADEMASTER021_SecretSwordArtAverageShortSwordInstantAnim[triggeredTimes], finalAspd, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                                            DfoSwordmanSkillTreeConstants.NO_ANIMATION, true, false, true);
+
+//                                    GeoModelSpawnMethods.GenerateCustomFadingCloneEntity(entity2, triggeredEntityFacingAngle, 0, 1, 255, 255, 255, 150, 0, 0, 0, 900,
+//                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_FADING_CLONE, false, 4, 8, 8, true, true, BLADEMASTER021_SecretSwordArtAverageShortSwordInstantAnim[triggeredTimes], finalAspd, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+//                                            true, true);
+
+                                    String tempShortSwordSwordQiID = SHORT_SWORD_SWORD_QI_ACTION + ExtraMathMethods.randomInt(100);
+                                    MethodAction shortSwordQiAction = (entity3) -> {
+                                        int currentSwordQiTick = tempIntTicker.getIntCounter();
+                                        if (triggeredTimes == 1) {
+                                            if (currentSwordQiTick == slashQiEntitySpawnTick2) {
+                                                GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(tempEntity, triggeredEntityFacingAngle, 35f + ExtraMathMethods.randomFloat(20), 1.5f, 224, 255, 255, 0, 1f, 0, true);
+                                            }
+                                        }
+                                        else if (currentSwordQiTick == slashQiEntitySpawnTick1) {
+                                            GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(tempEntity, triggeredEntityFacingAngle, 260f + ExtraMathMethods.randomFloat(20), 1.5f, 224, 255, 255, 0, 1f, 0, true);
+                                        }
+
+                                        if (currentSwordQiTick == damageQi1Tick) {
+                                            DfoSwdSoundMethods.PlayShortSwordWieldingSound(getEntityLevel(entity3), getEntityX(tempEntity), getEntityY(tempEntity), getEntityZ(tempEntity), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                            SwordActShortSwordDamageAction(entity3, triggeredEntityFacingAngle, aoeRange * 2f, finalDmg * 0.5f, condition, true);
+                                            SBSTickEventMethods.setSkillActionDone(entity3, tempShortSwordSwordQiID);
+                                        }
+                                        tempIntTicker.setIntCounter(currentSwordQiTick + 1);
+                                    };
+                                    SBSTickEventMethods.setMethodActionTimer(entity2, tempShortSwordSwordQiID, actionPeriod, shortSwordQiAction);
+                                }
+                            }
+
+                            if (triggeredTimes == 1) {
+                                if (currentTick == slashEntitySpawnTick2) {
+                                    GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 45f, 1f, 255, 255, 224, 0, 1f, 0, true);
+                                }
+                            }
+                            else if (currentTick == slashEntitySpawnTick1) {
+                                GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 270f + 10f,1f, 255, 255, 224, 0, 1f, 0, true);
+                            }
+                        }
+
+                        //start moving
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+//                                    SendPacketIsInActionToClientSideFromServer(entity2, Constants.ACTION_OFF);
+                        SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                    }
+                };
+
+        return action;
+    }
+
+
+
+    //==================================
+    //short sword
+    private static void  SwordActBludgeonDamageAction(LivingEntity entity2, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition, boolean playStabSound, HashSet<LivingEntity> currentDmgGroup, float stunChance, int stunDurationTicks) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity2);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity2) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (currentDmgGroup.contains(tempLivingEntity)) { continue; }
+                if (!playHitSound) {
+                    playHitSound = true;
+                    if (playStabSound) {
+                        DfoSwdSoundMethods.PlayBludgeonStabHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, 1.0f);
+                    }
+                    else {
+                        DfoSwdSoundMethods.PlayBludgeonHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, 1.0f);
+                    }
+                }
+                currentDmgGroup.add(tempLivingEntity);
+
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+
+                //Stun
+                if (ExtraMathMethods.randomFloat() < stunChance) {
+                    DfoStatusGeneralMethods.ApplyStunStatusToTargetLivingEntity(entity2, tempLivingEntity, stunDurationTicks, 1);
+                }
+
+                //stay in air
+                float additionalDeltaY = (isEntityFarFromGround(tempEntity, 0.5f)) ? 0f : 0.15f;
+
+                float pushXZStrength = calculatePushEntityStrength(0.05f, entity2, tempLivingEntity);
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, additionalDeltaY, false);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActBludgeonAction(LivingEntity entity1, String SkillID, int actionPeriod, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition, float stunChance, int stunDurationTicks) {
+        int animTicks = (int) (20 * finalAnimationSpeed);
+        int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+//        int delayExtraTicks = (int) (5 * finalAnimationSpeed) + 1;
+        int wieldingSoundTick = 2;
+        int triggeredTimes = BLADEMASTER021_HashMapTriggeredTimes.get(entity1) % 4;
+//        if (BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.get(entity1)) {
+//            triggeredTimes = triggeredTimes - 1;
+//        }
+        int damageTick1 = -1, damageTick2 = -1, damageTick3 = -1, damageTick4 = -1;
+        int damageTickEnd1 = -1, damageTickEnd2 = -1, damageTickEnd3 =  -1, damageTickEnd4 = -1;
+
+        if (triggeredTimes == 0) {
+            damageTick1 = (int) (6 * finalAnimationSpeed);
+            damageTickEnd1 = (int) (12 * finalAnimationSpeed);
+            wieldingSoundTick  = wieldingSoundTick + 2;
+        }
+        else if (triggeredTimes == 1) {
+            damageTick1 = (int) (2 * finalAnimationSpeed);
+            damageTickEnd1 = (int) (4 * finalAnimationSpeed);
+        }
+        else if (triggeredTimes == 2) {
+            damageTick1 = (int) (3 * finalAnimationSpeed);
+            damageTickEnd1 = (int) (6 * finalAnimationSpeed);
+            damageTick2 = (int) (8 * finalAnimationSpeed);
+            damageTickEnd2 = (int) (10 * finalAnimationSpeed);
+            damageTick3 = (int) (12 * finalAnimationSpeed);
+            damageTickEnd3 = (int) (14 * finalAnimationSpeed);
+            damageTick4 = (int) (16 * finalAnimationSpeed);
+            damageTickEnd4 = (int) (20 * finalAnimationSpeed);
+        }
+        else {
+            damageTick1 = (int) (3 * finalAnimationSpeed);
+            damageTickEnd1 = (int) (6 * finalAnimationSpeed);
+        }
+
+//        delayExtraTicks = (int) (delayExtraTicks * finalAnimationSpeed);
+//        float finalDelayExtraTicks = delayExtraTicks;
+        int finalWieldingSoundTick = (int) (wieldingSoundTick * finalAnimationSpeed);
+
+        float finalDmg = (damageMultiplier * (float) getEntityAttackDamage(entity1) + damageBase) * BLUDGEON_DAMAGE_MULTIPLIER;
+        int finalDamageTick1 = damageTick1, finalDamageEndTick1 = damageTickEnd1;
+        int finalDamageTick2 = damageTick2, finalDamageEndTick2 = damageTickEnd2;
+        int finalDamageTick3 = damageTick3, finalDamageEndTick3 = damageTickEnd3;
+        int finalDamageTick4 = damageTick4, finalDamageEndTick4 = damageTickEnd4;
+        int finalCrushTick = finalDamageEndTick1 + (int) (0.3f * finalAnimationSpeed);
+
+        HashSet<LivingEntity> currentDmgGroup = new HashSet<>();
+        HashSet<LivingEntity> currentDmgGroup1 = new HashSet<>();
+        HashSet<LivingEntity> currentDmgGroup2 = new HashSet<>();
+        HashSet<LivingEntity> currentDmgGroup3 = new HashSet<>();
+        HashSet<LivingEntity> currentDmgGroup4 = new HashSet<>();
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+                        //play wieldingSound
+                        if (currentTick == finalWieldingSoundTick) {
+                            DfoSwdSoundMethods.PlayBludgeonWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                        }
+
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //start damage
+                            if (currentTick >= finalDamageTick1 && currentTick <= finalDamageEndTick1) {
+                                SwordActBludgeonDamageAction(entity2, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, false, currentDmgGroup, stunChance, stunDurationTicks);
+                                if (!BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.get(entity2)) {
+                                    BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+                                    BLADEMASTER021_HashMapIsTriggeredTimesAddedAlready.put(entity2, true);
+                                }
+                            }
+                            if (finalDamageTick2 != -1 && currentTick >= finalDamageTick2 && currentTick <= finalDamageEndTick2) {
+                                SwordActBludgeonDamageAction(entity2, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, false, currentDmgGroup1, stunChance, stunDurationTicks);
+                            }
+                            if (finalDamageTick3 != -1 && currentTick >= finalDamageTick3 && currentTick <= finalDamageEndTick3) {
+                                SwordActBludgeonDamageAction(entity2, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, true, currentDmgGroup2, stunChance, stunDurationTicks);
+                            }
+                            if (finalDamageTick4 != -1 && currentTick >= finalDamageTick4 && currentTick <= finalDamageEndTick4) {
+                                SwordActBludgeonDamageAction(entity2, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, false, currentDmgGroup3, stunChance, stunDurationTicks);
+                            }
+                            if (triggeredTimes == 3) {
+                                if (currentTick == finalCrushTick) {
+                                    Vector3f tempOwnerVec = Vector3fMethods.PolarProjectionFromVecHorizon(getEntityPos(entity2), 1.6f, triggeredEntityFacingAngle);
+                                    SetupCircleTiltBlocksZone(new Vector3f(tempOwnerVec.x(), tempOwnerVec.y() - 1f, tempOwnerVec.z()), getEntityLevel(entity2),
+                                            2f, 70, 0.3f, 3,
+                                            true, true, true, false);
+
+                                    SwordActBludgeonDamageAction(entity2, triggeredEntityFacingAngle, aoeRange * 1.2f, finalDmg, condition, true, currentDmgGroup4, stunChance, stunDurationTicks);
+                                }
+                            }
+
+                            //play multiple slash sound
+                            if (triggeredTimes == 0) {
+                                if (currentTick == finalDamageTick1) {
+//                                    GeoModelSpawnMethods.Generate2DRGBImageEntity(entity2, GeoAnimationName.ENTITY_2D_TEX_COMMON_TRAIL, GeoAnimationName.ROTATE_2D_ENTITY_FRONT_180_10TICKS_R2L, 0f, 1.4f, 0f, 40, triggeredEntityFacingAngle, 3, 255, 255, 255, true);
+                                    GeoModelSpawnMethods.Generate2DRGBImageEntityBoundToEntity(entity2, triggeredEntityFacingAngle, 1, 0, 1.4f, 0, 40, 255, 255, 255, GeoAnimationAndTextureName.ENTITY_2D_TEX_COMMON_TRAIL, GeoAnimationAndTextureName.ROTATE_2D_ENTITY_FRONT_180_10TICKS_R2L, 5, 5, 40, true, true, true);
+                                }
+                            }
+                            else if (triggeredTimes == 1) {
+                                if (currentTick == finalDamageTick1) {
+                                    GeoModelSpawnMethods.GenerateWhiteSlash(entity2, getEntityHorizontalFacingDeg(entity2), 315f, true);
+                                }
+                            }
+                            else if (triggeredTimes == 2) {
+                                if (finalDamageTick1 != -1 && currentTick == Math.max(0, finalDamageTick1-1)) {
+                                    DfoSwdSoundMethods.PlayBludgeonWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat() * 0.2f + 0.9f);
+                                    GeoModelSpawnMethods.GenerateEffStabEntity(entity2, triggeredEntityFacingAngle, 30f,
+                                            GeoAnimationAndTextureName.EFF_ENTITY_TEX_BLADEMASTER_STAB, GeoAnimationAndTextureName.EFF_ENTITY_ANIMATION_NAME_STAB, 2f,
+                                            8, true, 0f, 1.4f, 0f, true);
+                                }
+                                if (finalDamageTick2 != -1 && currentTick == finalDamageTick2 ) {
+                                    DfoSwdSoundMethods.PlayBludgeonWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.6f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                    GeoModelSpawnMethods.Generate2DRGBImageEntityBoundToEntity(entity2, triggeredEntityFacingAngle, 1f, 0, 1.4f, 0, 40, 255, 190, 0, GeoAnimationAndTextureName.ENTITY_2D_TEX_COMMON_TRAIL, GeoAnimationAndTextureName.ROTATE_2D_ENTITY_FRONT_180_10TICKS_L2R, 5, 5, 40, true, true, true);
+                                }
+                                if (finalDamageTick3 != -1 && currentTick == finalDamageTick3 ) {
+                                    DfoSwdSoundMethods.PlayBludgeonWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.6f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                    GeoModelSpawnMethods.Generate2DRGBImageEntityBoundToEntity(entity2, triggeredEntityFacingAngle, 1f, 0, 1.4f, 0, 40, 64, 191, 191, GeoAnimationAndTextureName.ENTITY_2D_TEX_COMMON_TRAIL, GeoAnimationAndTextureName.ROTATE_2D_ENTITY_FRONT_180_10TICKS_R2L, 5, 5, 40, true, true, true);
+                                }
+                                if (finalDamageTick4 != -1 && currentTick == finalDamageTick4) {
+                                    DfoSwdSoundMethods.PlayBludgeonWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.6f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                                    GeoModelSpawnMethods.GenerateWhiteSlash(entity2, getEntityHorizontalFacingDeg(entity2), 225f, true);
+                                }
+                            }
+                            else {
+                                if (currentTick == finalDamageTick1) {
+                                    GeoModelSpawnMethods.GenerateWhiteSlash(entity2, getEntityHorizontalFacingDeg(entity2), 10f, true);
+                                }
+                            }
+                        }
+
+                        //start moving
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+//                                    SendPacketIsInActionToClientSideFromServer(entity2, Constants.ACTION_OFF);
+                        SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                    }
+                };
+
+        return action;
+    }
+
+
+
+    //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+    //Zanbato
+    private static void SwordActZanbatoNormalDamageAction(LivingEntity entity2, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity2);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity2) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity2, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (!playHitSound) {
+                    playHitSound = true;
+                    DfoSwdSoundMethods.PlayZanbatoHitSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, 1.0f);
+                }
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity2, tempLivingEntity, finalDmg, false);
+                //stay in air
+                float addtionalDeltaY = (isEntityFarFromGround(tempEntity, 0.5f)) ? 0f : 0.15f;
+                float pushXZStrength = calculatePushEntityStrength(0.15f, entity2, tempLivingEntity);
+                float pushYStrength = calculatePushEntityStrengthTargetOnly(MathMethods.max(getEntityDeltaY(tempLivingEntity), addtionalDeltaY), tempLivingEntity);
+
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, pushYStrength, false);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActZanbatoNormalAction(LivingEntity entity1, String SkillID, int actionPeriod, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition) {
+        int animTicks = (int) (10 * finalAnimationSpeed);
+        int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+        int damage1tick = (int) (7 * finalAnimationSpeed);
+        int playWieldingSound = (int) (6 * finalAnimationSpeed);
+        float finalDmg = (damageMultiplier * (float) getEntityAttackDamage(entity1) + damageBase) * ZANBATO_DAMAGE_MULTIPLIER;
+
+//        int slashEntitySpawnTick = (int) (10 * finalAnimationSpeed);
+
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+
+        MethodAction action =
+                (entity2) ->  {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity2);
+                    int currentTick = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(currentTick);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity2) <= 0 && currentTick < animTicks + delayClearTicks) {
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+
+                        //play wieldingSound
+                        if (currentTick == playWieldingSound) {
+                            DfoSwdSoundMethods.PlayZanbatoWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                            GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 270f,1.3f, 255, 255, 255, 0, 1f, 0, true);
+                        }
+
+//                        if (currentTick == slashEntitySpawnTick) {
+//                            GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 90f, 21f,55, 255, 255, 0, 1f, 0);
+//                        }
+
+                        if (currentTick <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity2, triggeredEntityFacingAngle);
+                            //start damage
+                            if (currentTick == damage1tick) {
+                                SwordActZanbatoNormalDamageAction(entity2, triggeredEntityFacingAngle, aoeRange + 1f, finalDmg, condition);
+                                BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+                            }
+                        }
+
+                        //start moving
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    }
+                    else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity2, 0, 0, 0, false);
+                        }
+
+                        BLADEMASTER021_HashMapTriggeredTimes.put(entity2, 0);
+                        SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+                    }
+                };
+
+        return action;
+    }
+
+    private static void SwordActZanbatoChannelingChargingDamageAction(LivingEntity entity3, float triggeredEntityFacingAngle, float aoeRange, float finalDmg, Predicate<Entity> condition, HashSet<LivingEntity> damagedLivingEntityGroup) {
+        boolean playHitSound = false;
+        //Sector damage cond
+        Vector3f triggeredEntityPos = getEntityPos(entity3);
+        Predicate<Entity> SectorDmgCond = (entity) -> {
+//                                    if (BLADEMASTER021_HashMapDamagedEntityZanbatoGroup.get(entity3).contains(entity)) { return false; }
+            Vector3f tempVec = Vector3fMethods.PolarProjectionFromVecHorizon(triggeredEntityPos, -0.5f, triggeredEntityFacingAngle);
+            //flip when range > 90?
+            float sectorDeg = MathMethods.RoundAngle(Vector3fMethods.AngleFromLocationToLocationHorizontal(getEntityPos(entity), tempVec));
+            float range = 105f; //210 deg
+
+            if (!Vector3fMethods.IsAngleDegBetweenAB(sectorDeg, MathMethods.RoundAngle(triggeredEntityFacingAngle + range), MathMethods.RoundAngle(triggeredEntityFacingAngle - range))) {
+                return false;
+            }
+
+            return DistanceBetweenEntities(entity, entity3) <= aoeRange;
+        };
+        for (Entity tempEntity : GroupEnumEntitiesInRangeFilter(entity3, aoeRange, condition.and(SectorDmgCond))) {
+            if (tempEntity instanceof LivingEntity tempLivingEntity) {
+                if (damagedLivingEntityGroup.contains(tempLivingEntity)) { continue; }
+                if (!playHitSound) {
+                    playHitSound = true;
+                    DfoSwdSoundMethods.PlayZanbatoHitSound(getEntityLevel(entity3), getEntityX(entity3), getEntityY(entity3), getEntityZ(entity3), 0.7f, 1.0f);
+                }
+                damagedLivingEntityGroup.add(tempLivingEntity);
+                DfoGeneralDamageSrc.LivingEntityDamageTargetWithPhysicDMG(entity3, tempLivingEntity, finalDmg, false);
+                //push
+                float pushXZStrength = calculatePushEntityStrength(0.7f, entity3, tempLivingEntity);
+                pushEntityWithDeltaValue(tempLivingEntity, triggeredEntityFacingAngle, pushXZStrength, 0, false);
+
+                GeoModelSpawnMethods.Generate2DHitEff(tempLivingEntity, ExtraMathMethods.randomFloat(360f), 1f, 4, 4, ExtraMathMethods.randomFloat(0.4f) - 0.2f, 1.1f + ExtraMathMethods.randomFloat(), ExtraMathMethods.randomFloat(0.4f) - 0.2f, GeoAnimationAndTextureName.EFF_HIT_GENERAL, true, true);
+            }
+        }
+    }
+
+    public static MethodAction SwordActZanbatoChannelingChargingAction(String SkillID, int actionPeriod, float finalPlayerAnimationSpeed, float finalAnimationSpeed, float damageBase, float damageMultiplier, float aoeRange, Predicate<Entity> condition, boolean shouldApplyZanbatoSuperArmor, float ZanbatoExtraMaxChargingDamageMultiplier) {
+        IntegerValueHolder ElapsedChannelingTicksHolder = new IntegerValueHolder(0);
+        IntegerValueHolder ElapsedTicksHolder = new IntegerValueHolder(0);
+        BooleanValueHolder isMaxOutEffSpawned = new BooleanValueHolder(false);
+
+        return (entity2) -> {
+            boolean contActioning = false;
+            HashMap<LivingEntity, HashMap<String, Integer>> ServerLivingEntityState = getSLivingEntityState();
+            if (ServerLivingEntityState.containsKey(entity2) && ServerLivingEntityState.get(entity2) != null) {
+                contActioning = ServerLivingEntityState.get(entity2).get(Constants.IS_CHANNELING) == 1;
+            }
+            if (!contActioning) {
+                float chargedBoostDmg = 1f + ExtraMathMethods.clamp(ElapsedChannelingTicksHolder.getIntCounter() * 0.05f, 0f, 0.5f + ZanbatoExtraMaxChargingDamageMultiplier);
+
+                //play animation
+                if (entity2 instanceof ServerPlayer sp1) {
+                    SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimWithSpeedModifierToAllClientPlayers(sp1, "sword_act_zanbato_slash1to2_end", finalPlayerAnimationSpeed);
+                }
+                //play sound when stop guarding
+//                            DfoSwdSoundMethods.PlaySwordGuardEndSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1.0f);
+                //stop loop action
+                getSLivingEntityState().get(entity2).put(DfoSwordmanSkillTreeConstants.IS_CHARGING, Constants.ACTION_OFF);
+                getSLivingEntityState().get(entity2).remove(DfoSwordmanSkillTreeConstants.IS_CHARGING);
+                SBSTickEventMethods.setSkillActionDone(entity2, SkillID);
+
+//                BLADEMASTER021_HashMapTriggeredTimes.put(entity2, BLADEMASTER021_HashMapTriggeredTimes.get(entity2) + 1);
+//                BLADEMASTER021_HashMapTriggeredTimes.put(entity2, 0);
+
+                //init
+                HashSet<LivingEntity> DamagedEntityZanbatoGroup = new HashSet<>();
+                //execute damage action
+                int animTicks = (int) (10 * finalAnimationSpeed);
+                int delayClearTicks = (int) (8 * finalAnimationSpeed) + 1;
+                int damage1tick = (int) (2 * finalAnimationSpeed);
+                int damage1finishedTick = (int) (5 * finalAnimationSpeed);
+                int playWieldingSound = (int) (1.2f * finalAnimationSpeed);
+                float finalDmg = ((damageMultiplier * (float) getEntityAttackDamage(entity2) + damageBase) * ZANBATO_DAMAGE_MULTIPLIER) * chargedBoostDmg;
+
+                int slashEntitySpawnTick = (int) (2 * finalAnimationSpeed);
+
+                MethodAction slashAction = (entity3) -> {
+                    boolean isActionInterrupted = isLivingEntityActionInterrupted(entity3);
+                    int ElapsedTicks = ElapsedTicksHolder.getIntCounter() + actionPeriod;
+                    ElapsedTicksHolder.setIntCounter(ElapsedTicks);
+                    if (!isActionInterrupted && getLivingEntityIsInAction(entity3) <= 0 && ElapsedTicks < animTicks + delayClearTicks) {
+                        float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity3);
+
+                        //play wieldingSound
+                        if (ElapsedTicks == playWieldingSound) {
+                            DfoSwdSoundMethods.PlayZanbatoWieldingSound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.7f, ExtraMathMethods.randomFloat()*0.2f+0.9f);
+                        }
+
+                        if (ElapsedTicks == slashEntitySpawnTick) {
+                            GeoModelSpawnMethods.GenerateRGBSlashBoundToEntity(entity2, triggeredEntityFacingAngle, 40f, 1f,255, 255, 255, 0, 1f, 0, true);
+                        }
+
+                        if (ElapsedTicks <= animTicks) {
+                            setEntityBodyHorizontalFacingDeg(entity3, triggeredEntityFacingAngle);
+                            //start damage
+                            if (ElapsedTicks >= damage1tick && ElapsedTicks <= damage1finishedTick) {
+                                SwordActZanbatoChannelingChargingDamageAction(entity3, triggeredEntityFacingAngle, aoeRange, finalDmg, condition, DamagedEntityZanbatoGroup);
+//                            BLADEMASTER021_HashMapTriggeredTimes.put(entity3, BLADEMASTER021_HashMapTriggeredTimes.get(entity3) + 1);
+                            }
+                        }
+
+                        //start moving
+                        float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.3f, triggeredEntityFacingAngle);
+                        float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.3f, triggeredEntityFacingAngle);
+                        Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity3);
+                        float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                        float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                        setEntitySPDeltaMovement(entity3, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                    } else {
+                        if (!isActionInterrupted) {
+                            //reset delta
+                            setEntitySPDeltaMovement(entity3, 0, 0, 0, false);
+                        }
+
+                        SBSTickEventMethods.setSkillActionDone(entity3, SkillID + ZANBATO_CHARGING_SLASH_ACTION);
+                    }
+                };
+
+                SBSTickEventMethods.setMethodActionTimer(entity2, SkillID+ZANBATO_CHARGING_SLASH_ACTION, actionPeriod, slashAction);
+            }
+            else {
+                if (!isMaxOutEffSpawned.getBooleanVal() && ElapsedChannelingTicksHolder.getIntCounter() * 0.05f >= 0.5f + ZanbatoExtraMaxChargingDamageMultiplier) {
+                    isMaxOutEffSpawned.setBooleanVal(true);
+                    GeoModelSpawnMethods.Generate2DAnimatedTexCustomEntity256BoundToEntity(entity2, 255, 255, 255, 1f, 0, 1.4f, 0, 10, GeoAnimationAndTextureName.EFF_COMMON_CHARGING_MAX_OUT, DfoSwordmanSkillTreeConstants.NO_ANIMATION,
+                            DfoSwordmanSkillTreeConstants.NO_ANIMATION,0, 0, 5, false, false, true, null, 777, true);
+
+                    DfoSwdSoundMethods.PlayMaxChannelingReadySound(getEntityLevel(entity2), getEntityX(entity2), getEntityY(entity2), getEntityZ(entity2), 0.8f, 1f);
+                }
+                if (shouldApplyZanbatoSuperArmor) {
+                    TimedAttributesDistributor.applyTimedBeneficialStatusSuperArmorToEntity(entity2, 40, 0.1f, Constants.OP_ADDITION, false, SkillID, null, null);
+                }
+                int currentPassedTicks = ElapsedChannelingTicksHolder.getIntCounter() + actionPeriod;
+                ElapsedChannelingTicksHolder.setIntCounter(currentPassedTicks);
+                float triggeredEntityFacingAngle = getEntityHorizontalFacingDeg(entity2);
+                float newX = Vector3fMethods.PolarProjectionFromXHorizon(0.1f, triggeredEntityFacingAngle);
+                float newZ = Vector3fMethods.PolarProjectionFromZHorizon(0.1f, triggeredEntityFacingAngle);
+                Vector3f tempTriggeredEntityDeltaVec = getEntityDeltaMovement(entity2);
+                float newDeltaX = (newX > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newX) : MathMethods.max(tempTriggeredEntityDeltaVec.x(), newX);
+                float newDeltaZ = (newZ > 0) ? MathMethods.min(tempTriggeredEntityDeltaVec.x(), newZ) : MathMethods.max(tempTriggeredEntityDeltaVec.z(), newZ);
+
+                //play animation and reset delta mov
+                if (entity2 instanceof ServerPlayer sp1) {
+                    if (currentPassedTicks % 500 == 10) {
+                        SBPlayerAnimatorMethods.PlayDfoSwdSkillAnimToAllClientPlayers(sp1, "sword_act_zanbato_slash1to2_channeling");
+                    }
+                    DfoSwdNetworkingFetchMsgMethods.FetchPlayerDeltaFromServer(sp1, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ, false);
+                }
+                setEntityDeltaMovement(entity2, newDeltaX, MathMethods.min(tempTriggeredEntityDeltaVec.y(), 0f), newDeltaZ);
+            }
+        };
+    }
+}

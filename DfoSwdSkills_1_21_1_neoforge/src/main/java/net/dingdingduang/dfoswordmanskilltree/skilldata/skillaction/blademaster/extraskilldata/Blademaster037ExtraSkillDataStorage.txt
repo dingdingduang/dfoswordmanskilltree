@@ -1,0 +1,30 @@
+package net.dingdingduang.dfoswordmanskilltree.skilldata.skillaction.blademaster.extraskilldata;
+
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.eff.swd.blademaster.slaughterscape.SlaughterscapeSwordEntity;
+
+import java.util.ArrayList;
+
+public class Blademaster037ExtraSkillDataStorage {
+    private ArrayList<SlaughterscapeSwordEntity> BLADEMASTER_037_SWORD_ENTITY_ARR;
+    private SlaughterscapeSwordEntity BLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY = null;
+
+    public Blademaster037ExtraSkillDataStorage(ArrayList<SlaughterscapeSwordEntity> SwordEntityArr) {
+        BLADEMASTER_037_SWORD_ENTITY_ARR = SwordEntityArr;
+    }
+
+    public ArrayList<SlaughterscapeSwordEntity> getSwordEntityArr() {
+        return this.BLADEMASTER_037_SWORD_ENTITY_ARR;
+    }
+
+    public void setSwordEntityArr(ArrayList<SlaughterscapeSwordEntity> BLADEMASTER_037_SWORD_ENTITY_ARR) {
+        this.BLADEMASTER_037_SWORD_ENTITY_ARR = BLADEMASTER_037_SWORD_ENTITY_ARR;
+    }
+
+    public SlaughterscapeSwordEntity getBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY() {
+        return this.BLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY;
+    }
+
+    public void setBLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY(SlaughterscapeSwordEntity BLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY) {
+        this.BLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY = BLADEMASTER_037_FINAL_ACTION_SWORD_ENTITY;
+    }
+}

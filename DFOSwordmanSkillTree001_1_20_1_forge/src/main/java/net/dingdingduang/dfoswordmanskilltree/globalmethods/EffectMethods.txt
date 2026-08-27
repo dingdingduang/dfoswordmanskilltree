@@ -1,0 +1,50 @@
+package net.dingdingduang.dfoswordmanskilltree.globalmethods;
+
+
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+
+public class EffectMethods {
+    //amplifier I II III IV...
+    public static MobEffectInstance CreateHiddenParticleEffectInstance(MobEffect a, int duration) {
+        return new MobEffectInstance(a, duration, 0, false, false);
+    }
+
+    public static boolean applyEffectToLivingEntity(LivingEntity a, MobEffect b, int duration, int amplifier) {
+//        a.addEffect(new MobEffectInstance(EffectInitialization.IMMOBILIZATION.get(), duration, amplifier));
+        return a.addEffect(new MobEffectInstance(b, duration, amplifier));
+    }
+
+    public static boolean applyEffectToLivingEntity(LivingEntity a, MobEffect b) {
+        return a.addEffect(new MobEffectInstance(b));
+    }
+
+    public static boolean applyEffectToLivingEntity(LivingEntity a, MobEffect b, int duration) {
+        return a.addEffect(new MobEffectInstance(b, duration));
+    }
+
+//    public static boolean applyHiddenEffectToLivingEntity(LivingEntity a, MobEffect b, int duration) {
+//        return a.addEffect(new MobEffectInstance(b, duration, 0, false, false));
+//    }
+
+    public static boolean applyEffectToLivingEntity(LivingEntity a, MobEffectInstance b) {
+        return a.addEffect(b);
+    }
+
+    public static boolean hasEffect(LivingEntity a, MobEffect b) {
+        return a.hasEffect(b);
+    }
+
+    public static boolean removeEffectFromLivingEntity(LivingEntity a, MobEffect b) {
+        return a.removeEffect(b);
+    }
+
+    public static MobEffectInstance removeEffectFromLivingEntityNoUpdate(LivingEntity a, MobEffect b) {
+        return a.removeEffectNoUpdate(b);
+    }
+
+    public static boolean removeAllEffectFromLivingEntity(LivingEntity a) {
+        return a.removeAllEffects();
+    }
+}

@@ -1,0 +1,117 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.test;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import com.mojang.math.Quaternion;
+import modified.org.joml.Quaternionf;
+import modified.org.joml.Vector3f;
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.GeoModelRegistryName;
+import net.dingdingduang.dfoswordmanskilltree.geomodel.models.channelingbar.ChannelingBarEntity;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods;
+import net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods;
+import net.dingdingduang.dfoswordmanskilltree.util.MathMethods;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import software.bernie.geckolib3.core.util.Color;
+import software.bernie.geckolib3.geo.render.built.GeoModel;
+import software.bernie.geckolib3.renderers.geo.GeoProjectilesRenderer;
+
+import javax.annotation.Nullable;
+
+import static net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants.COLOR_1_OVER_255_PERCENT;
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.EntityMethods.*;
+import static net.dingdingduang.dfoswordmanskilltree.util.QuaternionHelper.QuatRotationByAxis;
+
+public class TestBikeGeoRenderer extends GeoProjectilesRenderer<TestBikeEntity> {
+	public TestBikeGeoRenderer(EntityRendererProvider.Context renderManager) {
+		super(renderManager, new TestBikeModel());
+	}
+
+	@Override
+	public int getSkyLightLevel(TestBikeEntity pEntity, BlockPos pPos) {
+		return 15;
+	}
+
+	@Override
+	public int getBlockLightLevel(TestBikeEntity pEntity, BlockPos pPos) {
+		return 15;
+	}
+
+	@Override
+	public ResourceLocation getTextureLocation(TestBikeEntity instance) {
+		return new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, GeoModelRegistryName.ENTITY_CHANNELING_BAR_TEXTURE);
+	}
+
+	@Override
+	public RenderType getRenderType(TestBikeEntity animatable, float partialTick, PoseStack poseStack,
+									MultiBufferSource bufferSource, VertexConsumer buffer, int packedLight,
+									ResourceLocation texture) {
+		return RenderType.entityTranslucent(getTextureLocation(animatable));
+	}
+
+
+	@Override
+	public void render(TestBikeEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+		this.animatable = entity;
+		//client move
+		if (entity.hasTargetLocXYZ()) {
+			float distPercent = (entity.getMaxLifetime() - entity.getLifetime() + partialTick) / entity.getMaxLifetime();
+			float newX = entity.getStartPosX() + (entity.getTargetPosX() - entity.getStartPosX()) * distPercent;
+			float newY = entity.getStartPosY() + (entity.getTargetPosY() - entity.getStartPosY()) * distPercent;
+			float newZ = entity.getStartPosZ() + (entity.getTargetPosZ() - entity.getStartPosZ()) * distPercent;
+			moveEntityToXYZ(entity, newX, newY, newZ);
+		}
+		else if (entity.isBoundToEntity()) {
+			if (entity.getOwner() != null) {
+				Vector3f lerpVec = getEntityClientPosWithPartialTicks(entity.getOwner(), partialTick).add(entity.getTargetPosX(), entity.getTargetPosY(), entity.getTargetPosZ());
+				moveEntityToPos(entity, lerpVec);
+			}
+		}
+		poseStack.pushPose();
+
+		Entity clientCameraEntity = DfoGeneralMethods.getClientCameraEntity();
+		if (clientCameraEntity != null) {
+			Quaternionf rotatorY = new Quaternionf();
+			QuatRotationByAxis(rotatorY, MathMethods.AngleToRadians(EntityMethods.getEntityHorizontalFacingDeg(clientCameraEntity)), 0f, -1f, 0f);
+
+			Quaternionf rotatorX = new Quaternionf();
+			QuatRotationByAxis(rotatorX, MathMethods.AngleToRadians(EntityMethods.getEntityVerticalFacingDeg(clientCameraEntity)), 1f, 0f, 0f);
+
+			rotatorY.mul(rotatorX);
+
+			if (entity.getEntityScale() != 1) {
+				rotatorY.scale(entity.getEntityScale());
+			}
+
+			Quaternion mojangQuaternionY = new Quaternion(rotatorY.x, rotatorY.y, rotatorY.z, rotatorY.w);
+			poseStack.mulPose(mojangQuaternionY);
+		}
+
+//        this.defaultRender(poseStack, entity, bufferSource, (RenderType) null, (VertexConsumer) null, entityYaw, partialTick, packedLight);
+
+//        this.defaultRender(poseStack, entity, bufferSource, RenderType.entityTranslucentEmissive(getTextureLocation(entity)), (VertexConsumer)null, entityYaw, partialTick, packedLight);
+
+		super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+//		GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(entity));
+//		Color color = getRenderColor(entity);
+//		super.render(model, entity, partialTick, RenderType.entityTranslucent(getTextureLocation(entity)), poseStack, bufferSource, (VertexConsumer)null, packedLight, OverlayTexture.NO_OVERLAY, color.getRed() * COLOR_1_OVER_255_PERCENT, color.getGreen() * COLOR_1_OVER_255_PERCENT, color.getBlue() * COLOR_1_OVER_255_PERCENT, color.getAlpha() * COLOR_1_OVER_255_PERCENT);
+
+		poseStack.popPose();
+	}
+
+//	public int getOverlayTexture() {
+//		return 0;
+//	}
+
+	@Override
+	public Color getRenderColor(TestBikeEntity animatable, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, VertexConsumer buffer, int packedLight) {
+		return Color.WHITE;
+	}
+}

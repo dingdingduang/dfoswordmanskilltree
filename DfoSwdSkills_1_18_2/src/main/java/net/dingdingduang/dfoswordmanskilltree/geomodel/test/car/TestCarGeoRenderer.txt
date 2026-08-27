@@ -1,0 +1,24 @@
+package net.dingdingduang.dfoswordmanskilltree.geomodel.test.car;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+
+public class TestCarGeoRenderer extends GeoEntityRenderer<TestCarEntity> {
+
+	public TestCarGeoRenderer(EntityRendererProvider.Context ctx) {
+		super(ctx, new TestCarModel());
+	}
+
+	@Override
+	public RenderType getRenderType(TestCarEntity animatable, float partialTick, PoseStack poseStack,
+                                    MultiBufferSource bufferSource, VertexConsumer buffer, int packedLight,
+                                    ResourceLocation texture) {
+		return RenderType.entityTranslucent(getTextureLocation(animatable));
+	}
+}

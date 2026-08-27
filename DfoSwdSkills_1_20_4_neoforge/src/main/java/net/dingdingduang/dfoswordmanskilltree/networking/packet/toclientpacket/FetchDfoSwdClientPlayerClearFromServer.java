@@ -1,0 +1,52 @@
+package net.dingdingduang.dfoswordmanskilltree.networking.packet.toclientpacket;
+
+import net.dingdingduang.dfoswordmanskilltree.DfoSwordmanSkillTreeConstants;
+import net.dingdingduang.dfoswordmanskilltree.dfoswdregistry.GeoModelClientMethodsRegistry;
+import net.dingdingduang.dfoswordmanskilltree.particle.ParticleRegistry;
+import net.dingdingduang.dfoswordmanskilltree.util.client.ClientItemOverlayTimer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+
+import static net.dingdingduang.dfoswordmanskilltree.globalmethods.DfoGeneralMethods.getClientPlayer;
+import static net.dingdingduang.dfoswordmanskilltree.globalvalues.GlobalClientMaps.getTemporaryBlockStateMap;
+import static net.dingdingduang.somebasicskills.globalmethods.GeneralMethods.getPacketFailedTranslatableComponent;
+
+public record FetchDfoSwdClientPlayerClearFromServer() implements CustomPacketPayload {
+    public static final ResourceLocation ID = new ResourceLocation(DfoSwordmanSkillTreeConstants.MOD_ID, "fetch_dfo_swd_client_player_clear_from_server");
+
+    @Override
+    public ResourceLocation id() {
+        return ID;
+    }
+
+    public FetchDfoSwdClientPlayerClearFromServer(FriendlyByteBuf buf) {
+        this();
+    }
+
+    public void write(FriendlyByteBuf buf) {
+
+    }
+
+    public static void handle(final FetchDfoSwdClientPlayerClearFromServer data, final PlayPayloadContext context) {
+        // Do something with the data, on the network thread
+//        blah(data.name());
+
+        // Do something with the data, on the main thread
+        context.workHandler().submitAsync(() -> {
+                    //do on main thread
+
+                    ClientItemOverlayTimer.getClientItemOverlayTimerOverlay().setActive(false);
+                    getTemporaryBlockStateMap().clear();
+                    ParticleRegistry.ParticleMapClear();
+                    GeoModelClientMethodsRegistry.GeoModelClientActionNameMapClear();
+//            DfoSwdClientMethodsRegistry.ClientActionNameMapClear();
+                })
+                .exceptionally(e -> {
+                    // Handle exception
+                    context.packetHandler().disconnect(getPacketFailedTranslatableComponent(e.getMessage()));
+                    return null;
+                });
+    }
+}

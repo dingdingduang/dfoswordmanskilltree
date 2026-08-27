@@ -1,0 +1,25 @@
+DfoSwordmanLivingEntityEvent.java
+                //_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+                //aerial slash
+                if (!isEntityInAction && !isEntityChanneling && !isEntityOnGround) {
+                    if (damageSourceEntityOwner instanceof ServerPlayer sp1) {
+                        SkillID = BlademasterSkillTreeInitialization.BLADEMASTER_AERIAL_SLASH;
+                        tempSkillData = getID2SkillData().get(SkillID);
+//                        SkillLVL = 0;
+
+                        if (getGlobalPlayerSkillID2lvlMap().get(sp1).containsKey(SkillID)) {
+                            SkillLVL = getGlobalPlayerSkillID2lvlMap().get(sp1).get(SkillID);
+                            if (SkillLVL > 0) {
+                                SkillLVL = SkillLVL - 1; // index out of boundary
+                            }
+
+                            float aerialDmgMultiplier = tempSkillData.getDamageMultiplierList_01().get(SkillLVL).floatValue();
+                            Vector3f tempEntityDelta = getEntityDeltaMovement(sp1);
+                            tempEntityDelta = new Vector3f(tempEntityDelta.x(), MathMethods.max(-0.001f, tempEntityDelta.y()), tempEntityDelta.z());
+                            DfoSwordmanNetworkingFetchMsgMethods.FetchPlayerDeltaFromServer(sp1, tempEntityDelta, false);
+                            setEntityDeltaMovement(sp1, tempEntityDelta);
+                            totalMultiplier = totalMultiplier + aerialDmgMultiplier - 1f;
+                        }
+
+                    }
+                }
